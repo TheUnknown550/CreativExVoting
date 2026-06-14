@@ -1,0 +1,5 @@
+backend/.env
+backend/server
+backend/server.exe
+frontend/.env
+frontend/dist
