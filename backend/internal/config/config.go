@@ -1,31 +1,37 @@
 package config
 
 import (
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL   string
-	JWTSecret     string
-	Port          string
-	FrontendURL   string
-	MigrationsDir string
-	SeedDemoData  bool
+	DatabaseURL            string
+	JWTSecret              string
+	Port                   string
+	FrontendURL            string
+	AllowedFrontendOrigins []string
+	MigrationsDir          string
+	SeedDemoData           bool
 }
 
 func Load() Config {
 	_ = godotenv.Load(".env", "backend/.env")
 
+	frontendURL := getEnv("FRONTEND_URL", "http://localhost:5173")
+
 	return Config{
-		DatabaseURL:   getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/creativex_voting?sslmode=disable"),
-		JWTSecret:     getEnv("JWT_SECRET", "change-me"),
-		Port:          getEnv("PORT", "8080"),
-		FrontendURL:   getEnv("FRONTEND_URL", "http://localhost:5173"),
-		MigrationsDir: resolveMigrationsDir(),
-		SeedDemoData:  getEnvBool("SEED_DEMO_DATA", false),
+		DatabaseURL:            getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/creativex_voting?sslmode=disable"),
+		JWTSecret:              getEnv("JWT_SECRET", "change-me"),
+		Port:                   getEnv("PORT", "8080"),
+		FrontendURL:            frontendURL,
+		AllowedFrontendOrigins: expandFrontendOrigins(frontendURL),
+		MigrationsDir:          resolveMigrationsDir(),
+		SeedDemoData:           getEnvBool("SEED_DEMO_DATA", false),
 	}
 }
 
@@ -63,4 +69,45 @@ func resolveMigrationsDir() string {
 	}
 
 	return "./migrations"
+}
+
+func expandFrontendOrigins(frontendURL string) []string {
+	origins := []string{}
+	seen := map[string]struct{}{}
+
+	addOrigin := func(origin string) {
+		if origin == "" {
+			return
+		}
+		if _, exists := seen[origin]; exists {
+			return
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+
+	for _, rawOrigin := range strings.Split(frontendURL, ",") {
+		origin := strings.TrimSpace(rawOrigin)
+		if origin == "" {
+			continue
+		}
+
+		addOrigin(origin)
+
+		parsed, err := url.Parse(origin)
+		if err != nil {
+			continue
+		}
+
+		switch parsed.Hostname() {
+		case "localhost":
+			parsed.Host = strings.Replace(parsed.Host, "localhost", "127.0.0.1", 1)
+			addOrigin(parsed.String())
+		case "127.0.0.1":
+			parsed.Host = strings.Replace(parsed.Host, "127.0.0.1", "localhost", 1)
+			addOrigin(parsed.String())
+		}
+	}
+
+	return origins
 }

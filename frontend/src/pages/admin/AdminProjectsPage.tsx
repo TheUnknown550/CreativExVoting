@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -165,10 +165,12 @@ export function AdminProjectsPage() {
         <Card className="soft-card">
           <div className="table-toolbar">
             <div className="table-toolbar__filters">
-              <Input.Search
+              <Input
                 placeholder="Search by title, team, or designer"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
+                allowClear
+                prefix={<SearchOutlined />}
                 style={{ width: 320 }}
               />
               <Select

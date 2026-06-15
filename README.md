@@ -152,7 +152,7 @@ The seed creates:
 - 15 award categories
 - 4 scoring criteria per category
 - 1 judge account per category
-- 3 dummy projects per category
+- 5 dummy projects per category
 
 ## Admin Workflow
 

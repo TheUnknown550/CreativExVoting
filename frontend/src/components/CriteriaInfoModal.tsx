@@ -10,7 +10,13 @@ interface CriteriaInfoModalProps {
 
 export function CriteriaInfoModal({ criterion, open, onClose }: CriteriaInfoModalProps) {
   return (
-    <Modal open={open} title={criterion?.name ?? 'Scoring Criterion'} footer={null} onCancel={onClose}>
+    <Modal
+      open={open}
+      title={criterion?.name ?? 'Scoring Criterion'}
+      footer={null}
+      onCancel={onClose}
+      className="criteria-modal"
+    >
       {criterion ? (
         <>
           <Typography.Paragraph>

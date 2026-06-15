@@ -7,15 +7,42 @@ import './index.css';
 
 const theme = {
   token: {
-    colorPrimary: '#56785e',
-    colorInfo: '#56785e',
-    colorSuccess: '#5d8a67',
-    colorWarning: '#b78b4b',
-    colorError: '#b34e45',
-    borderRadius: 18,
-    colorBgBase: '#f7f3ec',
-    colorTextBase: '#1f2421',
-    fontFamily: '"Manrope", "Segoe UI", sans-serif',
+    colorPrimary: '#f75b00',
+    colorInfo: '#f75b00',
+    colorSuccess: '#2d2d2d',
+    colorWarning: '#f75b00',
+    colorError: '#ba3b24',
+    borderRadius: 24,
+    colorBgBase: '#f3f5f7',
+    colorTextBase: '#111111',
+    fontFamily: '"Prompt", "Segoe UI", sans-serif',
+  },
+  components: {
+    Button: {
+      fontWeight: 500,
+      controlHeightLG: 52,
+    },
+    Input: {
+      controlHeightLG: 52,
+    },
+    Select: {
+      controlHeight: 52,
+    },
+    Card: {
+      borderRadiusLG: 30,
+    },
+    Modal: {
+      borderRadiusLG: 28,
+    },
+    Drawer: {
+      paddingLG: 24,
+    },
+    Table: {
+      headerBg: '#f3f5f7',
+      headerColor: '#222222',
+      borderColor: '#d4d9df',
+      rowHoverBg: '#fafbfc',
+    },
   },
 };
 

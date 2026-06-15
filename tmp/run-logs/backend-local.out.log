@@ -1,2 +1,11 @@
 2026/06/15 21:43:06 [MattPC/ignKCxqBkp-000001] "GET http://localhost:8081/health HTTP/1.1" from [::1]:59410 - 200 2B in 0s
 2026/06/15 21:43:23 [MattPC/ignKCxqBkp-000002] "POST http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:53214 - 200 571B in 51.3657ms
+2026/06/15 22:01:25 [MattPC/ignKCxqBkp-000003] "OPTIONS http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:62458 - 200 0B in 0s
+2026/06/15 22:02:09 [MattPC/ignKCxqBkp-000004] "OPTIONS http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:58247 - 200 0B in 0s
+2026/06/15 22:03:05 [MattPC/ignKCxqBkp-000005] "POST http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:58673 - 200 592B in 61.69ms
+2026/06/15 22:03:36 [MattPC/ignKCxqBkp-000006] "OPTIONS http://localhost:8081/api/auth/me HTTP/1.1" from [::1]:63301 - 200 0B in 0s
+2026/06/15 22:03:36 [MattPC/ignKCxqBkp-000007] "OPTIONS http://localhost:8081/api/auth/me HTTP/1.1" from [::1]:50595 - 200 0B in 0s
+2026/06/15 22:04:43 [MattPC/ignKCxqBkp-000008] "OPTIONS http://localhost:8081/api/auth/me HTTP/1.1" from [::1]:58342 - 200 0B in 0s
+2026/06/15 22:04:43 [MattPC/ignKCxqBkp-000009] "OPTIONS http://localhost:8081/api/auth/me HTTP/1.1" from [::1]:56321 - 200 0B in 0s
+2026/06/15 22:07:13 [MattPC/ignKCxqBkp-000010] "OPTIONS http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:54105 - 200 0B in 0s
+2026/06/15 22:08:12 [MattPC/ignKCxqBkp-000011] "OPTIONS http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:51187 - 200 0B in 0s

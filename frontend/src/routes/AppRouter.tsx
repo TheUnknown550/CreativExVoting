@@ -29,6 +29,9 @@ const AdminJudgesPage = lazy(async () =>
 const AdminResultsPage = lazy(async () =>
   import('../pages/admin/AdminResultsPage').then((module) => ({ default: module.AdminResultsPage })),
 );
+const AdminRankingsPage = lazy(async () =>
+  import('../pages/admin/AdminRankingsPage').then((module) => ({ default: module.AdminRankingsPage })),
+);
 
 function RouteFallback() {
   return (
@@ -79,6 +82,7 @@ export function AppRouter() {
               <Route path="/admin/criteria" element={<AdminCriteriaPage />} />
               <Route path="/admin/judges" element={<AdminJudgesPage />} />
               <Route path="/admin/results" element={<AdminResultsPage />} />
+              <Route path="/admin/rankings" element={<AdminRankingsPage />} />
             </Route>
           </Route>
 

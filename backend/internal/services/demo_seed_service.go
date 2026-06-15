@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	demoAdminUsername    = "admin"
-	demoAdminPassword    = "admin123"
-	demoAdminDisplayName = "CreativeEx System Admin"
-	demoJudgePassword    = "judge123"
+	demoAdminUsername       = "admin"
+	demoAdminPassword       = "admin123"
+	demoAdminDisplayName    = "CreativeEx System Admin"
+	demoJudgePassword       = "judge123"
+	demoProjectsPerCategory = 3
 )
 
 var demoSeedNamespace = uuid.MustParse("80d57efd-047a-4b2f-9dd9-4c7c8ca9e96a")
@@ -124,10 +125,14 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 			return err
 		}
 
-		for _, project := range category.Projects {
+		for _, project := range expandedProjectsForCategory(category) {
 			if err := upsertProjectSeed(ctx, tx, category, categoryID, project); err != nil {
 				return err
 			}
+		}
+
+		if err := removeStaleSeedProjects(ctx, tx, category); err != nil {
+			return err
 		}
 	}
 
@@ -136,6 +141,29 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 
 func deterministicSeedID(key string) string {
 	return uuid.NewSHA1(demoSeedNamespace, []byte(key)).String()
+}
+
+func expandedProjectsForCategory(category demoCategorySeed) []demoProjectSeed {
+	projects := append([]demoProjectSeed{}, category.Projects...)
+	if len(projects) >= demoProjectsPerCategory {
+		return projects[:demoProjectsPerCategory]
+	}
+
+	extraIndex := 1
+	for len(projects) < demoProjectsPerCategory {
+		suffix := len(projects) + 1
+		projects = append(projects, demoProjectSeed{
+			Slug:             fmt.Sprintf("%s-seed-%d", category.Slug, suffix),
+			Title:            fmt.Sprintf("%s Seed Concept %d", category.Code, suffix),
+			ShortDescription: fmt.Sprintf("Additional seeded concept for %s that broadens the demo leaderboard and gives the admin ranking page a fuller top 5 view.", category.Name),
+			ConceptFocus:     fmt.Sprintf("%s with a secondary scenario variation %d", category.CreativeFocus, extraIndex),
+			DesignerName:     fmt.Sprintf("Demo Designer %d", suffix),
+			TeamName:         fmt.Sprintf("%s Demo Team %d", category.Code, suffix),
+		})
+		extraIndex++
+	}
+
+	return projects
 }
 
 func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
@@ -360,6 +388,23 @@ func upsertProjectSeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed
 		extraDetails,
 	)
 	return err
+}
+
+// removeStaleSeedProjects deletes auto-generated "Seed Concept" projects left over
+// from a previous run where demoProjectsPerCategory was larger than the number of
+// hand-authored projects for this category.
+func removeStaleSeedProjects(ctx context.Context, tx pgx.Tx, category demoCategorySeed) error {
+	const maxEverSeededPerCategory = 5
+
+	for suffix := len(category.Projects) + 1; suffix <= maxEverSeededPerCategory; suffix++ {
+		slug := fmt.Sprintf("%s-seed-%d", category.Slug, suffix)
+		projectID := deterministicSeedID("project:" + category.Slug + ":" + slug)
+		if _, err := tx.Exec(ctx, `DELETE FROM projects WHERE id = $1`, projectID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 var demoCategories = []demoCategorySeed{

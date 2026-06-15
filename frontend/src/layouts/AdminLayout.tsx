@@ -3,6 +3,7 @@ import {
   BarChartOutlined,
   FolderOpenOutlined,
   LogoutOutlined,
+  OrderedListOutlined,
   TagsOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
@@ -10,6 +11,7 @@ import { Button, Layout, Menu, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { BrandMark } from '../components/BrandMark';
 import { useAuth } from '../contexts/AuthContext';
 
 const { Sider, Header, Content } = Layout;
@@ -21,6 +23,7 @@ const items: MenuProps['items'] = [
   { key: '/admin/criteria', icon: <BarChartOutlined />, label: 'Criteria' },
   { key: '/admin/judges', icon: <TeamOutlined />, label: 'Judges' },
   { key: '/admin/results', icon: <BarChartOutlined />, label: 'Results' },
+  { key: '/admin/rankings', icon: <OrderedListOutlined />, label: 'Rankings' },
 ];
 
 export function AdminLayout() {
@@ -29,69 +32,50 @@ export function AdminLayout() {
   const { user, logout } = useAuth();
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="admin-shell">
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
         width={260}
-        style={{
-          background: 'linear-gradient(180deg, #233129 0%, #1a221d 100%)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        }}
+        className="admin-sider"
       >
-        <div style={{ padding: 24, color: '#f8f5ef' }}>
-          <Typography.Text
-            style={{
-              color: '#f8f5ef',
-              display: 'block',
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontSize: '1.25rem',
-            }}
-          >
-            Creative Excellence
-          </Typography.Text>
-          <Typography.Text style={{ color: 'rgba(248, 245, 239, 0.75)' }}>
-            Admin control room
-          </Typography.Text>
+        <div className="admin-sider__brand">
+          <BrandMark tone="light" className="admin-sider__mark" />
+          <Typography.Text className="admin-sider__title">CE Awards 2026</Typography.Text>
+          <Typography.Text className="admin-sider__subtitle">Admin control room</Typography.Text>
         </div>
 
         <Menu
           mode="inline"
-          theme="dark"
           selectedKeys={[location.pathname]}
           items={items}
           onClick={({ key }) => navigate(key)}
-          style={{ background: 'transparent', borderInlineEnd: 'none' }}
+          className="admin-menu"
         />
       </Sider>
 
-      <Layout>
-        <Header
-          style={{
-            background: 'rgba(250, 246, 238, 0.88)',
-            borderBottom: '1px solid rgba(94, 104, 98, 0.12)',
-            paddingInline: 24,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-          }}
-        >
-          <div>
-            <Typography.Text strong style={{ display: 'block' }}>
-              {user?.display_name}
-            </Typography.Text>
-            <Typography.Text type="secondary">Platform administrator</Typography.Text>
-          </div>
+      <Layout className="admin-main">
+        <Header className="ce-topbar ce-topbar--admin">
+          <div className="ce-topbar__inner">
+            <div className="ce-brandline">
+              <Typography.Title level={2} className="ce-brandline__title">
+                CE Awards 2026
+              </Typography.Title>
+              <Typography.Text className="ce-brandline__subtitle">
+                Platform administrator
+              </Typography.Text>
+            </div>
 
-          <Space>
-            <Button icon={<LogoutOutlined />} onClick={logout}>
-              Logout
-            </Button>
-          </Space>
+            <Space>
+              <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>
+              <Button className="ce-ghost-button" icon={<LogoutOutlined />} onClick={logout}>
+                Logout
+              </Button>
+            </Space>
+          </div>
         </Header>
 
-        <Content style={{ padding: 24 }}>
+        <Content className="ce-page-content">
           <Outlet />
         </Content>
       </Layout>

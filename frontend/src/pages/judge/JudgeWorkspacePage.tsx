@@ -8,15 +8,12 @@ import {
   Alert,
   Button,
   Card,
-  Col,
   Empty,
   Modal,
-  Row,
   Segmented,
   Select,
   Space,
   Spin,
-  Table,
   Tag,
   Typography,
   message,
@@ -26,6 +23,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import * as judgeApi from '../../api/judge';
 import { ApiError } from '../../api/client';
+import { BrandMark } from '../../components/BrandMark';
+import { ProjectPreview } from '../../components/ProjectPreview';
 import { ProjectVoteDrawer } from '../../components/ProjectVoteDrawer';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Category, JudgeProjectCard, JudgeProjectDetail, JudgeSummaryRow, Vote } from '../../types/domain';
@@ -197,42 +196,155 @@ export function JudgeWorkspacePage() {
   }
 
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const projectsScored = summaryRows.filter((item) => item.has_voted).length;
+  const activeStep = currentTab === 'summary' ? 4 : 3;
+  const judgeSteps = [
+    { id: 1, label: 'Select Category' },
+    { id: 2, label: 'Choose Award' },
+    { id: 3, label: 'Review Nominees' },
+    { id: 4, label: 'Vote Summary' },
+  ];
 
   return (
     <>
       {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <section className="page-hero">
-          <div className="page-hero__eyeline">
-            <div>
-              <Typography.Title className="page-title" level={1}>
-                Judge Voting Workspace
-              </Typography.Title>
-              <Typography.Paragraph className="page-subtitle">
-                Welcome back, {user?.display_name}. Review the projects assigned to your categories,
-                score them against live criteria, and revisit your rankings anytime.
-              </Typography.Paragraph>
-            </div>
+        <section className="judge-toolbar">
+          <Select
+            value={selectedCategoryId}
+            onChange={(value) => {
+              startTransition(() => setSelectedCategoryId(value));
+            }}
+            options={categories.map((category) => ({ value: category.id, label: category.name }))}
+            placeholder="Select category"
+            className="judge-category-select"
+          />
 
+          <div className="judge-toolbar__meta">
+            <Typography.Text className="judge-toolbar__judge">{user?.display_name}</Typography.Text>
             <div className="summary-ribbon">
               <TrophyOutlined />
-              {summaryRows.filter((item) => item.has_voted).length} / {summaryRows.length} projects scored
+              {projectsScored} / {summaryRows.length} projects scored
             </div>
           </div>
+        </section>
 
-          <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
-            <Col xs={24} md={12} lg={8}>
-              <Select
-                value={selectedCategoryId}
-                onChange={(value) => {
-                  startTransition(() => setSelectedCategoryId(value));
-                }}
-                options={categories.map((category) => ({ value: category.id, label: category.name }))}
-                placeholder="Select category"
-                style={{ width: '100%' }}
-              />
-            </Col>
-            <Col xs={24} md={12} lg={8}>
+        <section className="judge-stepper">
+          {judgeSteps.map((step) => (
+            <div key={step.id} className={`judge-step ${activeStep === step.id ? 'judge-step--active' : ''}`}>
+              <span className="judge-step__index">{step.id}</span>
+              <span className="judge-step__label">{step.label}</span>
+            </div>
+          ))}
+        </section>
+
+        {errorMessage ? <Alert type="error" showIcon message={errorMessage} /> : null}
+
+        {loading ? (
+          <div className="full-height-spin" style={{ minHeight: 280 }}>
+            <Spin size="large" />
+          </div>
+        ) : currentTab === 'projects' ? (
+          projects.length > 0 ? (
+            <div className="judge-workspace">
+              <aside className="judge-brand-panel">
+                <BrandMark className="judge-brand-panel__mark" />
+                <Typography.Title level={3} className="judge-brand-panel__title">
+                  {selectedCategory?.name ?? 'CE Awards'}
+                </Typography.Title>
+                <Typography.Paragraph className="judge-brand-panel__copy">
+                  {selectedCategory?.description ||
+                    'Review each nominated work, open the full detail sheet, and submit your scoring criteria before closing the voting round.'}
+                </Typography.Paragraph>
+              </aside>
+
+              <section className="judge-nominees">
+                <div className="judge-nominees__heading">
+                  <Typography.Title level={2} className="judge-nominees__title">
+                    {projects.length} Nominated Works
+                  </Typography.Title>
+                  <Segmented<WorkspaceTab>
+                    value={currentTab}
+                    options={[
+                      { label: 'Vote Projects', value: 'projects' },
+                      { label: 'My Vote Summary', value: 'summary' },
+                    ]}
+                    onChange={(value) => {
+                      startTransition(() => {
+                        navigate(value === 'summary' ? '/judge/summary' : '/judge/projects');
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="judge-nominee-list">
+                  {projects.map((project, index) => (
+                    <article className="nominee-row" key={project.id}>
+                      <div className={`nominee-row__index ${project.has_voted ? 'nominee-row__index--voted' : ''}`}>
+                        {index + 1}
+                      </div>
+
+                      <ProjectPreview
+                        src={project.image_url}
+                        alt={project.title}
+                        className="nominee-row__media"
+                        placeholderClassName="project-card__placeholder nominee-row__media"
+                      />
+
+                      <div className="nominee-row__content">
+                        <div className="nominee-row__section">
+                          <Typography.Text className="nominee-row__label">Project title</Typography.Text>
+                          <Typography.Title level={4} className="nominee-row__title">
+                            {project.title}
+                          </Typography.Title>
+                        </div>
+
+                        <div className="nominee-row__section">
+                          <Typography.Text className="nominee-row__label">Team / Designer</Typography.Text>
+                          <Typography.Paragraph className="nominee-row__text">
+                            {project.designer_name || project.team_name || selectedCategory?.name}
+                          </Typography.Paragraph>
+                        </div>
+
+                        <div className="nominee-row__section nominee-row__section--summary">
+                          <Typography.Text className="nominee-row__label">Project overview</Typography.Text>
+                          <Typography.Paragraph className="nominee-row__text">
+                            {project.short_description || 'No short description was provided.'}
+                          </Typography.Paragraph>
+                        </div>
+                      </div>
+
+                      <div className="nominee-row__actions">
+                        {project.has_voted ? (
+                          <Tag color="green" icon={<CheckCircleFilled />}>
+                            Voted
+                          </Tag>
+                        ) : (
+                          <Tag>Pending</Tag>
+                        )}
+                        <Typography.Text className="nominee-row__score">
+                          {project.current_score != null ? `Score ${project.current_score}` : 'Not scored yet'}
+                        </Typography.Text>
+                        <Button type="primary" icon={<EyeOutlined />} onClick={() => void openProject(project.id)}>
+                          More details
+                        </Button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </div>
+          ) : (
+            <Card className="soft-card">
+              <Empty description="No projects are available in this category yet." />
+            </Card>
+          )
+        ) : (
+          <section className="judge-summary">
+            <div className="judge-summary__heading">
+              <Typography.Title level={2} className="judge-summary__title">
+                Your voting summary
+              </Typography.Title>
               <Segmented<WorkspaceTab>
                 value={currentTab}
                 options={[
@@ -245,107 +357,23 @@ export function JudgeWorkspacePage() {
                   });
                 }}
               />
-            </Col>
-          </Row>
-        </section>
+            </div>
 
-        {errorMessage ? <Alert type="error" showIcon message={errorMessage} /> : null}
-
-        {loading ? (
-          <div className="full-height-spin" style={{ minHeight: 280 }}>
-            <Spin size="large" />
-          </div>
-        ) : currentTab === 'projects' ? (
-          projects.length > 0 ? (
-            <div className="project-grid">
-              {projects.map((project) => (
-                <article
-                  className={`project-card ${project.has_voted ? 'project-card--voted' : ''}`}
-                  key={project.id}
-                >
-                  {project.image_url ? (
-                    <img src={project.image_url} alt={project.title} className="project-card__media" />
-                  ) : (
-                    <div className="project-card__placeholder">Project preview</div>
-                  )}
-
-                  <div style={{ padding: 18 }}>
-                    <Space style={{ width: '100%', justifyContent: 'space-between' }} align="start">
-                      <div>
-                        <Typography.Title level={4} style={{ marginTop: 0, marginBottom: 6 }}>
-                          {project.title}
-                        </Typography.Title>
-                        <Typography.Text type="secondary">
-                          {project.designer_name || project.team_name || selectedCategory?.name}
-                        </Typography.Text>
-                      </div>
-
-                      {project.has_voted ? (
-                        <Tag color="green" icon={<CheckCircleFilled />}>
-                          Voted
-                        </Tag>
-                      ) : (
-                        <Tag>Pending</Tag>
-                      )}
-                    </Space>
-
-                    <Typography.Paragraph
-                      style={{ minHeight: 66, marginTop: 14 }}
-                      type="secondary"
-                    >
-                      {project.short_description || 'No short description was provided.'}
-                    </Typography.Paragraph>
-
-                    <Space style={{ width: '100%', justifyContent: 'space-between' }} align="center">
-                      <Typography.Text strong>
-                        {project.current_score != null ? `Your score: ${project.current_score}` : 'Not scored yet'}
-                      </Typography.Text>
-                      <Button type="primary" icon={<EyeOutlined />} onClick={() => void openProject(project.id)}>
-                        Detail &amp; Vote
-                      </Button>
-                    </Space>
+            <div className="judge-summary-list">
+              {summaryRows.map((record) => (
+                <article className="rank-row" key={record.project_id}>
+                  <div className={`rank-row__index ${record.has_voted ? 'rank-row__index--active' : ''}`}>
+                    {record.ranking}
                   </div>
+                  <Typography.Text className="rank-row__name">{record.project_name}</Typography.Text>
+                  <div className="rank-row__score-pill">{record.total_score}</div>
+                  <Button icon={<FileDoneOutlined />} onClick={() => void openProject(record.project_id)}>
+                    Detail
+                  </Button>
                 </article>
               ))}
             </div>
-          ) : (
-            <Card className="soft-card">
-              <Empty description="No projects are available in this category yet." />
-            </Card>
-          )
-        ) : (
-          <Card className="soft-card">
-            <Table<JudgeSummaryRow>
-              rowKey="project_id"
-              pagination={false}
-              dataSource={summaryRows}
-              columns={[
-                { title: 'Ranking', dataIndex: 'ranking', width: 100 },
-                { title: 'Project Name', dataIndex: 'project_name' },
-                {
-                  title: 'Total Score',
-                  dataIndex: 'total_score',
-                  width: 140,
-                },
-                {
-                  title: 'Vote Status',
-                  dataIndex: 'has_voted',
-                  width: 140,
-                  render: (value: boolean) =>
-                    value ? <Tag color="green">Submitted</Tag> : <Tag>Pending</Tag>,
-                },
-                {
-                  title: 'Detail',
-                  width: 140,
-                  render: (_, record) => (
-                    <Button icon={<FileDoneOutlined />} onClick={() => void openProject(record.project_id)}>
-                      Detail
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          </Card>
+          </section>
         )}
       </Space>
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { ApiError } from '../../api/client';
+import { BrandMark } from '../../components/BrandMark';
 import { demoAdminAccount, demoJudgeAccounts, demoJudgePassword } from '../../constants/demoAccounts';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -51,87 +52,51 @@ export function LoginPage() {
   }
 
   return (
-    <div className="login-shell">
-      <div className="login-panel">
-        <section className="soft-card login-story">
-          <Typography.Text className="login-story__kicker">Award Judging Platform</Typography.Text>
-          <Typography.Title className="page-title" style={{ marginTop: 12, marginBottom: 12 }}>
-            Creative Excellence Awards Voting System
+    <div className="login-shell ce-login">
+      <section className="ce-login__intro">
+        <div className="ce-login__bar">
+          <Typography.Title level={1} className="ce-login__bar-title">
+            CE Awards 2026
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle" style={{ marginTop: 0 }}>
-            Judges can review assigned categories, score projects against live criteria, revisit votes,
-            and view their own ranking summary. Admins can manage the full event workflow and export
-            every judging result.
+          <BrandMark className="ce-login__bar-mark" />
+        </div>
+
+        <div className="ce-login__hero">
+          <Typography.Title level={2} className="ce-login__headline">
+            CREATIVE EXCELLENCE AWARDS 2026
+          </Typography.Title>
+          <Typography.Paragraph className="ce-login__copy">
+            Enter the official voting system for CE Awards judging. Review assigned categories, score
+            nominees against live criteria, and export the final award results from one platform.
           </Typography.Paragraph>
 
-          <div className="demo-credentials">
-            <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 10 }}>
-              Seeded Demo Access
-            </Typography.Title>
-            <Typography.Paragraph type="secondary" style={{ marginBottom: 10 }}>
-              This build ships with 15 award categories, 15 judge accounts, and 45 dummy projects.
-            </Typography.Paragraph>
-            <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
-              <Button
-                size="small"
-                onClick={() => applyDemoCredentials(demoAdminAccount.username, demoAdminAccount.password)}
-              >
-                Use admin demo
-              </Button>
-              <Button
-                size="small"
-                onClick={() => applyDemoCredentials(demoJudgeAccounts[0].username, demoJudgePassword)}
-              >
-                Use first judge demo
-              </Button>
-            </Space>
-            <Typography.Paragraph style={{ marginBottom: 6 }}>
-              Admin: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
-              <Typography.Text code>{demoAdminAccount.password}</Typography.Text>
-            </Typography.Paragraph>
-            <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
-              All judge accounts use <Typography.Text code>{demoJudgePassword}</Typography.Text>. Click
-              a category below to prefill the login form.
-            </Typography.Paragraph>
-
-            <div className="demo-credential-grid">
-              {demoJudgeAccounts.map((account) => (
-                <button
-                  key={account.username}
-                  type="button"
-                  className="demo-credential-pill"
-                  onClick={() => applyDemoCredentials(account.username, demoJudgePassword)}
-                >
-                  <strong>{account.label}</strong>
-                  <span>{account.username}</span>
-                </button>
-              ))}
+          <div className="ce-login__stats">
+            <div className="ce-login__stat">
+              <strong>15</strong>
+              <span>Awards</span>
+            </div>
+            <div className="ce-login__stat">
+              <strong>150</strong>
+              <span>Nominated Works</span>
+            </div>
+            <div className="ce-login__stat">
+              <strong>7 Days</strong>
+              <span>Voting Window</span>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="login-story__stats">
-            <div className="stat-card">
-              <strong>Role-aware</strong>
-              <Typography.Text type="secondary">JWT-secured judge and admin experiences.</Typography.Text>
-            </div>
-            <div className="stat-card">
-              <strong>Flexible criteria</strong>
-              <Typography.Text type="secondary">Scores and rubrics stay database-driven.</Typography.Text>
-            </div>
-            <div className="stat-card">
-              <strong>Traceable voting</strong>
-              <Typography.Text type="secondary">Editable submissions with export-ready reporting.</Typography.Text>
-            </div>
-          </div>
-        </section>
+      <section className="ce-login__stage">
+        <div className="ce-login__shape ce-login__shape--one" />
+        <div className="ce-login__shape ce-login__shape--two" />
+        <div className="ce-login__shape ce-login__shape--three" />
+        <BrandMark tone="light" className="ce-login__stage-mark" />
 
-        <Card className="soft-card" styles={{ body: { padding: 28 } }}>
-          <Typography.Title level={3} style={{ marginTop: 0 }}>
-            Sign In
+        <Card className="ce-login-card" styles={{ body: { padding: 30 } }}>
+          <Typography.Title level={2} className="ce-login-card__title">
+            LOG IN
           </Typography.Title>
-          <Typography.Paragraph type="secondary">
-            Use your event username and password to access the judging workspace.
-          </Typography.Paragraph>
 
           {errorMessage ? (
             <Alert type="error" message={errorMessage} showIcon style={{ marginBottom: 18 }} />
@@ -147,16 +112,58 @@ export function LoginPage() {
               <Input prefix={<UserOutlined />} placeholder="Enter your username" size="large" />
             </Form.Item>
 
-            <Form.Item name="password" label="Password" rules={[{ required: true }]}>
+            <Form.Item name="password" label="Passwords" rules={[{ required: true }]}>
               <Input.Password prefix={<LockOutlined />} placeholder="Enter your password" size="large" />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
-              Login
+              เข้าสู่ระบบ
             </Button>
           </Form>
+
+          <div className="ce-demo-panel">
+            <Typography.Text className="ce-demo-panel__label">Demo access</Typography.Text>
+            <Typography.Paragraph className="ce-demo-panel__copy">
+              Admin: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
+              <Typography.Text code>{demoAdminAccount.password}</Typography.Text>
+            </Typography.Paragraph>
+            <Typography.Paragraph className="ce-demo-panel__copy">
+              All judges use <Typography.Text code>{demoJudgePassword}</Typography.Text>.
+            </Typography.Paragraph>
+
+            <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
+              <Button
+                size="small"
+                className="ce-demo-panel__button"
+                onClick={() => applyDemoCredentials(demoAdminAccount.username, demoAdminAccount.password)}
+              >
+                Use admin demo
+              </Button>
+              <Button
+                size="small"
+                className="ce-demo-panel__button"
+                onClick={() => applyDemoCredentials(demoJudgeAccounts[0].username, demoJudgePassword)}
+              >
+                Use first judge
+              </Button>
+            </Space>
+
+            <div className="demo-credential-grid">
+              {demoJudgeAccounts.map((account) => (
+                <button
+                  key={account.username}
+                  type="button"
+                  className="demo-credential-pill"
+                  onClick={() => applyDemoCredentials(account.username, demoJudgePassword)}
+                >
+                  <strong>{account.label}</strong>
+                  <span>{account.username}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </Card>
-      </div>
+      </section>
     </div>
   );
 }

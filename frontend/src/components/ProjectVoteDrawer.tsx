@@ -10,7 +10,6 @@ import {
   Drawer,
   Empty,
   Form,
-  Image,
   InputNumber,
   Space,
   Spin,
@@ -20,6 +19,7 @@ import { useEffect, useState } from 'react';
 
 import type { JudgeProjectDetail, ScoringCriterion, Vote } from '../types/domain';
 import { CriteriaInfoModal } from './CriteriaInfoModal';
+import { ProjectPreview } from './ProjectPreview';
 
 interface ProjectVoteDrawerProps {
   open: boolean;
@@ -97,9 +97,10 @@ export function ProjectVoteDrawer({
           setActiveCriterion(null);
           onClose();
         }}
-        width={720}
+        width={960}
         title={detail?.project.title ?? 'Project details'}
         destroyOnHidden
+        className="vote-drawer"
       >
         {loading ? (
           <div className="full-height-spin" style={{ minHeight: 320 }}>
@@ -109,19 +110,14 @@ export function ProjectVoteDrawer({
           <Empty description="Select a project to view details." />
         ) : (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            {detail.project.image_url ? (
-              <Image
-                src={detail.project.image_url}
-                alt={detail.project.title}
-                style={{ width: '100%', borderRadius: 20, objectFit: 'cover', maxHeight: 320 }}
-              />
-            ) : (
-              <div className="project-card__placeholder" style={{ borderRadius: 20, height: 240 }}>
-                Project preview
-              </div>
-            )}
+            <ProjectPreview
+              src={detail.project.image_url}
+              alt={detail.project.title}
+              placeholderClassName="project-card__placeholder"
+              style={{ width: '100%', borderRadius: 20, objectFit: 'cover', maxHeight: 320, height: 240 }}
+            />
 
-            <Descriptions column={1} bordered size="small">
+            <Descriptions column={1} bordered size="small" className="vote-drawer__details">
               <Descriptions.Item label="Category">{detail.project.category_name}</Descriptions.Item>
               <Descriptions.Item label="Designer / Team">
                 {detail.project.designer_name || detail.project.team_name || 'Not provided'}
@@ -141,7 +137,7 @@ export function ProjectVoteDrawer({
             </Descriptions>
 
             <div>
-              <Typography.Title level={5}>Project Resources</Typography.Title>
+              <Typography.Title level={5}>Project resources</Typography.Title>
               {externalLinks.length > 0 ? (
                 <div className="detail-link-list">
                   {externalLinks.map((item) => (
@@ -155,7 +151,7 @@ export function ProjectVoteDrawer({
               )}
             </div>
 
-            <Divider />
+            <Divider style={{ borderColor: '#cfd5dc' }} />
 
             <Typography.Title level={4} style={{ margin: 0 }}>
               Submit Your Vote
@@ -170,14 +166,17 @@ export function ProjectVoteDrawer({
 
             <Form form={form} layout="vertical" onFinish={handleFinish}>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                {detail.criteria.map((criterion) => (
-                  <div key={criterion.id} className="soft-card" style={{ padding: 18 }}>
+                {detail.criteria.map((criterion, index) => (
+                  <div key={criterion.id} className="vote-criterion-card">
                     <Space
                       direction="vertical"
                       size={12}
                       style={{ width: '100%', justifyContent: 'space-between' }}
                     >
                       <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                        <Typography.Text className="vote-criterion-card__index">
+                          Criterion {index + 1}
+                        </Typography.Text>
                         <div>
                           <Typography.Text strong>{criterion.name}</Typography.Text>
                           <Typography.Paragraph type="secondary" style={{ marginBottom: 0, marginTop: 4 }}>
