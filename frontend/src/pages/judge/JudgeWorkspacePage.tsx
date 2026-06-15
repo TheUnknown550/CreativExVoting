@@ -197,13 +197,6 @@ export function JudgeWorkspacePage() {
 
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
   const projectsScored = summaryRows.filter((item) => item.has_voted).length;
-  const activeStep = currentTab === 'summary' ? 4 : 3;
-  const judgeSteps = [
-    { id: 1, label: 'Select Category' },
-    { id: 2, label: 'Choose Award' },
-    { id: 3, label: 'Review Nominees' },
-    { id: 4, label: 'Vote Summary' },
-  ];
 
   return (
     <>
@@ -227,15 +220,6 @@ export function JudgeWorkspacePage() {
               {projectsScored} / {summaryRows.length} projects scored
             </div>
           </div>
-        </section>
-
-        <section className="judge-stepper">
-          {judgeSteps.map((step) => (
-            <div key={step.id} className={`judge-step ${activeStep === step.id ? 'judge-step--active' : ''}`}>
-              <span className="judge-step__index">{step.id}</span>
-              <span className="judge-step__label">{step.label}</span>
-            </div>
-          ))}
         </section>
 
         {errorMessage ? <Alert type="error" showIcon message={errorMessage} /> : null}
