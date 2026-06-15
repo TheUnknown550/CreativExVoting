@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -12,6 +13,7 @@ type Config struct {
 	Port          string
 	FrontendURL   string
 	MigrationsDir string
+	SeedDemoData  bool
 }
 
 func Load() Config {
@@ -23,6 +25,7 @@ func Load() Config {
 		Port:          getEnv("PORT", "8080"),
 		FrontendURL:   getEnv("FRONTEND_URL", "http://localhost:5173"),
 		MigrationsDir: resolveMigrationsDir(),
+		SeedDemoData:  getEnvBool("SEED_DEMO_DATA", false),
 	}
 }
 
@@ -31,6 +34,20 @@ func getEnv(key string, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return fallback
+	}
+
+	return parsed
 }
 
 func resolveMigrationsDir() string {

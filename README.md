@@ -111,6 +111,49 @@ go run ./cmd/server --create-admin --username admin --password admin123 --displa
 
 You can also rely on the environment defaults from `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `ADMIN_DISPLAY_NAME`.
 
+## Demo Seed Data
+
+The repo now includes an idempotent demo seed for local and Docker use.
+
+- Docker Compose seeds demo data automatically because `SEED_DEMO_DATA=true` is set for the backend service.
+- Local backend startup can do the same by setting `SEED_DEMO_DATA=true` in `backend/.env`.
+- For a one-off seed run without starting the server:
+
+```bash
+cd backend
+go run ./cmd/server --seed-demo
+```
+
+Seeded access:
+
+- Admin: `admin` / `admin123`
+- Judges: one account per category, all using password `judge123`
+
+Judge usernames:
+
+- `judge-city-festival`
+- `judge-city-branding`
+- `judge-city-policy`
+- `judge-city-regeneration`
+- `judge-city-collaboration`
+- `judge-creative-ip`
+- `judge-transformation`
+- `judge-data`
+- `judge-campaign`
+- `judge-commerce`
+- `judge-inclusivity`
+- `judge-wellbeing`
+- `judge-equality`
+- `judge-education`
+- `judge-green`
+
+The seed creates:
+
+- 15 award categories
+- 4 scoring criteria per category
+- 1 judge account per category
+- 3 dummy projects per category
+
 ## Admin Workflow
 
 1. Sign in with the admin account.

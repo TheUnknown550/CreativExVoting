@@ -41,7 +41,7 @@ func (h *AdminHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, categories)
+	utils.Success(w, http.StatusOK, ensureSlice(categories))
 }
 
 func (h *AdminHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +88,7 @@ func (h *AdminHandler) ListProjects(w http.ResponseWriter, r *http.Request) {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, projects)
+	utils.Success(w, http.StatusOK, ensureSlice(projects))
 }
 
 func (h *AdminHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +133,7 @@ func (h *AdminHandler) ListCriteria(w http.ResponseWriter, r *http.Request) {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, criteria)
+	utils.Success(w, http.StatusOK, ensureSlice(criteria))
 }
 
 func (h *AdminHandler) CreateCriterion(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +178,7 @@ func (h *AdminHandler) ListJudges(w http.ResponseWriter, r *http.Request) {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, judges)
+	utils.Success(w, http.StatusOK, ensureSlice(judges))
 }
 
 func (h *AdminHandler) CreateJudge(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +236,7 @@ func (h *AdminHandler) GetJudgeAssignments(w http.ResponseWriter, r *http.Reques
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, assignments)
+	utils.Success(w, http.StatusOK, ensureStrings(assignments))
 }
 
 func (h *AdminHandler) ReplaceJudgeAssignments(w http.ResponseWriter, r *http.Request) {
@@ -266,7 +266,7 @@ func (h *AdminHandler) Results(w http.ResponseWriter, r *http.Request) {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.Success(w, http.StatusOK, response)
+	utils.Success(w, http.StatusOK, ensureResults(response))
 }
 
 func (h *AdminHandler) ExportResults(w http.ResponseWriter, r *http.Request) {

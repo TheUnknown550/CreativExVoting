@@ -29,7 +29,7 @@ func (h *JudgeHandler) Categories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Success(w, http.StatusOK, categories)
+	utils.Success(w, http.StatusOK, ensureSlice(categories))
 }
 
 func (h *JudgeHandler) Projects(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func (h *JudgeHandler) Projects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Success(w, http.StatusOK, projects)
+	utils.Success(w, http.StatusOK, ensureSlice(projects))
 }
 
 func (h *JudgeHandler) ProjectDetail(w http.ResponseWriter, r *http.Request) {
@@ -108,5 +108,5 @@ func (h *JudgeHandler) Summary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Success(w, http.StatusOK, summary)
+	utils.Success(w, http.StatusOK, ensureSlice(summary))
 }

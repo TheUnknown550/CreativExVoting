@@ -18,7 +18,7 @@ export function getDashboard(token: string) {
 }
 
 export function getAdminCategories(token: string) {
-  return apiRequest<Category[]>('/admin/categories', { token });
+  return apiRequest<Category[] | null>('/admin/categories', { token }).then((data) => data ?? []);
 }
 
 export function createCategory(token: string, payload: CategoryPayload) {
@@ -45,10 +45,10 @@ export function deleteCategory(token: string, id: string) {
 }
 
 export function getAdminProjects(token: string, categoryId?: string, search?: string) {
-  return apiRequest<Project[]>(
+  return apiRequest<Project[] | null>(
     `/admin/projects${buildQuery({ category_id: categoryId, search })}`,
     { token },
-  );
+  ).then((data) => data ?? []);
 }
 
 export function createProject(token: string, payload: ProjectPayload) {
@@ -75,10 +75,10 @@ export function deleteProject(token: string, id: string) {
 }
 
 export function getAdminCriteria(token: string, categoryId?: string) {
-  return apiRequest<ScoringCriterion[]>(
+  return apiRequest<ScoringCriterion[] | null>(
     `/admin/criteria${buildQuery({ category_id: categoryId })}`,
     { token },
-  );
+  ).then((data) => data ?? []);
 }
 
 export function createCriterion(token: string, payload: CriterionPayload) {
@@ -105,7 +105,7 @@ export function deleteCriterion(token: string, id: string) {
 }
 
 export function getAdminJudges(token: string) {
-  return apiRequest<User[]>('/admin/judges', { token });
+  return apiRequest<User[] | null>('/admin/judges', { token }).then((data) => data ?? []);
 }
 
 export function createJudge(token: string, payload: JudgePayload) {
@@ -140,7 +140,7 @@ export function resetJudgePassword(token: string, id: string, password: string) 
 }
 
 export function getJudgeAssignments(token: string, id: string) {
-  return apiRequest<string[]>(`/admin/judges/${id}/categories`, { token });
+  return apiRequest<string[] | null>(`/admin/judges/${id}/categories`, { token }).then((data) => data ?? []);
 }
 
 export function replaceJudgeAssignments(token: string, id: string, categoryIds: string[]) {
@@ -159,10 +159,13 @@ export function deleteJudgeAssignment(token: string, id: string, categoryId: str
 }
 
 export function getAdminResults(token: string, categoryId?: string, judgeId?: string) {
-  return apiRequest<ResultsResponse>(
+  return apiRequest<ResultsResponse | null>(
     `/admin/results${buildQuery({ category_id: categoryId, judge_id: judgeId })}`,
     { token },
-  );
+  ).then((data) => ({
+    rankings: data?.rankings ?? [],
+    judge_votes: data?.judge_votes ?? [],
+  }));
 }
 
 export function getProjectVoteDetail(token: string, projectId: string) {

@@ -162,6 +162,52 @@ a {
   margin-top: 28px;
 }
 
+.demo-credentials {
+  margin-top: 28px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 252, 247, 0.82);
+  border: 1px solid rgba(94, 104, 98, 0.1);
+}
+
+.demo-credential-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.demo-credential-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(94, 104, 98, 0.12);
+  background: rgba(250, 246, 238, 0.92);
+  color: #1f2421;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  font: inherit;
+}
+
+.demo-credential-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(123, 106, 80, 0.28);
+  box-shadow: 0 10px 24px rgba(63, 56, 44, 0.08);
+}
+
+.demo-credential-pill strong {
+  font-size: 0.96rem;
+}
+
+.demo-credential-pill span {
+  color: rgba(31, 36, 33, 0.68);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
 .stat-card {
   padding: 16px;
   border-radius: 18px;
@@ -265,6 +311,10 @@ a {
   }
 
   .login-story__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-credential-grid {
     grid-template-columns: 1fr;
   }
 

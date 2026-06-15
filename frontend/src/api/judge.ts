@@ -9,18 +9,21 @@ import type {
 } from '../types/domain';
 
 export function getJudgeCategories(token: string) {
-  return apiRequest<Category[]>('/judge/categories', { token });
+  return apiRequest<Category[] | null>('/judge/categories', { token }).then((data) => data ?? []);
 }
 
 export function getJudgeProjects(token: string, categoryId?: string) {
-  return apiRequest<JudgeProjectCard[]>(
+  return apiRequest<JudgeProjectCard[] | null>(
     `/judge/projects${buildQuery({ category_id: categoryId })}`,
     { token },
-  );
+  ).then((data) => data ?? []);
 }
 
 export function getJudgeProjectDetail(token: string, projectId: string) {
-  return apiRequest<JudgeProjectDetail>(`/judge/projects/${projectId}`, { token });
+  return apiRequest<JudgeProjectDetail>(`/judge/projects/${projectId}`, { token }).then((data) => ({
+    ...data,
+    criteria: data.criteria ?? [],
+  }));
 }
 
 export function getMyVote(token: string, projectId: string) {
@@ -44,8 +47,8 @@ export function updateVote(token: string, projectId: string, payload: VoteSubmis
 }
 
 export function getJudgeSummary(token: string, categoryId?: string) {
-  return apiRequest<JudgeSummaryRow[]>(
+  return apiRequest<JudgeSummaryRow[] | null>(
     `/judge/summary${buildQuery({ category_id: categoryId })}`,
     { token },
-  );
+  ).then((data) => data ?? []);
 }

@@ -24,6 +24,7 @@ import (
 
 func main() {
 	createAdmin := flag.Bool("create-admin", false, "create or update the first admin account")
+	seedDemo := flag.Bool("seed-demo", false, "seed demo data and exit")
 	adminUsername := flag.String("username", os.Getenv("ADMIN_USERNAME"), "admin username")
 	adminPassword := flag.String("password", os.Getenv("ADMIN_PASSWORD"), "admin password")
 	adminDisplayName := flag.String("display-name", os.Getenv("ADMIN_DISPLAY_NAME"), "admin display name")
@@ -50,6 +51,7 @@ func main() {
 	adminService := services.NewAdminService(adminRepo)
 	judgeService := services.NewJudgeService(judgeRepo)
 	importService := services.NewGoogleSheetsImportService()
+	demoSeedService := services.NewDemoSeedService(pool, authRepo)
 
 	if *createAdmin {
 		if *adminUsername == "" || *adminPassword == "" || *adminDisplayName == "" {
@@ -60,6 +62,16 @@ func main() {
 		}
 		fmt.Println("admin account created or updated successfully")
 		return
+	}
+
+	if cfg.SeedDemoData || *seedDemo {
+		if err := demoSeedService.Seed(ctx); err != nil {
+			log.Fatalf("demo seed failed: %v", err)
+		}
+		log.Println("demo data seeded successfully")
+		if *seedDemo {
+			return
+		}
 	}
 
 	router := chi.NewRouter()

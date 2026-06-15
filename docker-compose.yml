@@ -29,6 +29,7 @@ services:
       PORT: "8080"
       FRONTEND_URL: http://localhost:5173
       MIGRATIONS_DIR: /app/backend/migrations
+      SEED_DEMO_DATA: "true"
     ports:
       - "8080:8080"
 

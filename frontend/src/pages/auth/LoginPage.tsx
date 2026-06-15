@@ -1,9 +1,10 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Form, Input, Typography } from 'antd';
+import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { ApiError } from '../../api/client';
+import { demoAdminAccount, demoJudgeAccounts, demoJudgePassword } from '../../constants/demoAccounts';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface LoginFormValues {
@@ -15,6 +16,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, login } = useAuth();
+  const [form] = Form.useForm<LoginFormValues>();
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -43,6 +45,11 @@ export function LoginPage() {
     }
   }
 
+  function applyDemoCredentials(username: string, password: string) {
+    form.setFieldsValue({ username, password });
+    setErrorMessage(null);
+  }
+
   return (
     <div className="login-shell">
       <div className="login-panel">
@@ -56,6 +63,51 @@ export function LoginPage() {
             and view their own ranking summary. Admins can manage the full event workflow and export
             every judging result.
           </Typography.Paragraph>
+
+          <div className="demo-credentials">
+            <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 10 }}>
+              Seeded Demo Access
+            </Typography.Title>
+            <Typography.Paragraph type="secondary" style={{ marginBottom: 10 }}>
+              This build ships with 15 award categories, 15 judge accounts, and 45 dummy projects.
+            </Typography.Paragraph>
+            <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
+              <Button
+                size="small"
+                onClick={() => applyDemoCredentials(demoAdminAccount.username, demoAdminAccount.password)}
+              >
+                Use admin demo
+              </Button>
+              <Button
+                size="small"
+                onClick={() => applyDemoCredentials(demoJudgeAccounts[0].username, demoJudgePassword)}
+              >
+                Use first judge demo
+              </Button>
+            </Space>
+            <Typography.Paragraph style={{ marginBottom: 6 }}>
+              Admin: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
+              <Typography.Text code>{demoAdminAccount.password}</Typography.Text>
+            </Typography.Paragraph>
+            <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              All judge accounts use <Typography.Text code>{demoJudgePassword}</Typography.Text>. Click
+              a category below to prefill the login form.
+            </Typography.Paragraph>
+
+            <div className="demo-credential-grid">
+              {demoJudgeAccounts.map((account) => (
+                <button
+                  key={account.username}
+                  type="button"
+                  className="demo-credential-pill"
+                  onClick={() => applyDemoCredentials(account.username, demoJudgePassword)}
+                >
+                  <strong>{account.label}</strong>
+                  <span>{account.username}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="login-story__stats">
             <div className="stat-card">
@@ -85,7 +137,12 @@ export function LoginPage() {
             <Alert type="error" message={errorMessage} showIcon style={{ marginBottom: 18 }} />
           ) : null}
 
-          <Form<LoginFormValues> layout="vertical" onFinish={handleFinish} requiredMark={false}>
+          <Form<LoginFormValues>
+            form={form}
+            layout="vertical"
+            onFinish={handleFinish}
+            requiredMark={false}
+          >
             <Form.Item name="username" label="Username" rules={[{ required: true }]}>
               <Input prefix={<UserOutlined />} placeholder="Enter your username" size="large" />
             </Form.Item>

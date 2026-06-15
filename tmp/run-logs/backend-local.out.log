@@ -1,0 +1,2 @@
+2026/06/15 21:43:06 [MattPC/ignKCxqBkp-000001] "GET http://localhost:8081/health HTTP/1.1" from [::1]:59410 - 200 2B in 0s
+2026/06/15 21:43:23 [MattPC/ignKCxqBkp-000002] "POST http://localhost:8081/api/auth/login HTTP/1.1" from [::1]:53214 - 200 571B in 51.3657ms
