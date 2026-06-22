@@ -37,7 +37,7 @@ export function AdminCategoriesPage() {
     try {
       setCategories(await adminApi.getAdminCategories(token));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load categories.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
     } finally {
       setLoading(false);
     }
@@ -77,9 +77,9 @@ export function AdminCategoriesPage() {
       }
       setModalOpen(false);
       await loadCategories();
-      messageApi.success(`Category ${editingCategory ? 'updated' : 'created'} successfully.`);
+      messageApi.success(`${editingCategory ? 'แก้ไข' : 'สร้าง'}หมวดหมู่สำเร็จแล้ว`);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to save category.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกหมวดหมู่ได้');
     } finally {
       setSaving(false);
     }
@@ -92,9 +92,9 @@ export function AdminCategoriesPage() {
     try {
       await adminApi.deleteCategory(token, id);
       await loadCategories();
-      messageApi.success('Category deactivated.');
+      messageApi.success('ปิดการใช้งานหมวดหมู่แล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to deactivate category.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานหมวดหมู่ได้');
     }
   }
 
@@ -104,21 +104,21 @@ export function AdminCategoriesPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Category Management
+            จัดการหมวดหมู่
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            Create award groups, adjust descriptions, and control which categories are available for
-            project assignment and judging.
+            สร้างกลุ่มรางวัล ปรับคำอธิบาย และควบคุมว่าหมวดหมู่ใดสามารถใช้สำหรับมอบหมายผลงาน
+            และการตัดสินได้
           </Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
           <div className="table-toolbar">
             <Typography.Title level={4} style={{ margin: 0 }}>
-              Categories
+              หมวดหมู่
             </Typography.Title>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              New Category
+              สร้างหมวดหมู่ใหม่
             </Button>
           </div>
 
@@ -128,32 +128,32 @@ export function AdminCategoriesPage() {
             dataSource={categories}
             pagination={false}
             columns={[
-              { title: 'Name', dataIndex: 'name' },
+              { title: 'ชื่อ', dataIndex: 'name' },
               {
-                title: 'Description',
+                title: 'คำอธิบาย',
                 dataIndex: 'description',
-                render: (value: string) => value || <Typography.Text type="secondary">No description</Typography.Text>,
+                render: (value: string) => value || <Typography.Text type="secondary">ไม่มีคำอธิบาย</Typography.Text>,
               },
               {
-                title: 'Status',
+                title: 'สถานะ',
                 dataIndex: 'is_active',
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>Active</Typography.Text> : 'Inactive',
+                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
               },
               {
-                title: 'Actions',
+                title: 'การจัดการ',
                 width: 180,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      Edit
+                      แก้ไข
                     </Button>
                     <Popconfirm
-                      title="Deactivate this category?"
+                      title="ปิดการใช้งานหมวดหมู่นี้หรือไม่?"
                       onConfirm={() => void handleDelete(record.id)}
                     >
                       <Button danger icon={<DeleteOutlined />}>
-                        Deactivate
+                        ปิดการใช้งาน
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -166,19 +166,19 @@ export function AdminCategoriesPage() {
 
       <Modal
         open={modalOpen}
-        title={editingCategory ? 'Edit Category' : 'Create Category'}
+        title={editingCategory ? 'แก้ไขหมวดหมู่' : 'สร้างหมวดหมู่'}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ is_active: true }}>
-          <Form.Item name="name" label="Category Name" rules={[{ required: true }]}>
+          <Form.Item name="name" label="ชื่อหมวดหมู่" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="Description">
+          <Form.Item name="description" label="คำอธิบาย">
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

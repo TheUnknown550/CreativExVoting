@@ -19,7 +19,7 @@ export function JudgeLayout() {
               CE Awards 2026
             </Typography.Title>
             <Typography.Text className="ce-brandline__subtitle">
-              Judge workspace
+              พื้นที่ทำงานกรรมการ
             </Typography.Text>
           </div>
 
@@ -27,7 +27,7 @@ export function JudgeLayout() {
             <Tag className="ce-role-tag">{user?.role}</Tag>
             <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>
             <Button className="ce-ghost-button" icon={<LogoutOutlined />} onClick={logout}>
-              Logout
+              ออกจากระบบ
             </Button>
             <BrandMark tone="light" className="ce-topbar__mark" />
           </Space>

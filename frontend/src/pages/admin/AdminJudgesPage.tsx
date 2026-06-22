@@ -55,7 +55,7 @@ export function AdminJudgesPage() {
       setJudges(nextJudges);
       setCategories(nextCategories);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load judges.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดรายชื่อกรรมการได้');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function AdminJudgesPage() {
       });
       setModalOpen(true);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load assignments.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดการมอบหมายหมวดหมู่ได้');
     }
   }
 
@@ -109,9 +109,9 @@ export function AdminJudgesPage() {
       }
       setModalOpen(false);
       await loadPageData();
-      messageApi.success(`Judge ${editingJudge ? 'updated' : 'created'} successfully.`);
+      messageApi.success(`${editingJudge ? 'แก้ไข' : 'สร้าง'}กรรมการสำเร็จแล้ว`);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to save judge.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกข้อมูลกรรมการได้');
     } finally {
       setSaving(false);
     }
@@ -124,9 +124,9 @@ export function AdminJudgesPage() {
     try {
       await adminApi.deleteJudge(token, id);
       await loadPageData();
-      messageApi.success('Judge deactivated.');
+      messageApi.success('ปิดการใช้งานผู้ใช้แล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to deactivate judge.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานผู้ใช้ได้');
     }
   }
 
@@ -139,9 +139,9 @@ export function AdminJudgesPage() {
       await adminApi.resetJudgePassword(token, editingJudge.id, values.password);
       setPasswordModalOpen(false);
       passwordForm.resetFields();
-      messageApi.success('Password reset successfully.');
+      messageApi.success('ตั้งรหัสผ่านใหม่สำเร็จแล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to reset password.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถตั้งรหัสผ่านใหม่ได้');
     } finally {
       setSaving(false);
     }
@@ -153,21 +153,21 @@ export function AdminJudgesPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Judge Management
+            จัดการกรรมการ
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            Provision judge accounts, control access, reset credentials, and assign each judge to the
-            categories they should review.
+            สร้างบัญชีกรรมการ ควบคุมสิทธิ์การเข้าถึง ตั้งรหัสผ่านใหม่
+            และมอบหมายหมวดหมู่ที่กรรมการแต่ละคนต้องตัดสิน
           </Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
           <div className="table-toolbar">
             <Typography.Title level={4} style={{ margin: 0 }}>
-              Judges &amp; Admins
+              กรรมการและผู้ดูแลระบบ
             </Typography.Title>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              New User
+              สร้างผู้ใช้ใหม่
             </Button>
           </div>
 
@@ -177,23 +177,23 @@ export function AdminJudgesPage() {
             dataSource={judges}
             pagination={false}
             columns={[
-              { title: 'Display Name', dataIndex: 'display_name' },
-              { title: 'Username', dataIndex: 'username' },
-              { title: 'Role', dataIndex: 'role', width: 120 },
+              { title: 'ชื่อที่แสดง', dataIndex: 'display_name' },
+              { title: 'ชื่อผู้ใช้', dataIndex: 'username' },
+              { title: 'บทบาท', dataIndex: 'role', width: 120 },
               {
-                title: 'Status',
+                title: 'สถานะ',
                 dataIndex: 'is_active',
                 width: 120,
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>Active</Typography.Text> : 'Inactive',
+                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
               },
               {
-                title: 'Actions',
+                title: 'การจัดการ',
                 width: 260,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => void openEditModal(record)}>
-                      Edit
+                      แก้ไข
                     </Button>
                     <Button
                       icon={<KeyOutlined />}
@@ -202,11 +202,11 @@ export function AdminJudgesPage() {
                         setPasswordModalOpen(true);
                       }}
                     >
-                      Reset Password
+                      ตั้งรหัสผ่านใหม่
                     </Button>
-                    <Popconfirm title="Deactivate this user?" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm title="ปิดการใช้งานผู้ใช้นี้หรือไม่?" onConfirm={() => void handleDelete(record.id)}>
                       <Button danger icon={<DeleteOutlined />}>
-                        Deactivate
+                        ปิดการใช้งาน
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -219,38 +219,38 @@ export function AdminJudgesPage() {
 
       <Modal
         open={modalOpen}
-        title={editingJudge ? 'Edit User' : 'Create User'}
+        title={editingJudge ? 'แก้ไขผู้ใช้' : 'สร้างผู้ใช้'}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankJudge}>
-          <Form.Item name="username" label="Username" rules={[{ required: true }]}>
+          <Form.Item name="username" label="ชื่อผู้ใช้" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="display_name" label="Display Name" rules={[{ required: true }]}>
+          <Form.Item name="display_name" label="ชื่อที่แสดง" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           {!editingJudge ? (
-            <Form.Item name="password" label="Password" rules={[{ required: true }]}>
+            <Form.Item name="password" label="รหัสผ่าน" rules={[{ required: true }]}>
               <Input.Password />
             </Form.Item>
           ) : null}
-          <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+          <Form.Item name="role" label="บทบาท" rules={[{ required: true }]}>
             <Select
               options={[
-                { value: 'judge', label: 'Judge' },
-                { value: 'admin', label: 'Admin' },
+                { value: 'judge', label: 'กรรมการ' },
+                { value: 'admin', label: 'ผู้ดูแลระบบ' },
               ]}
             />
           </Form.Item>
-          <Form.Item name="category_ids" label="Assigned Categories">
+          <Form.Item name="category_ids" label="หมวดหมู่ที่ได้รับมอบหมาย">
             <Select
               mode="multiple"
               options={categories.map((category) => ({ value: category.id, label: category.name }))}
             />
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>
@@ -258,13 +258,13 @@ export function AdminJudgesPage() {
 
       <Modal
         open={passwordModalOpen}
-        title={`Reset Password${editingJudge ? `: ${editingJudge.display_name}` : ''}`}
+        title={`ตั้งรหัสผ่านใหม่${editingJudge ? `: ${editingJudge.display_name}` : ''}`}
         onCancel={() => setPasswordModalOpen(false)}
         onOk={() => void passwordForm.submit()}
         confirmLoading={saving}
       >
         <Form form={passwordForm} layout="vertical" onFinish={handleResetPassword}>
-          <Form.Item name="password" label="New Password" rules={[{ required: true }]}>
+          <Form.Item name="password" label="รหัสผ่านใหม่" rules={[{ required: true }]}>
             <Input.Password />
           </Form.Item>
         </Form>

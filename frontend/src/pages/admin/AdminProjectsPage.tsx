@@ -59,7 +59,7 @@ export function AdminProjectsPage() {
     try {
       setCategories(await adminApi.getAdminCategories(token));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load categories.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
     }
   }
 
@@ -72,7 +72,7 @@ export function AdminProjectsPage() {
     try {
       setProjects(await adminApi.getAdminProjects(token, categoryFilter, deferredSearch));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load projects.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดผลงานได้');
     } finally {
       setLoading(false);
     }
@@ -127,9 +127,9 @@ export function AdminProjectsPage() {
       }
       setModalOpen(false);
       await loadProjects();
-      messageApi.success(`Project ${editingProject ? 'updated' : 'created'} successfully.`);
+      messageApi.success(`${editingProject ? 'แก้ไข' : 'สร้าง'}ผลงานสำเร็จแล้ว`);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to save project.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกผลงานได้');
     } finally {
       setSaving(false);
     }
@@ -142,9 +142,9 @@ export function AdminProjectsPage() {
     try {
       await adminApi.deleteProject(token, id);
       await loadProjects();
-      messageApi.success('Project deactivated.');
+      messageApi.success('ปิดการใช้งานผลงานแล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to deactivate project.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานผลงานได้');
     }
   }
 
@@ -154,11 +154,11 @@ export function AdminProjectsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Project Management
+            จัดการผลงาน
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            Curate every nominated project, enrich its judging details, and keep active entries ready
-            for assigned judges.
+            ดูแลผลงานที่เข้าชิงทุกชิ้น เพิ่มรายละเอียดสำหรับการตัดสิน
+            และเตรียมรายการที่เปิดใช้งานให้พร้อมสำหรับกรรมการที่ได้รับมอบหมาย
           </Typography.Paragraph>
         </section>
 
@@ -166,7 +166,7 @@ export function AdminProjectsPage() {
           <div className="table-toolbar">
             <div className="table-toolbar__filters">
               <Input
-                placeholder="Search by title, team, or designer"
+                placeholder="ค้นหาด้วยชื่อ ทีม หรือผู้ออกแบบ"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 allowClear
@@ -175,7 +175,7 @@ export function AdminProjectsPage() {
               />
               <Select
                 allowClear
-                placeholder="Filter by category"
+                placeholder="กรองตามหมวดหมู่"
                 value={categoryFilter}
                 onChange={(value) => setCategoryFilter(value)}
                 options={categories.map((category) => ({ value: category.id, label: category.name }))}
@@ -184,7 +184,7 @@ export function AdminProjectsPage() {
             </div>
 
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              New Project
+              สร้างผลงานใหม่
             </Button>
           </div>
 
@@ -194,38 +194,38 @@ export function AdminProjectsPage() {
             dataSource={projects}
             scroll={{ x: 1020 }}
             columns={[
-              { title: 'Title', dataIndex: 'title', fixed: 'left', width: 240 },
-              { title: 'Category', dataIndex: 'category_name', width: 180 },
+              { title: 'ชื่อผลงาน', dataIndex: 'title', fixed: 'left', width: 240 },
+              { title: 'หมวดหมู่', dataIndex: 'category_name', width: 180 },
               {
-                title: 'Designer / Team',
+                title: 'ผู้ออกแบบ / ทีม',
                 width: 220,
-                render: (_, record) => record.designer_name || record.team_name || 'Not provided',
+                render: (_, record) => record.designer_name || record.team_name || 'ไม่ได้ระบุ',
               },
               {
-                title: 'Short Description',
+                title: 'คำอธิบายสั้น',
                 dataIndex: 'short_description',
                 width: 320,
-                render: (value: string) => value || 'No short description',
+                render: (value: string) => value || 'ไม่มีคำอธิบายสั้น',
               },
               {
-                title: 'Status',
+                title: 'สถานะ',
                 dataIndex: 'is_active',
                 width: 120,
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>Active</Typography.Text> : 'Inactive',
+                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
               },
               {
-                title: 'Actions',
+                title: 'การจัดการ',
                 fixed: 'right',
                 width: 190,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      Edit
+                      แก้ไข
                     </Button>
-                    <Popconfirm title="Deactivate this project?" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm title="ปิดการใช้งานผลงานนี้หรือไม่?" onConfirm={() => void handleDelete(record.id)}>
                       <Button danger icon={<DeleteOutlined />}>
-                        Deactivate
+                        ปิดการใช้งาน
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -238,53 +238,53 @@ export function AdminProjectsPage() {
 
       <Modal
         open={modalOpen}
-        title={editingProject ? 'Edit Project' : 'Create Project'}
+        title={editingProject ? 'แก้ไขผลงาน' : 'สร้างผลงาน'}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
         width={840}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankProject}>
-          <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
+          <Form.Item name="category_id" label="หมวดหมู่" rules={[{ required: true }]}>
             <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
           </Form.Item>
-          <Form.Item name="title" label="Project Title" rules={[{ required: true }]}>
+          <Form.Item name="title" label="ชื่อผลงาน" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="short_description" label="Short Description">
+          <Form.Item name="short_description" label="คำอธิบายสั้น">
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="full_description" label="Full Description">
+          <Form.Item name="full_description" label="คำอธิบายแบบเต็ม">
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="concept" label="Concept">
+          <Form.Item name="concept" label="แนวคิด">
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="designer_name" label="Designer Name">
+          <Form.Item name="designer_name" label="ชื่อผู้ออกแบบ">
             <Input />
           </Form.Item>
-          <Form.Item name="team_name" label="Team Name">
+          <Form.Item name="team_name" label="ชื่อทีม">
             <Input />
           </Form.Item>
-          <Form.Item name="image_url" label="Image URL">
+          <Form.Item name="image_url" label="URL รูปภาพ">
             <Input />
           </Form.Item>
-          <Form.Item name="proposal_link" label="Proposal Link">
+          <Form.Item name="proposal_link" label="ลิงก์ข้อเสนอโครงการ">
             <Input />
           </Form.Item>
-          <Form.Item name="social_media_link" label="Social Media Link">
+          <Form.Item name="social_media_link" label="ลิงก์โซเชียลมีเดีย">
             <Input />
           </Form.Item>
-          <Form.Item name="drive_link" label="Google Drive / More Info Link">
+          <Form.Item name="drive_link" label="ลิงก์ Google Drive / ข้อมูลเพิ่มเติม">
             <Input />
           </Form.Item>
-          <Form.Item name="attached_file_link" label="Attached File Link">
+          <Form.Item name="attached_file_link" label="ลิงก์ไฟล์แนบ">
             <Input />
           </Form.Item>
-          <Form.Item name="extra_details" label="Extra Details">
+          <Form.Item name="extra_details" label="รายละเอียดเพิ่มเติม">
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

@@ -13,7 +13,7 @@ export function ProjectPreview({
   alt,
   className,
   placeholderClassName,
-  placeholderLabel = 'Project preview',
+  placeholderLabel = 'ตัวอย่างผลงาน',
   src,
   style,
 }: ProjectPreviewProps) {

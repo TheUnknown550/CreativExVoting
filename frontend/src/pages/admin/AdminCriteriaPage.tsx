@@ -51,7 +51,7 @@ export function AdminCriteriaPage() {
       setCategories(nextCategories);
       setSelectedCategoryId((current) => current ?? nextCategories[0]?.id);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load categories.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
     }
   }
 
@@ -64,7 +64,7 @@ export function AdminCriteriaPage() {
     try {
       setCriteria(await adminApi.getAdminCriteria(token, categoryId));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load criteria.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดเกณฑ์การให้คะแนนได้');
     } finally {
       setLoading(false);
     }
@@ -111,9 +111,9 @@ export function AdminCriteriaPage() {
       }
       setModalOpen(false);
       await loadCriteria(selectedCategoryId);
-      messageApi.success(`Criterion ${editingCriterion ? 'updated' : 'created'} successfully.`);
+      messageApi.success(`${editingCriterion ? 'แก้ไข' : 'สร้าง'}เกณฑ์การให้คะแนนสำเร็จแล้ว`);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to save criterion.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกเกณฑ์การให้คะแนนได้');
     } finally {
       setSaving(false);
     }
@@ -126,9 +126,9 @@ export function AdminCriteriaPage() {
     try {
       await adminApi.deleteCriterion(token, id);
       await loadCriteria(selectedCategoryId);
-      messageApi.success('Criterion deactivated.');
+      messageApi.success('ปิดการใช้งานเกณฑ์การให้คะแนนแล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to deactivate criterion.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานเกณฑ์การให้คะแนนได้');
     }
   }
 
@@ -138,11 +138,10 @@ export function AdminCriteriaPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Criteria Management
+            จัดการเกณฑ์การให้คะแนน
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            Configure scoring topics, maximum points, rubric descriptions, and display order per award
-            category.
+            กำหนดหัวข้อการให้คะแนน คะแนนเต็ม คำอธิบายเกณฑ์ และลำดับการแสดงผลของแต่ละหมวดหมู่รางวัล
           </Typography.Paragraph>
         </section>
 
@@ -153,12 +152,12 @@ export function AdminCriteriaPage() {
                 value={selectedCategoryId}
                 onChange={(value) => setSelectedCategoryId(value)}
                 options={categories.map((category) => ({ value: category.id, label: category.name }))}
-                placeholder="Select category"
+                placeholder="เลือกหมวดหมู่"
                 style={{ width: 280 }}
               />
             </div>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              New Criterion
+              สร้างเกณฑ์ใหม่
             </Button>
           </div>
 
@@ -168,37 +167,37 @@ export function AdminCriteriaPage() {
             dataSource={criteria}
             pagination={false}
             columns={[
-              { title: 'Name', dataIndex: 'name' },
+              { title: 'ชื่อ', dataIndex: 'name' },
               {
-                title: 'Description',
+                title: 'คำอธิบาย',
                 dataIndex: 'description',
                 render: (value: string) =>
                   value ? (
                     <span style={{ whiteSpace: 'pre-wrap' }}>{value}</span>
                   ) : (
-                    <Typography.Text type="secondary">No description</Typography.Text>
+                    <Typography.Text type="secondary">ไม่มีคำอธิบาย</Typography.Text>
                   ),
               },
-              { title: 'Max Score', dataIndex: 'max_score', width: 120 },
-              { title: 'Display Order', dataIndex: 'display_order', width: 140 },
+              { title: 'คะแนนเต็ม', dataIndex: 'max_score', width: 120 },
+              { title: 'ลำดับการแสดงผล', dataIndex: 'display_order', width: 140 },
               {
-                title: 'Status',
+                title: 'สถานะ',
                 dataIndex: 'is_active',
                 width: 120,
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>Active</Typography.Text> : 'Inactive',
+                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
               },
               {
-                title: 'Actions',
+                title: 'การจัดการ',
                 width: 180,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      Edit
+                      แก้ไข
                     </Button>
-                    <Popconfirm title="Deactivate this criterion?" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm title="ปิดการใช้งานเกณฑ์นี้หรือไม่?" onConfirm={() => void handleDelete(record.id)}>
                       <Button danger icon={<DeleteOutlined />}>
-                        Deactivate
+                        ปิดการใช้งาน
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -211,28 +210,28 @@ export function AdminCriteriaPage() {
 
       <Modal
         open={modalOpen}
-        title={editingCriterion ? 'Edit Criterion' : 'Create Criterion'}
+        title={editingCriterion ? 'แก้ไขเกณฑ์การให้คะแนน' : 'สร้างเกณฑ์การให้คะแนน'}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankCriterion}>
-          <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
+          <Form.Item name="category_id" label="หมวดหมู่" rules={[{ required: true }]}>
             <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
           </Form.Item>
-          <Form.Item name="name" label="Criterion Name" rules={[{ required: true }]}>
+          <Form.Item name="name" label="ชื่อเกณฑ์" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="Rubric Description">
+          <Form.Item name="description" label="คำอธิบายเกณฑ์การให้คะแนน">
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="max_score" label="Maximum Score" rules={[{ required: true }]}>
+          <Form.Item name="max_score" label="คะแนนเต็ม" rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="display_order" label="Display Order" rules={[{ required: true }]}>
+          <Form.Item name="display_order" label="ลำดับการแสดงผล" rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

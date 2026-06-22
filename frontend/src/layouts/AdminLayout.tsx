@@ -17,13 +17,13 @@ import { useAuth } from '../contexts/AuthContext';
 const { Sider, Header, Content } = Layout;
 
 const items: MenuProps['items'] = [
-  { key: '/admin/dashboard', icon: <AppstoreOutlined />, label: 'Dashboard' },
-  { key: '/admin/projects', icon: <FolderOpenOutlined />, label: 'Projects' },
-  { key: '/admin/categories', icon: <TagsOutlined />, label: 'Categories' },
-  { key: '/admin/criteria', icon: <BarChartOutlined />, label: 'Criteria' },
-  { key: '/admin/judges', icon: <TeamOutlined />, label: 'Judges' },
-  { key: '/admin/results', icon: <BarChartOutlined />, label: 'Results' },
-  { key: '/admin/rankings', icon: <OrderedListOutlined />, label: 'Rankings' },
+  { key: '/admin/dashboard', icon: <AppstoreOutlined />, label: 'แดชบอร์ด' },
+  { key: '/admin/projects', icon: <FolderOpenOutlined />, label: 'ผลงาน' },
+  { key: '/admin/categories', icon: <TagsOutlined />, label: 'หมวดหมู่' },
+  { key: '/admin/criteria', icon: <BarChartOutlined />, label: 'เกณฑ์การให้คะแนน' },
+  { key: '/admin/judges', icon: <TeamOutlined />, label: 'กรรมการ' },
+  { key: '/admin/results', icon: <BarChartOutlined />, label: 'ผลคะแนน' },
+  { key: '/admin/rankings', icon: <OrderedListOutlined />, label: 'อันดับคะแนน' },
 ];
 
 export function AdminLayout() {
@@ -42,7 +42,7 @@ export function AdminLayout() {
         <div className="admin-sider__brand">
           <BrandMark tone="light" className="admin-sider__mark" />
           <Typography.Text className="admin-sider__title">CE Awards 2026</Typography.Text>
-          <Typography.Text className="admin-sider__subtitle">Admin control room</Typography.Text>
+          <Typography.Text className="admin-sider__subtitle">ศูนย์ควบคุมผู้ดูแลระบบ</Typography.Text>
         </div>
 
         <Menu
@@ -62,14 +62,14 @@ export function AdminLayout() {
                 CE Awards 2026
               </Typography.Title>
               <Typography.Text className="ce-brandline__subtitle">
-                Platform administrator
+                ผู้ดูแลระบบ
               </Typography.Text>
             </div>
 
             <Space>
               <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>
               <Button className="ce-ghost-button" icon={<LogoutOutlined />} onClick={logout}>
-                Logout
+                ออกจากระบบ
               </Button>
             </Space>
           </div>

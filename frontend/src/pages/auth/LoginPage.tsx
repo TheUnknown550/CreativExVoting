@@ -39,7 +39,7 @@ export function LoginPage() {
       navigate(nextPath, { replace: true });
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Unable to sign in. Please try again.',
+        error instanceof ApiError ? error.message : 'ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง',
       );
     } finally {
       setSubmitting(false);
@@ -66,22 +66,23 @@ export function LoginPage() {
             CREATIVE EXCELLENCE AWARDS 2026
           </Typography.Title>
           <Typography.Paragraph className="ce-login__copy">
-            Enter the official voting system for CE Awards judging. Review assigned categories, score
-            nominees against live criteria, and export the final award results from one platform.
+            เข้าสู่ระบบลงคะแนนอย่างเป็นทางการของ CE Awards สำหรับคณะกรรมการตัดสิน
+            ตรวจสอบหมวดหมู่ที่ได้รับมอบหมาย ให้คะแนนผลงานตามเกณฑ์ที่กำหนด
+            และส่งออกผลรางวัลสุดท้ายได้จากแพลตฟอร์มเดียว
           </Typography.Paragraph>
 
           <div className="ce-login__stats">
             <div className="ce-login__stat">
               <strong>15</strong>
-              <span>Awards</span>
+              <span>รางวัล</span>
             </div>
             <div className="ce-login__stat">
               <strong>150</strong>
-              <span>Nominated Works</span>
+              <span>ผลงานที่เข้าชิง</span>
             </div>
             <div className="ce-login__stat">
-              <strong>7 Days</strong>
-              <span>Voting Window</span>
+              <strong>7 วัน</strong>
+              <span>ระยะเวลาลงคะแนน</span>
             </div>
           </div>
         </div>
@@ -95,7 +96,7 @@ export function LoginPage() {
 
         <Card className="ce-login-card" styles={{ body: { padding: 30 } }}>
           <Typography.Title level={2} className="ce-login-card__title">
-            LOG IN
+            เข้าสู่ระบบ
           </Typography.Title>
 
           {errorMessage ? (
@@ -108,12 +109,12 @@ export function LoginPage() {
             onFinish={handleFinish}
             requiredMark={false}
           >
-            <Form.Item name="username" label="Username" rules={[{ required: true }]}>
-              <Input prefix={<UserOutlined />} placeholder="Enter your username" size="large" />
+            <Form.Item name="username" label="ชื่อผู้ใช้" rules={[{ required: true }]}>
+              <Input prefix={<UserOutlined />} placeholder="กรอกชื่อผู้ใช้ของคุณ" size="large" />
             </Form.Item>
 
-            <Form.Item name="password" label="Passwords" rules={[{ required: true }]}>
-              <Input.Password prefix={<LockOutlined />} placeholder="Enter your password" size="large" />
+            <Form.Item name="password" label="รหัสผ่าน" rules={[{ required: true }]}>
+              <Input.Password prefix={<LockOutlined />} placeholder="กรอกรหัสผ่านของคุณ" size="large" />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
@@ -122,13 +123,13 @@ export function LoginPage() {
           </Form>
 
           <div className="ce-demo-panel">
-            <Typography.Text className="ce-demo-panel__label">Demo access</Typography.Text>
+            <Typography.Text className="ce-demo-panel__label">บัญชีทดลองใช้งาน</Typography.Text>
             <Typography.Paragraph className="ce-demo-panel__copy">
-              Admin: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
+              ผู้ดูแลระบบ: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
               <Typography.Text code>{demoAdminAccount.password}</Typography.Text>
             </Typography.Paragraph>
             <Typography.Paragraph className="ce-demo-panel__copy">
-              All judges use <Typography.Text code>{demoJudgePassword}</Typography.Text>.
+              กรรมการทุกคนใช้รหัสผ่าน <Typography.Text code>{demoJudgePassword}</Typography.Text>
             </Typography.Paragraph>
 
             <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
@@ -137,14 +138,14 @@ export function LoginPage() {
                 className="ce-demo-panel__button"
                 onClick={() => applyDemoCredentials(demoAdminAccount.username, demoAdminAccount.password)}
               >
-                Use admin demo
+                ใช้บัญชีผู้ดูแลระบบทดลอง
               </Button>
               <Button
                 size="small"
                 className="ce-demo-panel__button"
                 onClick={() => applyDemoCredentials(demoJudgeAccounts[0].username, demoJudgePassword)}
               >
-                Use first judge
+                ใช้บัญชีกรรมการคนแรก
               </Button>
             </Space>
 

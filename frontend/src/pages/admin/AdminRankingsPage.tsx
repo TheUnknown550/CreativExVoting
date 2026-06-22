@@ -81,7 +81,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'Unable to load ranking filters.');
+          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดตัวกรองอันดับคะแนนได้');
         }
       }
     }
@@ -117,7 +117,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'Unable to load category rankings.');
+          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดอันดับคะแนนของหมวดหมู่ได้');
         }
       } finally {
         if (!cancelled) {
@@ -150,7 +150,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'Unable to load judge submissions.');
+          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดการส่งคะแนนของกรรมการได้');
         }
       } finally {
         if (!cancelled) {
@@ -173,7 +173,7 @@ export function AdminRankingsPage() {
       setDetail(await adminApi.getProjectVoteDetail(token, projectId));
       setDetailOpen(true);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load vote detail.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดรายละเอียดคะแนนได้');
     }
   }
 
@@ -190,9 +190,9 @@ export function AdminRankingsPage() {
       anchor.download = 'voting-results.csv';
       anchor.click();
       URL.revokeObjectURL(url);
-      messageApi.success('CSV export started.');
+      messageApi.success('เริ่มส่งออกไฟล์ CSV แล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to export CSV.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถส่งออกไฟล์ CSV ได้');
     } finally {
       setExporting(false);
     }
@@ -206,11 +206,11 @@ export function AdminRankingsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Rankings
+            อันดับคะแนน
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            Inspect one category at a time, see its full leaderboard, and review the judge-by-judge
-            scoring activity for that same category.
+            ตรวจสอบหมวดหมู่ทีละหมวด ดูตารางอันดับคะแนนแบบเต็ม
+            และตรวจสอบการให้คะแนนของกรรมการแต่ละคนในหมวดหมู่เดียวกัน
           </Typography.Paragraph>
         </section>
 
@@ -218,17 +218,17 @@ export function AdminRankingsPage() {
           items={[
             {
               key: 'rankings',
-              label: 'Category Ranking',
+              label: 'อันดับคะแนนตามหมวดหมู่',
               children: (
                 <Card className="soft-card">
                   <div className="results-section-heading">
                     <div>
                       <Typography.Title level={3} className="results-section-heading__title">
-                        Category Ranking
+                        อันดับคะแนนตามหมวดหมู่
                       </Typography.Title>
                       <Typography.Paragraph className="results-section-heading__copy">
-                        Choose a category to view its full leaderboard. The summary page buttons route
-                        directly here and preselect the clicked category.
+                        เลือกหมวดหมู่เพื่อดูอันดับคะแนนแบบเต็ม
+                        ปุ่มจากหน้าผลคะแนนจะนำมาที่นี่และเลือกหมวดหมู่ที่คลิกไว้ล่วงหน้า
                       </Typography.Paragraph>
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export function AdminRankingsPage() {
                   <div className="table-toolbar">
                     <div className="table-toolbar__filters">
                       <Select
-                        placeholder="Select category"
+                        placeholder="เลือกหมวดหมู่"
                         value={selectedCategoryId}
                         onChange={(value) => {
                           startTransition(() => {
@@ -255,12 +255,12 @@ export function AdminRankingsPage() {
                       loading={exporting}
                       onClick={() => void handleExport(selectedCategoryId)}
                     >
-                      Export Category CSV
+                      ส่งออก CSV ของหมวดหมู่นี้
                     </Button>
                   </div>
 
                   <Typography.Title level={4} className="results-selected-category">
-                    {selectedCategory?.name ? `${selectedCategory.name} Rankings` : 'Select a category'}
+                    {selectedCategory?.name ? `อันดับคะแนนของ ${selectedCategory.name}` : 'เลือกหมวดหมู่'}
                   </Typography.Title>
 
                   <Table
@@ -268,11 +268,11 @@ export function AdminRankingsPage() {
                     loading={rankingLoading}
                     dataSource={rankingResults.rankings}
                     pagination={false}
-                    locale={{ emptyText: 'No ranking data available for this category yet.' }}
+                    locale={{ emptyText: 'ยังไม่มีข้อมูลอันดับคะแนนสำหรับหมวดหมู่นี้' }}
                     columns={[
-                      { title: 'Rank', dataIndex: 'ranking', width: 80 },
+                      { title: 'อันดับ', dataIndex: 'ranking', width: 80 },
                       {
-                        title: 'Project',
+                        title: 'ผลงาน',
                         dataIndex: 'project_name',
                         render: (value: string) => (
                           <Space>
@@ -281,26 +281,26 @@ export function AdminRankingsPage() {
                           </Space>
                         ),
                       },
-                      { title: 'Total Score', dataIndex: 'total_score', width: 130 },
+                      { title: 'คะแนนรวม', dataIndex: 'total_score', width: 130 },
                       {
-                        title: 'Average Score',
+                        title: 'คะแนนเฉลี่ย',
                         dataIndex: 'average_score',
                         width: 140,
                         render: (value: number) => value.toFixed(2),
                       },
-                      { title: 'Submitted Votes', dataIndex: 'submitted_votes', width: 140 },
+                      { title: 'จำนวนคะแนนที่ส่งแล้ว', dataIndex: 'submitted_votes', width: 140 },
                       {
-                        title: 'Completion',
+                        title: 'ความสำเร็จ',
                         dataIndex: 'completion_percent',
                         width: 140,
                         render: (value: number) => `${value.toFixed(1)}%`,
                       },
                       {
-                        title: 'Detail',
+                        title: 'รายละเอียด',
                         width: 130,
                         render: (_, record) => (
                           <Button icon={<EyeOutlined />} onClick={() => void openDetail(record.project_id)}>
-                            Detail
+                            รายละเอียด
                           </Button>
                         ),
                       },
@@ -311,13 +311,13 @@ export function AdminRankingsPage() {
             },
             {
               key: 'judgeVotes',
-              label: 'Per Judge Scores',
+              label: 'คะแนนรายกรรมการ',
               children: (
                 <Card className="soft-card">
                   <div className="table-toolbar">
                     <div className="table-toolbar__filters">
                       <Select
-                        placeholder="Select category"
+                        placeholder="เลือกหมวดหมู่"
                         value={selectedCategoryId}
                         onChange={(value) => {
                           startTransition(() => {
@@ -330,7 +330,7 @@ export function AdminRankingsPage() {
                       />
                       <Select
                         allowClear
-                        placeholder="Filter by judge"
+                        placeholder="กรองตามกรรมการ"
                         value={judgeFilter}
                         onChange={(value) => setJudgeFilter(value)}
                         options={judges.map((judge) => ({ value: judge.id, label: judge.display_name }))}
@@ -344,7 +344,7 @@ export function AdminRankingsPage() {
                       loading={exporting}
                       onClick={() => void handleExport(selectedCategoryId, judgeFilter)}
                     >
-                      Export Filtered CSV
+                      ส่งออก CSV ตามตัวกรอง
                     </Button>
                   </div>
 
@@ -353,18 +353,18 @@ export function AdminRankingsPage() {
                     loading={judgeVotesLoading}
                     dataSource={judgeVoteResults.judge_votes}
                     pagination={false}
-                    locale={{ emptyText: 'No judge submissions match the current filter.' }}
+                    locale={{ emptyText: 'ไม่มีการส่งคะแนนที่ตรงกับตัวกรองนี้' }}
                     columns={[
-                      { title: 'Judge', dataIndex: 'judge_name' },
-                      { title: 'Project', dataIndex: 'project_name' },
-                      { title: 'Category', dataIndex: 'category' },
-                      { title: 'Total Score', dataIndex: 'total_score', width: 130 },
+                      { title: 'กรรมการ', dataIndex: 'judge_name' },
+                      { title: 'ผลงาน', dataIndex: 'project_name' },
+                      { title: 'หมวดหมู่', dataIndex: 'category' },
+                      { title: 'คะแนนรวม', dataIndex: 'total_score', width: 130 },
                       {
-                        title: 'Submitted',
+                        title: 'วันที่ส่ง',
                         dataIndex: 'submitted_at',
                         width: 180,
                         render: (value?: string | null) =>
-                          value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>Draft</Tag>,
+                          value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>ยังไม่ส่ง</Tag>,
                       },
                     ]}
                   />
@@ -377,7 +377,7 @@ export function AdminRankingsPage() {
 
       <Modal
         open={detailOpen}
-        title={detail?.project.title ?? 'Vote Detail'}
+        title={detail?.project.title ?? 'รายละเอียดคะแนน'}
         footer={null}
         onCancel={() => setDetailOpen(false)}
         width={920}
@@ -385,10 +385,10 @@ export function AdminRankingsPage() {
         {detail ? (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Descriptions bordered column={1}>
-              <Descriptions.Item label="Category">{detail.project.category_name}</Descriptions.Item>
-              <Descriptions.Item label="Combined Score">{detail.combined_score}</Descriptions.Item>
-              <Descriptions.Item label="Designer / Team">
-                {detail.project.designer_name || detail.project.team_name || 'Not provided'}
+              <Descriptions.Item label="หมวดหมู่">{detail.project.category_name}</Descriptions.Item>
+              <Descriptions.Item label="คะแนนรวม">{detail.combined_score}</Descriptions.Item>
+              <Descriptions.Item label="ผู้ออกแบบ / ทีม">
+                {detail.project.designer_name || detail.project.team_name || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
             </Descriptions>
 
@@ -404,22 +404,22 @@ export function AdminRankingsPage() {
                     size="small"
                     dataSource={record.scores}
                     columns={[
-                      { title: 'Criterion', dataIndex: 'criterion_name' },
-                      { title: 'Score', dataIndex: 'score', width: 120 },
-                      { title: 'Max Score', dataIndex: 'max_score', width: 120 },
+                      { title: 'เกณฑ์การให้คะแนน', dataIndex: 'criterion_name' },
+                      { title: 'คะแนน', dataIndex: 'score', width: 120 },
+                      { title: 'คะแนนเต็ม', dataIndex: 'max_score', width: 120 },
                     ]}
                   />
                 ),
               }}
               columns={[
-                { title: 'Judge', dataIndex: 'judge_name' },
-                { title: 'Total Score', dataIndex: 'total_score', width: 140 },
+                { title: 'กรรมการ', dataIndex: 'judge_name' },
+                { title: 'คะแนนรวม', dataIndex: 'total_score', width: 140 },
                 {
-                  title: 'Submitted At',
+                  title: 'วันที่ส่ง',
                   dataIndex: 'submitted_at',
                   width: 200,
                   render: (value?: string | null) =>
-                    value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>Draft</Tag>,
+                    value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>ยังไม่ส่ง</Tag>,
                 },
               ]}
             />

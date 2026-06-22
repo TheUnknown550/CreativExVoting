@@ -82,10 +82,10 @@ export function ProjectVoteDrawer({
 
   const externalLinks = detail
     ? [
-        { label: 'Proposal link', value: detail.project.proposal_link },
-        { label: 'Social media link', value: detail.project.social_media_link },
-        { label: 'Google Drive / more info', value: detail.project.drive_link },
-        { label: 'Attached file link', value: detail.project.attached_file_link },
+        { label: 'ลิงก์ข้อเสนอโครงการ', value: detail.project.proposal_link },
+        { label: 'ลิงก์โซเชียลมีเดีย', value: detail.project.social_media_link },
+        { label: 'Google Drive / ข้อมูลเพิ่มเติม', value: detail.project.drive_link },
+        { label: 'ลิงก์ไฟล์แนบ', value: detail.project.attached_file_link },
       ].filter((item) => item.value)
     : [];
 
@@ -98,7 +98,7 @@ export function ProjectVoteDrawer({
           onClose();
         }}
         width={960}
-        title={detail?.project.title ?? 'Project details'}
+        title={detail?.project.title ?? 'รายละเอียดผลงาน'}
         destroyOnHidden
         className="vote-drawer"
       >
@@ -107,7 +107,7 @@ export function ProjectVoteDrawer({
             <Spin size="large" />
           </div>
         ) : !detail ? (
-          <Empty description="Select a project to view details." />
+          <Empty description="เลือกผลงานเพื่อดูรายละเอียด" />
         ) : (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <ProjectPreview
@@ -118,26 +118,26 @@ export function ProjectVoteDrawer({
             />
 
             <Descriptions column={1} bordered size="small" className="vote-drawer__details">
-              <Descriptions.Item label="Category">{detail.project.category_name}</Descriptions.Item>
-              <Descriptions.Item label="Designer / Team">
-                {detail.project.designer_name || detail.project.team_name || 'Not provided'}
+              <Descriptions.Item label="หมวดหมู่">{detail.project.category_name}</Descriptions.Item>
+              <Descriptions.Item label="ผู้ออกแบบ / ทีม">
+                {detail.project.designer_name || detail.project.team_name || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
-              <Descriptions.Item label="Short description">
-                {detail.project.short_description || 'Not provided'}
+              <Descriptions.Item label="คำอธิบายสั้น">
+                {detail.project.short_description || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
-              <Descriptions.Item label="Full description">
-                {detail.project.full_description || 'Not provided'}
+              <Descriptions.Item label="คำอธิบายแบบเต็ม">
+                {detail.project.full_description || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
-              <Descriptions.Item label="Concept">
-                {detail.project.concept || 'Not provided'}
+              <Descriptions.Item label="แนวคิด">
+                {detail.project.concept || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
-              <Descriptions.Item label="Extra details">
-                {detail.project.extra_details || 'Not provided'}
+              <Descriptions.Item label="รายละเอียดเพิ่มเติม">
+                {detail.project.extra_details || 'ไม่ได้ระบุ'}
               </Descriptions.Item>
             </Descriptions>
 
             <div>
-              <Typography.Title level={5}>Project resources</Typography.Title>
+              <Typography.Title level={5}>ข้อมูลประกอบผลงาน</Typography.Title>
               {externalLinks.length > 0 ? (
                 <div className="detail-link-list">
                   {externalLinks.map((item) => (
@@ -147,18 +147,18 @@ export function ProjectVoteDrawer({
                   ))}
                 </div>
               ) : (
-                <Typography.Text type="secondary">No external links added for this project.</Typography.Text>
+                <Typography.Text type="secondary">ไม่มีลิงก์ภายนอกสำหรับผลงานนี้</Typography.Text>
               )}
             </div>
 
             <Divider style={{ borderColor: '#cfd5dc' }} />
 
             <Typography.Title level={4} style={{ margin: 0 }}>
-              Submit Your Vote
+              ส่งคะแนนของคุณ
             </Typography.Title>
 
             <div className="drawer-score-total">
-              <Typography.Text strong>Total score</Typography.Text>
+              <Typography.Text strong>คะแนนรวม</Typography.Text>
               <Typography.Title level={3} style={{ margin: 0 }}>
                 {totalScore}
               </Typography.Title>
@@ -175,12 +175,12 @@ export function ProjectVoteDrawer({
                     >
                       <Space style={{ justifyContent: 'space-between', width: '100%' }}>
                         <Typography.Text className="vote-criterion-card__index">
-                          Criterion {index + 1}
+                          เกณฑ์ที่ {index + 1}
                         </Typography.Text>
                         <div>
                           <Typography.Text strong>{criterion.name}</Typography.Text>
                           <Typography.Paragraph type="secondary" style={{ marginBottom: 0, marginTop: 4 }}>
-                            Maximum score: {criterion.max_score}
+                            คะแนนเต็ม: {criterion.max_score}
                           </Typography.Paragraph>
                         </div>
 
@@ -188,22 +188,22 @@ export function ProjectVoteDrawer({
                           icon={<InfoCircleOutlined />}
                           onClick={() => setActiveCriterion(criterion)}
                         >
-                          Rubric
+                          เกณฑ์การให้คะแนน
                         </Button>
                       </Space>
 
                       <Form.Item
-                        label="Score"
+                        label="คะแนน"
                         name={['scores', criterion.id]}
                         rules={[
-                          { required: true, message: 'A score is required.' },
+                          { required: true, message: 'กรุณาระบุคะแนน' },
                           {
                             validator: async (_, value) => {
                               if (typeof value !== 'number') {
-                                throw new Error('Score must be a number.');
+                                throw new Error('คะแนนต้องเป็นตัวเลข');
                               }
                               if (value < 0 || value > criterion.max_score) {
-                                throw new Error(`Score must be between 0 and ${criterion.max_score}.`);
+                                throw new Error(`คะแนนต้องอยู่ระหว่าง 0 ถึง ${criterion.max_score}`);
                               }
                             },
                           },
@@ -225,7 +225,7 @@ export function ProjectVoteDrawer({
                 loading={submitting}
                 style={{ marginTop: 20, width: '100%' }}
               >
-                Send Voting Results
+                ส่งผลการให้คะแนน
               </Button>
             </Form>
           </Space>

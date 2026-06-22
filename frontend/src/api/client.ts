@@ -50,7 +50,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!payload?.success) {
-    throw new ApiError(payload?.error ?? 'Request failed', response.status);
+    throw new ApiError(payload?.error ?? 'คำขอไม่สำเร็จ', response.status);
   }
 
   return payload.data as T;

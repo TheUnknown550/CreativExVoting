@@ -12,7 +12,7 @@ export function CriteriaInfoModal({ criterion, open, onClose }: CriteriaInfoModa
   return (
     <Modal
       open={open}
-      title={criterion?.name ?? 'Scoring Criterion'}
+      title={criterion?.name ?? 'เกณฑ์การให้คะแนน'}
       footer={null}
       onCancel={onClose}
       className="criteria-modal"
@@ -20,10 +20,10 @@ export function CriteriaInfoModal({ criterion, open, onClose }: CriteriaInfoModa
       {criterion ? (
         <>
           <Typography.Paragraph>
-            <strong>Maximum score:</strong> {criterion.max_score}
+            <strong>คะแนนเต็ม:</strong> {criterion.max_score}
           </Typography.Paragraph>
           <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
-            {criterion.description || 'No rubric description has been added yet.'}
+            {criterion.description || 'ยังไม่มีคำอธิบายเกณฑ์การให้คะแนน'}
           </Typography.Paragraph>
         </>
       ) : null}

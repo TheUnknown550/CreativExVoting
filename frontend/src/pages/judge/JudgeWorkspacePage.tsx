@@ -72,7 +72,7 @@ export function JudgeWorkspacePage() {
         setSelectedCategoryId((current) => current ?? nextCategoryId);
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof ApiError ? error.message : 'Unable to load categories.');
+          setErrorMessage(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
         }
       } finally {
         if (!cancelled) {
@@ -110,7 +110,7 @@ export function JudgeWorkspacePage() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof ApiError ? error.message : 'Unable to load judging data.');
+          setErrorMessage(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดข้อมูลการตัดสินได้');
         }
       } finally {
         if (!cancelled) {
@@ -142,7 +142,7 @@ export function JudgeWorkspacePage() {
       setActiveProjectDetail(detail);
       setActiveVote(vote);
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : 'Unable to open project details.');
+      setErrorMessage(error instanceof ApiError ? error.message : 'ไม่สามารถเปิดรายละเอียดผลงานได้');
     } finally {
       setDrawerLoading(false);
     }
@@ -184,12 +184,12 @@ export function JudgeWorkspacePage() {
       await apiCall(token, projectId, { scores });
       await refreshWorkspace(projectId);
       Modal.success({
-        title: 'Voting submitted successfully',
-        content: 'Your scores have been saved. You can reopen this project later to edit them.',
+        title: 'ส่งคะแนนสำเร็จแล้ว',
+        content: 'คะแนนของคุณถูกบันทึกแล้ว คุณสามารถเปิดผลงานนี้อีกครั้งเพื่อแก้ไขได้ในภายหลัง',
       });
-      messageApi.success('Vote saved successfully.');
+      messageApi.success('บันทึกคะแนนสำเร็จแล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to submit vote.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถส่งคะแนนได้');
     } finally {
       setDrawerSubmitting(false);
     }
@@ -209,7 +209,7 @@ export function JudgeWorkspacePage() {
               startTransition(() => setSelectedCategoryId(value));
             }}
             options={categories.map((category) => ({ value: category.id, label: category.name }))}
-            placeholder="Select category"
+            placeholder="เลือกหมวดหมู่"
             className="judge-category-select"
           />
 
@@ -217,7 +217,7 @@ export function JudgeWorkspacePage() {
             <Typography.Text className="judge-toolbar__judge">{user?.display_name}</Typography.Text>
             <div className="summary-ribbon">
               <TrophyOutlined />
-              {projectsScored} / {summaryRows.length} projects scored
+              ให้คะแนนแล้ว {projectsScored} / {summaryRows.length} ผลงาน
             </div>
           </div>
         </section>
@@ -238,20 +238,20 @@ export function JudgeWorkspacePage() {
                 </Typography.Title>
                 <Typography.Paragraph className="judge-brand-panel__copy">
                   {selectedCategory?.description ||
-                    'Review each nominated work, open the full detail sheet, and submit your scoring criteria before closing the voting round.'}
+                    'ตรวจสอบผลงานที่เข้าชิงแต่ละชิ้น เปิดดูรายละเอียดแบบเต็ม และส่งคะแนนตามเกณฑ์ที่กำหนดก่อนปิดรอบการลงคะแนน'}
                 </Typography.Paragraph>
               </aside>
 
               <section className="judge-nominees">
                 <div className="judge-nominees__heading">
                   <Typography.Title level={2} className="judge-nominees__title">
-                    {projects.length} Nominated Works
+                    ผลงานที่เข้าชิงทั้งหมด {projects.length} ผลงาน
                   </Typography.Title>
                   <Segmented<WorkspaceTab>
                     value={currentTab}
                     options={[
-                      { label: 'Vote Projects', value: 'projects' },
-                      { label: 'My Vote Summary', value: 'summary' },
+                      { label: 'ให้คะแนนผลงาน', value: 'projects' },
+                      { label: 'สรุปคะแนนของฉัน', value: 'summary' },
                     ]}
                     onChange={(value) => {
                       startTransition(() => {
@@ -277,23 +277,23 @@ export function JudgeWorkspacePage() {
 
                       <div className="nominee-row__content">
                         <div className="nominee-row__section">
-                          <Typography.Text className="nominee-row__label">Project title</Typography.Text>
+                          <Typography.Text className="nominee-row__label">ชื่อผลงาน</Typography.Text>
                           <Typography.Title level={4} className="nominee-row__title">
                             {project.title}
                           </Typography.Title>
                         </div>
 
                         <div className="nominee-row__section">
-                          <Typography.Text className="nominee-row__label">Team / Designer</Typography.Text>
+                          <Typography.Text className="nominee-row__label">ทีม / ผู้ออกแบบ</Typography.Text>
                           <Typography.Paragraph className="nominee-row__text">
                             {project.designer_name || project.team_name || selectedCategory?.name}
                           </Typography.Paragraph>
                         </div>
 
                         <div className="nominee-row__section nominee-row__section--summary">
-                          <Typography.Text className="nominee-row__label">Project overview</Typography.Text>
+                          <Typography.Text className="nominee-row__label">ภาพรวมผลงาน</Typography.Text>
                           <Typography.Paragraph className="nominee-row__text">
-                            {project.short_description || 'No short description was provided.'}
+                            {project.short_description || 'ไม่มีคำอธิบายสั้น'}
                           </Typography.Paragraph>
                         </div>
                       </div>
@@ -301,16 +301,16 @@ export function JudgeWorkspacePage() {
                       <div className="nominee-row__actions">
                         {project.has_voted ? (
                           <Tag color="green" icon={<CheckCircleFilled />}>
-                            Voted
+                            ให้คะแนนแล้ว
                           </Tag>
                         ) : (
-                          <Tag>Pending</Tag>
+                          <Tag>ยังไม่ให้คะแนน</Tag>
                         )}
                         <Typography.Text className="nominee-row__score">
-                          {project.current_score != null ? `Score ${project.current_score}` : 'Not scored yet'}
+                          {project.current_score != null ? `คะแนน ${project.current_score}` : 'ยังไม่ได้ให้คะแนน'}
                         </Typography.Text>
                         <Button type="primary" icon={<EyeOutlined />} onClick={() => void openProject(project.id)}>
-                          More details
+                          ดูรายละเอียด
                         </Button>
                       </div>
                     </article>
@@ -320,20 +320,20 @@ export function JudgeWorkspacePage() {
             </div>
           ) : (
             <Card className="soft-card">
-              <Empty description="No projects are available in this category yet." />
+              <Empty description="ยังไม่มีผลงานในหมวดหมู่นี้" />
             </Card>
           )
         ) : (
           <section className="judge-summary">
             <div className="judge-summary__heading">
               <Typography.Title level={2} className="judge-summary__title">
-                Your voting summary
+                สรุปคะแนนของคุณ
               </Typography.Title>
               <Segmented<WorkspaceTab>
                 value={currentTab}
                 options={[
-                  { label: 'Vote Projects', value: 'projects' },
-                  { label: 'My Vote Summary', value: 'summary' },
+                  { label: 'ให้คะแนนผลงาน', value: 'projects' },
+                  { label: 'สรุปคะแนนของฉัน', value: 'summary' },
                 ]}
                 onChange={(value) => {
                   startTransition(() => {
@@ -352,7 +352,7 @@ export function JudgeWorkspacePage() {
                   <Typography.Text className="rank-row__name">{record.project_name}</Typography.Text>
                   <div className="rank-row__score-pill">{record.total_score}</div>
                   <Button icon={<FileDoneOutlined />} onClick={() => void openProject(record.project_id)}>
-                    Detail
+                    รายละเอียด
                   </Button>
                 </article>
               ))}

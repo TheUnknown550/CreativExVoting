@@ -57,7 +57,7 @@ export function AdminResultsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'Unable to load category summaries.');
+          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดสรุปคะแนนของหมวดหมู่ได้');
         }
       } finally {
         if (!cancelled) {
@@ -86,9 +86,9 @@ export function AdminResultsPage() {
       anchor.download = 'voting-results.csv';
       anchor.click();
       URL.revokeObjectURL(url);
-      messageApi.success('CSV export started.');
+      messageApi.success('เริ่มส่งออกไฟล์ CSV แล้ว');
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'Unable to export CSV.');
+      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถส่งออกไฟล์ CSV ได้');
     } finally {
       setExporting(false);
     }
@@ -100,11 +100,11 @@ export function AdminResultsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            Vote Summary
+            สรุปผลคะแนน
           </Typography.Title>
           <Typography.Paragraph className="page-subtitle">
-            See the current top project in every award category, then jump into the dedicated
-            Rankings page to inspect that category&apos;s leaderboard.
+            ดูผลงานอันดับหนึ่งในแต่ละหมวดหมู่รางวัล แล้วไปที่หน้า <strong>อันดับคะแนน</strong>{' '}
+            เพื่อตรวจสอบตารางอันดับคะแนนแบบเต็มของหมวดหมู่นั้น
           </Typography.Paragraph>
         </section>
 
@@ -112,11 +112,10 @@ export function AdminResultsPage() {
           <div className="results-section-heading">
             <div>
               <Typography.Title level={3} className="results-section-heading__title">
-                Top of Each Category
+                อันดับหนึ่งของแต่ละหมวดหมู่
               </Typography.Title>
               <Typography.Paragraph className="results-section-heading__copy">
-                Each summary card shows the current leading project for that category based on the
-                scoring data available so far.
+                การ์ดสรุปแต่ละใบแสดงผลงานที่นำอยู่ในหมวดหมู่นั้น โดยอ้างอิงจากข้อมูลคะแนนที่มีอยู่ในขณะนี้
               </Typography.Paragraph>
             </div>
 
@@ -126,7 +125,7 @@ export function AdminResultsPage() {
               loading={exporting}
               onClick={() => void handleExportAll()}
             >
-              Export All Results
+              ส่งออกผลคะแนนทั้งหมด
             </Button>
           </div>
 
@@ -139,21 +138,21 @@ export function AdminResultsPage() {
                   </Typography.Text>
 
                   <Typography.Title level={4} className="results-winner-card__title">
-                    {summary.leader?.project_name ?? 'No ranked project yet'}
+                    {summary.leader?.project_name ?? 'ยังไม่มีผลงานที่จัดอันดับ'}
                   </Typography.Title>
 
                   <div className="results-winner-card__stats">
                     <span>
                       <strong>#{summary.leader?.ranking ?? '-'}</strong>
-                      Rank
+                      อันดับ
                     </span>
                     <span>
                       <strong>{summary.leader?.total_score ?? 0}</strong>
-                      Total
+                      คะแนนรวม
                     </span>
                     <span>
                       <strong>{summary.leader ? summary.leader.average_score.toFixed(1) : '0.0'}</strong>
-                      Avg
+                      เฉลี่ย
                     </span>
                   </div>
 
@@ -161,21 +160,21 @@ export function AdminResultsPage() {
                     type="primary"
                     onClick={() => navigate(`/admin/rankings?category=${summary.categoryId}`)}
                   >
-                    View Category Ranking
+                    ดูอันดับคะแนนของหมวดหมู่นี้
                   </Button>
                 </article>
               ))}
             </div>
           ) : (
             <Card loading={summaryLoading} bordered={false} className="soft-card">
-              {!summaryLoading ? <Empty description="No category summaries available yet." /> : null}
+              {!summaryLoading ? <Empty description="ยังไม่มีสรุปคะแนนของหมวดหมู่" /> : null}
             </Card>
           )}
 
           {categories.length > 0 ? (
             <div className="results-summary-footer">
               <Typography.Text className="results-summary-footer__copy">
-                Need the detailed leaderboard? Open <strong>Rankings</strong> from the left sidebar.
+                ต้องการดูตารางอันดับคะแนนแบบละเอียดหรือไม่? เปิด <strong>อันดับคะแนน</strong> จากแถบเมนูด้านซ้าย
               </Typography.Text>
             </div>
           ) : null}
