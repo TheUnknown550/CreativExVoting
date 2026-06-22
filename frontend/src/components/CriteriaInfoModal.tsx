@@ -22,7 +22,7 @@ export function CriteriaInfoModal({ criterion, open, onClose }: CriteriaInfoModa
           <Typography.Paragraph>
             <strong>Maximum score:</strong> {criterion.max_score}
           </Typography.Paragraph>
-          <Typography.Paragraph style={{ marginBottom: 0 }}>
+          <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
             {criterion.description || 'No rubric description has been added yet.'}
           </Typography.Paragraph>
         </>

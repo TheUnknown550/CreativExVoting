@@ -172,7 +172,12 @@ export function AdminCriteriaPage() {
               {
                 title: 'Description',
                 dataIndex: 'description',
-                render: (value: string) => value || <Typography.Text type="secondary">No description</Typography.Text>,
+                render: (value: string) =>
+                  value ? (
+                    <span style={{ whiteSpace: 'pre-wrap' }}>{value}</span>
+                  ) : (
+                    <Typography.Text type="secondary">No description</Typography.Text>
+                  ),
               },
               { title: 'Max Score', dataIndex: 'max_score', width: 120 },
               { title: 'Display Order', dataIndex: 'display_order', width: 140 },
