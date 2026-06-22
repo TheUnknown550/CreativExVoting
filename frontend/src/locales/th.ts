@@ -32,11 +32,6 @@ export const th: TranslationDict = {
     passwordPlaceholder: 'กรอกรหัสผ่านของคุณ',
     submit: 'เข้าสู่ระบบ',
     genericError: 'ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง',
-    demoAccess: 'บัญชีทดลองใช้งาน',
-    demoAdminLabel: 'ผู้ดูแลระบบ',
-    demoJudgesAllUse: 'กรรมการทุกคนใช้รหัสผ่าน',
-    useAdminDemo: 'ใช้บัญชีผู้ดูแลระบบทดลอง',
-    useFirstJudge: 'ใช้บัญชีกรรมการคนแรก',
   },
   judgeLayout: {
     subtitle: 'พื้นที่ทำงานกรรมการ',

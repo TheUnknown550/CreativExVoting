@@ -5,3 +5,4 @@ frontend/.env
 frontend/dist
 docs/
 tmp/run-logs/
+.env.prod

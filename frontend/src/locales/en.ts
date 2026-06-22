@@ -30,11 +30,6 @@ export const en = {
     passwordPlaceholder: 'Enter your password',
     submit: 'Log in',
     genericError: 'Unable to sign in. Please try again.',
-    demoAccess: 'Demo access',
-    demoAdminLabel: 'Admin',
-    demoJudgesAllUse: 'All judges use',
-    useAdminDemo: 'Use admin demo',
-    useFirstJudge: 'Use first judge',
   },
   judgeLayout: {
     subtitle: 'Judge workspace',

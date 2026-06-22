@@ -1,4 +1,3 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -6,7 +5,6 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../../api/client';
 import { BrandMark } from '../../components/BrandMark';
 import { LanguageToggle } from '../../components/LanguageToggle';
-import { demoAdminAccount, demoJudgeAccounts, demoJudgePassword } from '../../constants/demoAccounts';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -47,11 +45,6 @@ export function LoginPage() {
     }
   }
 
-  function applyDemoCredentials(username: string, password: string) {
-    form.setFieldsValue({ username, password });
-    setErrorMessage(null);
-  }
-
   return (
     <div className="login-shell ce-login">
       <section className="ce-login__intro">
@@ -89,11 +82,6 @@ export function LoginPage() {
       </section>
 
       <section className="ce-login__stage">
-        <div className="ce-login__shape ce-login__shape--one" />
-        <div className="ce-login__shape ce-login__shape--two" />
-        <div className="ce-login__shape ce-login__shape--three" />
-        <BrandMark tone="light" className="ce-login__stage-mark" />
-
         <Card className="ce-login-card" styles={{ body: { padding: 30 } }}>
           <Typography.Title level={2} className="ce-login-card__title">
             {t('login.title')}
@@ -110,59 +98,17 @@ export function LoginPage() {
             requiredMark={false}
           >
             <Form.Item name="username" label={t('login.username')} rules={[{ required: true }]}>
-              <Input prefix={<UserOutlined />} placeholder={t('login.usernamePlaceholder')} size="large" />
+              <Input placeholder={t('login.usernamePlaceholder')} size="large" />
             </Form.Item>
 
             <Form.Item name="password" label={t('login.password')} rules={[{ required: true }]}>
-              <Input.Password prefix={<LockOutlined />} placeholder={t('login.passwordPlaceholder')} size="large" />
+              <Input.Password placeholder={t('login.passwordPlaceholder')} size="large" />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
               {t('login.submit')}
             </Button>
           </Form>
-
-          <div className="ce-demo-panel">
-            <Typography.Text className="ce-demo-panel__label">{t('login.demoAccess')}</Typography.Text>
-            <Typography.Paragraph className="ce-demo-panel__copy">
-              {t('login.demoAdminLabel')}: <Typography.Text code>{demoAdminAccount.username}</Typography.Text> /{' '}
-              <Typography.Text code>{demoAdminAccount.password}</Typography.Text>
-            </Typography.Paragraph>
-            <Typography.Paragraph className="ce-demo-panel__copy">
-              {t('login.demoJudgesAllUse')} <Typography.Text code>{demoJudgePassword}</Typography.Text>
-            </Typography.Paragraph>
-
-            <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
-              <Button
-                size="small"
-                className="ce-demo-panel__button"
-                onClick={() => applyDemoCredentials(demoAdminAccount.username, demoAdminAccount.password)}
-              >
-                {t('login.useAdminDemo')}
-              </Button>
-              <Button
-                size="small"
-                className="ce-demo-panel__button"
-                onClick={() => applyDemoCredentials(demoJudgeAccounts[0].username, demoJudgePassword)}
-              >
-                {t('login.useFirstJudge')}
-              </Button>
-            </Space>
-
-            <div className="demo-credential-grid">
-              {demoJudgeAccounts.map((account) => (
-                <button
-                  key={account.username}
-                  type="button"
-                  className="demo-credential-pill"
-                  onClick={() => applyDemoCredentials(account.username, demoJudgePassword)}
-                >
-                  <strong>{account.label}</strong>
-                  <span>{account.username}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </Card>
       </section>
     </div>
