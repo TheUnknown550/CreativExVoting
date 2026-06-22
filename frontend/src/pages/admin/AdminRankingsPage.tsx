@@ -23,6 +23,7 @@ import { useSearchParams } from 'react-router-dom';
 import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type {
   Category,
   ProjectVoteDetail,
@@ -32,6 +33,7 @@ import type {
 
 export function AdminRankingsPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [judges, setJudges] = useState<User[]>([]);
@@ -81,7 +83,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดตัวกรองอันดับคะแนนได้');
+          messageApi.error(error instanceof ApiError ? error.message : t('adminRankings.loadFiltersError'));
         }
       }
     }
@@ -117,7 +119,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดอันดับคะแนนของหมวดหมู่ได้');
+          messageApi.error(error instanceof ApiError ? error.message : t('adminRankings.loadRankingsError'));
         }
       } finally {
         if (!cancelled) {
@@ -150,7 +152,7 @@ export function AdminRankingsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดการส่งคะแนนของกรรมการได้');
+          messageApi.error(error instanceof ApiError ? error.message : t('adminRankings.loadJudgeVotesError'));
         }
       } finally {
         if (!cancelled) {
@@ -173,7 +175,7 @@ export function AdminRankingsPage() {
       setDetail(await adminApi.getProjectVoteDetail(token, projectId));
       setDetailOpen(true);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดรายละเอียดคะแนนได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminRankings.loadDetailError'));
     }
   }
 
@@ -190,9 +192,9 @@ export function AdminRankingsPage() {
       anchor.download = 'voting-results.csv';
       anchor.click();
       URL.revokeObjectURL(url);
-      messageApi.success('เริ่มส่งออกไฟล์ CSV แล้ว');
+      messageApi.success(t('adminRankings.exportSuccess'));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถส่งออกไฟล์ CSV ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminRankings.exportError'));
     } finally {
       setExporting(false);
     }
@@ -206,29 +208,25 @@ export function AdminRankingsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            อันดับคะแนน
+            {t('adminRankings.title')}
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">
-            ตรวจสอบหมวดหมู่ทีละหมวด ดูตารางอันดับคะแนนแบบเต็ม
-            และตรวจสอบการให้คะแนนของกรรมการแต่ละคนในหมวดหมู่เดียวกัน
-          </Typography.Paragraph>
+          <Typography.Paragraph className="page-subtitle">{t('adminRankings.subtitle')}</Typography.Paragraph>
         </section>
 
         <Tabs
           items={[
             {
               key: 'rankings',
-              label: 'อันดับคะแนนตามหมวดหมู่',
+              label: t('adminRankings.categoryRankingTab'),
               children: (
                 <Card className="soft-card">
                   <div className="results-section-heading">
                     <div>
                       <Typography.Title level={3} className="results-section-heading__title">
-                        อันดับคะแนนตามหมวดหมู่
+                        {t('adminRankings.categoryRanking')}
                       </Typography.Title>
                       <Typography.Paragraph className="results-section-heading__copy">
-                        เลือกหมวดหมู่เพื่อดูอันดับคะแนนแบบเต็ม
-                        ปุ่มจากหน้าผลคะแนนจะนำมาที่นี่และเลือกหมวดหมู่ที่คลิกไว้ล่วงหน้า
+                        {t('adminRankings.categoryRankingCopy')}
                       </Typography.Paragraph>
                     </div>
                   </div>
@@ -236,7 +234,7 @@ export function AdminRankingsPage() {
                   <div className="table-toolbar">
                     <div className="table-toolbar__filters">
                       <Select
-                        placeholder="เลือกหมวดหมู่"
+                        placeholder={t('adminRankings.selectCategory')}
                         value={selectedCategoryId}
                         onChange={(value) => {
                           startTransition(() => {
@@ -255,12 +253,14 @@ export function AdminRankingsPage() {
                       loading={exporting}
                       onClick={() => void handleExport(selectedCategoryId)}
                     >
-                      ส่งออก CSV ของหมวดหมู่นี้
+                      {t('adminRankings.exportCategoryCsv')}
                     </Button>
                   </div>
 
                   <Typography.Title level={4} className="results-selected-category">
-                    {selectedCategory?.name ? `อันดับคะแนนของ ${selectedCategory.name}` : 'เลือกหมวดหมู่'}
+                    {selectedCategory?.name
+                      ? `${t('adminRankings.rankingsSuffix')} ${selectedCategory.name}`
+                      : t('adminRankings.selectACategory')}
                   </Typography.Title>
 
                   <Table
@@ -268,11 +268,11 @@ export function AdminRankingsPage() {
                     loading={rankingLoading}
                     dataSource={rankingResults.rankings}
                     pagination={false}
-                    locale={{ emptyText: 'ยังไม่มีข้อมูลอันดับคะแนนสำหรับหมวดหมู่นี้' }}
+                    locale={{ emptyText: t('adminRankings.noRankingData') }}
                     columns={[
-                      { title: 'อันดับ', dataIndex: 'ranking', width: 80 },
+                      { title: t('adminRankings.rank'), dataIndex: 'ranking', width: 80 },
                       {
-                        title: 'ผลงาน',
+                        title: t('adminRankings.project'),
                         dataIndex: 'project_name',
                         render: (value: string) => (
                           <Space>
@@ -281,26 +281,26 @@ export function AdminRankingsPage() {
                           </Space>
                         ),
                       },
-                      { title: 'คะแนนรวม', dataIndex: 'total_score', width: 130 },
+                      { title: t('adminRankings.totalScore'), dataIndex: 'total_score', width: 130 },
                       {
-                        title: 'คะแนนเฉลี่ย',
+                        title: t('adminRankings.averageScore'),
                         dataIndex: 'average_score',
                         width: 140,
                         render: (value: number) => value.toFixed(2),
                       },
-                      { title: 'จำนวนคะแนนที่ส่งแล้ว', dataIndex: 'submitted_votes', width: 140 },
+                      { title: t('adminRankings.submittedVotes'), dataIndex: 'submitted_votes', width: 140 },
                       {
-                        title: 'ความสำเร็จ',
+                        title: t('adminRankings.completion'),
                         dataIndex: 'completion_percent',
                         width: 140,
                         render: (value: number) => `${value.toFixed(1)}%`,
                       },
                       {
-                        title: 'รายละเอียด',
+                        title: t('adminRankings.detail'),
                         width: 130,
                         render: (_, record) => (
                           <Button icon={<EyeOutlined />} onClick={() => void openDetail(record.project_id)}>
-                            รายละเอียด
+                            {t('adminRankings.detail')}
                           </Button>
                         ),
                       },
@@ -311,13 +311,13 @@ export function AdminRankingsPage() {
             },
             {
               key: 'judgeVotes',
-              label: 'คะแนนรายกรรมการ',
+              label: t('adminRankings.perJudgeScoresTab'),
               children: (
                 <Card className="soft-card">
                   <div className="table-toolbar">
                     <div className="table-toolbar__filters">
                       <Select
-                        placeholder="เลือกหมวดหมู่"
+                        placeholder={t('adminRankings.selectCategory')}
                         value={selectedCategoryId}
                         onChange={(value) => {
                           startTransition(() => {
@@ -330,7 +330,7 @@ export function AdminRankingsPage() {
                       />
                       <Select
                         allowClear
-                        placeholder="กรองตามกรรมการ"
+                        placeholder={t('adminRankings.filterByJudge')}
                         value={judgeFilter}
                         onChange={(value) => setJudgeFilter(value)}
                         options={judges.map((judge) => ({ value: judge.id, label: judge.display_name }))}
@@ -344,7 +344,7 @@ export function AdminRankingsPage() {
                       loading={exporting}
                       onClick={() => void handleExport(selectedCategoryId, judgeFilter)}
                     >
-                      ส่งออก CSV ตามตัวกรอง
+                      {t('adminRankings.exportFilteredCsv')}
                     </Button>
                   </div>
 
@@ -353,18 +353,18 @@ export function AdminRankingsPage() {
                     loading={judgeVotesLoading}
                     dataSource={judgeVoteResults.judge_votes}
                     pagination={false}
-                    locale={{ emptyText: 'ไม่มีการส่งคะแนนที่ตรงกับตัวกรองนี้' }}
+                    locale={{ emptyText: t('adminRankings.noJudgeSubmissions') }}
                     columns={[
-                      { title: 'กรรมการ', dataIndex: 'judge_name' },
-                      { title: 'ผลงาน', dataIndex: 'project_name' },
-                      { title: 'หมวดหมู่', dataIndex: 'category' },
-                      { title: 'คะแนนรวม', dataIndex: 'total_score', width: 130 },
+                      { title: t('adminRankings.judge'), dataIndex: 'judge_name' },
+                      { title: t('adminRankings.project'), dataIndex: 'project_name' },
+                      { title: t('adminRankings.category'), dataIndex: 'category' },
+                      { title: t('adminRankings.totalScore'), dataIndex: 'total_score', width: 130 },
                       {
-                        title: 'วันที่ส่ง',
+                        title: t('adminRankings.submitted'),
                         dataIndex: 'submitted_at',
                         width: 180,
                         render: (value?: string | null) =>
-                          value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>ยังไม่ส่ง</Tag>,
+                          value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>{t('adminRankings.draft')}</Tag>,
                       },
                     ]}
                   />
@@ -377,7 +377,7 @@ export function AdminRankingsPage() {
 
       <Modal
         open={detailOpen}
-        title={detail?.project.title ?? 'รายละเอียดคะแนน'}
+        title={detail?.project.title ?? t('adminRankings.voteDetail')}
         footer={null}
         onCancel={() => setDetailOpen(false)}
         width={920}
@@ -385,10 +385,14 @@ export function AdminRankingsPage() {
         {detail ? (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Descriptions bordered column={1}>
-              <Descriptions.Item label="หมวดหมู่">{detail.project.category_name}</Descriptions.Item>
-              <Descriptions.Item label="คะแนนรวม">{detail.combined_score}</Descriptions.Item>
-              <Descriptions.Item label="ผู้ออกแบบ / ทีม">
-                {detail.project.designer_name || detail.project.team_name || 'ไม่ได้ระบุ'}
+              <Descriptions.Item label={t('adminRankings.category')}>
+                {detail.project.category_name}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('adminRankings.combinedScore')}>
+                {detail.combined_score}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('adminRankings.designerTeam')}>
+                {detail.project.designer_name || detail.project.team_name || t('common.notProvided')}
               </Descriptions.Item>
             </Descriptions>
 
@@ -404,22 +408,22 @@ export function AdminRankingsPage() {
                     size="small"
                     dataSource={record.scores}
                     columns={[
-                      { title: 'เกณฑ์การให้คะแนน', dataIndex: 'criterion_name' },
-                      { title: 'คะแนน', dataIndex: 'score', width: 120 },
-                      { title: 'คะแนนเต็ม', dataIndex: 'max_score', width: 120 },
+                      { title: t('adminRankings.criterion'), dataIndex: 'criterion_name' },
+                      { title: t('adminRankings.score'), dataIndex: 'score', width: 120 },
+                      { title: t('adminRankings.maxScore'), dataIndex: 'max_score', width: 120 },
                     ]}
                   />
                 ),
               }}
               columns={[
-                { title: 'กรรมการ', dataIndex: 'judge_name' },
-                { title: 'คะแนนรวม', dataIndex: 'total_score', width: 140 },
+                { title: t('adminRankings.judge'), dataIndex: 'judge_name' },
+                { title: t('adminRankings.totalScore'), dataIndex: 'total_score', width: 140 },
                 {
-                  title: 'วันที่ส่ง',
+                  title: t('adminRankings.submittedAt'),
                   dataIndex: 'submitted_at',
                   width: 200,
                   render: (value?: string | null) =>
-                    value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>ยังไม่ส่ง</Tag>,
+                    value ? dayjs(value).format('DD MMM YYYY HH:mm') : <Tag>{t('adminRankings.draft')}</Tag>,
                 },
               ]}
             />

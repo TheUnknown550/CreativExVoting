@@ -129,6 +129,55 @@ img {
   color: #ffffff !important;
 }
 
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.language-toggle--dark {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.language-toggle--light {
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.language-toggle__option {
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.language-toggle--dark .language-toggle__option {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.language-toggle--dark .language-toggle__option--active {
+  background: var(--ce-orange);
+  color: #ffffff;
+}
+
+.language-toggle--light .language-toggle__option {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.language-toggle--light .language-toggle__option--active {
+  background: var(--ce-orange);
+  color: #ffffff;
+}
+
 .admin-shell {
   min-height: 100vh;
 }

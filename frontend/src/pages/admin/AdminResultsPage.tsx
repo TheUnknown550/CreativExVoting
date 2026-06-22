@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { AdminProjectRanking, Category } from '../../types/domain';
 
 interface CategoryWinnerSummary {
@@ -16,6 +17,7 @@ interface CategoryWinnerSummary {
 
 export function AdminResultsPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryWinners, setCategoryWinners] = useState<CategoryWinnerSummary[]>([]);
@@ -57,7 +59,7 @@ export function AdminResultsPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดสรุปคะแนนของหมวดหมู่ได้');
+          messageApi.error(error instanceof ApiError ? error.message : t('adminResults.loadError'));
         }
       } finally {
         if (!cancelled) {
@@ -86,9 +88,9 @@ export function AdminResultsPage() {
       anchor.download = 'voting-results.csv';
       anchor.click();
       URL.revokeObjectURL(url);
-      messageApi.success('เริ่มส่งออกไฟล์ CSV แล้ว');
+      messageApi.success(t('adminResults.exportSuccess'));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถส่งออกไฟล์ CSV ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminResults.exportError'));
     } finally {
       setExporting(false);
     }
@@ -100,22 +102,19 @@ export function AdminResultsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            สรุปผลคะแนน
+            {t('adminResults.title')}
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">
-            ดูผลงานอันดับหนึ่งในแต่ละหมวดหมู่รางวัล แล้วไปที่หน้า <strong>อันดับคะแนน</strong>{' '}
-            เพื่อตรวจสอบตารางอันดับคะแนนแบบเต็มของหมวดหมู่นั้น
-          </Typography.Paragraph>
+          <Typography.Paragraph className="page-subtitle">{t('adminResults.subtitle')}</Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
           <div className="results-section-heading">
             <div>
               <Typography.Title level={3} className="results-section-heading__title">
-                อันดับหนึ่งของแต่ละหมวดหมู่
+                {t('adminResults.topOfEachCategory')}
               </Typography.Title>
               <Typography.Paragraph className="results-section-heading__copy">
-                การ์ดสรุปแต่ละใบแสดงผลงานที่นำอยู่ในหมวดหมู่นั้น โดยอ้างอิงจากข้อมูลคะแนนที่มีอยู่ในขณะนี้
+                {t('adminResults.topOfEachCategoryCopy')}
               </Typography.Paragraph>
             </div>
 
@@ -125,7 +124,7 @@ export function AdminResultsPage() {
               loading={exporting}
               onClick={() => void handleExportAll()}
             >
-              ส่งออกผลคะแนนทั้งหมด
+              {t('adminResults.exportAllResults')}
             </Button>
           </div>
 
@@ -138,21 +137,21 @@ export function AdminResultsPage() {
                   </Typography.Text>
 
                   <Typography.Title level={4} className="results-winner-card__title">
-                    {summary.leader?.project_name ?? 'ยังไม่มีผลงานที่จัดอันดับ'}
+                    {summary.leader?.project_name ?? t('adminResults.noRankedProject')}
                   </Typography.Title>
 
                   <div className="results-winner-card__stats">
                     <span>
                       <strong>#{summary.leader?.ranking ?? '-'}</strong>
-                      อันดับ
+                      {t('adminResults.rank')}
                     </span>
                     <span>
                       <strong>{summary.leader?.total_score ?? 0}</strong>
-                      คะแนนรวม
+                      {t('adminResults.total')}
                     </span>
                     <span>
                       <strong>{summary.leader ? summary.leader.average_score.toFixed(1) : '0.0'}</strong>
-                      เฉลี่ย
+                      {t('adminResults.avg')}
                     </span>
                   </div>
 
@@ -160,21 +159,22 @@ export function AdminResultsPage() {
                     type="primary"
                     onClick={() => navigate(`/admin/rankings?category=${summary.categoryId}`)}
                   >
-                    ดูอันดับคะแนนของหมวดหมู่นี้
+                    {t('adminResults.viewCategoryRanking')}
                   </Button>
                 </article>
               ))}
             </div>
           ) : (
             <Card loading={summaryLoading} bordered={false} className="soft-card">
-              {!summaryLoading ? <Empty description="ยังไม่มีสรุปคะแนนของหมวดหมู่" /> : null}
+              {!summaryLoading ? <Empty description={t('adminResults.noSummaries')} /> : null}
             </Card>
           )}
 
           {categories.length > 0 ? (
             <div className="results-summary-footer">
               <Typography.Text className="results-summary-footer__copy">
-                ต้องการดูตารางอันดับคะแนนแบบละเอียดหรือไม่? เปิด <strong>อันดับคะแนน</strong> จากแถบเมนูด้านซ้าย
+                {t('adminResults.footerCopy')} <strong>{t('adminResults.rankingsLink')}</strong>{' '}
+                {t('adminResults.footerCopySuffix')}
               </Typography.Text>
             </div>
           ) : null}

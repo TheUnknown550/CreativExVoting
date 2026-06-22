@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { Category, CriterionPayload, ScoringCriterion } from '../../types/domain';
 
 const blankCriterion: CriterionPayload = {
@@ -32,6 +33,7 @@ const blankCriterion: CriterionPayload = {
 
 export function AdminCriteriaPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [form] = Form.useForm<CriterionPayload>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [criteria, setCriteria] = useState<ScoringCriterion[]>([]);
@@ -51,7 +53,7 @@ export function AdminCriteriaPage() {
       setCategories(nextCategories);
       setSelectedCategoryId((current) => current ?? nextCategories[0]?.id);
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCriteria.loadCategoriesError'));
     }
   }
 
@@ -64,7 +66,7 @@ export function AdminCriteriaPage() {
     try {
       setCriteria(await adminApi.getAdminCriteria(token, categoryId));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดเกณฑ์การให้คะแนนได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCriteria.loadCriteriaError'));
     } finally {
       setLoading(false);
     }
@@ -111,9 +113,13 @@ export function AdminCriteriaPage() {
       }
       setModalOpen(false);
       await loadCriteria(selectedCategoryId);
-      messageApi.success(`${editingCriterion ? 'แก้ไข' : 'สร้าง'}เกณฑ์การให้คะแนนสำเร็จแล้ว`);
+      messageApi.success(
+        t('adminCriteria.savedSuccess', {
+          action: editingCriterion ? t('adminCriteria.updated') : t('adminCriteria.created'),
+        }),
+      );
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกเกณฑ์การให้คะแนนได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCriteria.saveError'));
     } finally {
       setSaving(false);
     }
@@ -126,9 +132,9 @@ export function AdminCriteriaPage() {
     try {
       await adminApi.deleteCriterion(token, id);
       await loadCriteria(selectedCategoryId);
-      messageApi.success('ปิดการใช้งานเกณฑ์การให้คะแนนแล้ว');
+      messageApi.success(t('adminCriteria.deactivatedSuccess'));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานเกณฑ์การให้คะแนนได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCriteria.deactivateError'));
     }
   }
 
@@ -138,11 +144,9 @@ export function AdminCriteriaPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            จัดการเกณฑ์การให้คะแนน
+            {t('adminCriteria.title')}
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">
-            กำหนดหัวข้อการให้คะแนน คะแนนเต็ม คำอธิบายเกณฑ์ และลำดับการแสดงผลของแต่ละหมวดหมู่รางวัล
-          </Typography.Paragraph>
+          <Typography.Paragraph className="page-subtitle">{t('adminCriteria.subtitle')}</Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
@@ -152,12 +156,12 @@ export function AdminCriteriaPage() {
                 value={selectedCategoryId}
                 onChange={(value) => setSelectedCategoryId(value)}
                 options={categories.map((category) => ({ value: category.id, label: category.name }))}
-                placeholder="เลือกหมวดหมู่"
+                placeholder={t('adminCriteria.selectCategory')}
                 style={{ width: 280 }}
               />
             </div>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              สร้างเกณฑ์ใหม่
+              {t('adminCriteria.newCriterion')}
             </Button>
           </div>
 
@@ -167,37 +171,44 @@ export function AdminCriteriaPage() {
             dataSource={criteria}
             pagination={false}
             columns={[
-              { title: 'ชื่อ', dataIndex: 'name' },
+              { title: t('common.name'), dataIndex: 'name' },
               {
-                title: 'คำอธิบาย',
+                title: t('common.description'),
                 dataIndex: 'description',
                 render: (value: string) =>
                   value ? (
                     <span style={{ whiteSpace: 'pre-wrap' }}>{value}</span>
                   ) : (
-                    <Typography.Text type="secondary">ไม่มีคำอธิบาย</Typography.Text>
+                    <Typography.Text type="secondary">{t('common.noDescription')}</Typography.Text>
                   ),
               },
-              { title: 'คะแนนเต็ม', dataIndex: 'max_score', width: 120 },
-              { title: 'ลำดับการแสดงผล', dataIndex: 'display_order', width: 140 },
+              { title: t('adminCriteria.maxScore'), dataIndex: 'max_score', width: 120 },
+              { title: t('adminCriteria.displayOrder'), dataIndex: 'display_order', width: 140 },
               {
-                title: 'สถานะ',
+                title: t('common.status'),
                 dataIndex: 'is_active',
                 width: 120,
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
+                  value ? (
+                    <Typography.Text style={{ color: '#4f7a57' }}>{t('common.active')}</Typography.Text>
+                  ) : (
+                    t('common.inactive')
+                  ),
               },
               {
-                title: 'การจัดการ',
+                title: t('common.actions'),
                 width: 180,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      แก้ไข
+                      {t('common.edit')}
                     </Button>
-                    <Popconfirm title="ปิดการใช้งานเกณฑ์นี้หรือไม่?" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm
+                      title={t('adminCriteria.deactivateConfirm')}
+                      onConfirm={() => void handleDelete(record.id)}
+                    >
                       <Button danger icon={<DeleteOutlined />}>
-                        ปิดการใช้งาน
+                        {t('common.deactivate')}
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -210,28 +221,28 @@ export function AdminCriteriaPage() {
 
       <Modal
         open={modalOpen}
-        title={editingCriterion ? 'แก้ไขเกณฑ์การให้คะแนน' : 'สร้างเกณฑ์การให้คะแนน'}
+        title={editingCriterion ? t('adminCriteria.editTitle') : t('adminCriteria.createTitle')}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankCriterion}>
-          <Form.Item name="category_id" label="หมวดหมู่" rules={[{ required: true }]}>
+          <Form.Item name="category_id" label={t('adminCriteria.category')} rules={[{ required: true }]}>
             <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
           </Form.Item>
-          <Form.Item name="name" label="ชื่อเกณฑ์" rules={[{ required: true }]}>
+          <Form.Item name="name" label={t('adminCriteria.criterionName')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="คำอธิบายเกณฑ์การให้คะแนน">
+          <Form.Item name="description" label={t('adminCriteria.rubricDescription')}>
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="max_score" label="คะแนนเต็ม" rules={[{ required: true }]}>
+          <Form.Item name="max_score" label={t('adminCriteria.maximumScore')} rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="display_order" label="ลำดับการแสดงผล" rules={[{ required: true }]}>
+          <Form.Item name="display_order" label={t('adminCriteria.displayOrder')} rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
+          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

@@ -3,12 +3,15 @@ import { LogoutOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
 
 import { BrandMark } from '../components/BrandMark';
+import { LanguageToggle } from '../components/LanguageToggle';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const { Header, Content } = Layout;
 
 export function JudgeLayout() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <Layout className="page-shell judge-shell">
@@ -19,15 +22,16 @@ export function JudgeLayout() {
               CE Awards 2026
             </Typography.Title>
             <Typography.Text className="ce-brandline__subtitle">
-              พื้นที่ทำงานกรรมการ
+              {t('judgeLayout.subtitle')}
             </Typography.Text>
           </div>
 
           <Space size="middle" wrap>
+            <LanguageToggle />
             <Tag className="ce-role-tag">{user?.role}</Tag>
             <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>
             <Button className="ce-ghost-button" icon={<LogoutOutlined />} onClick={logout}>
-              ออกจากระบบ
+              {t('common.logout')}
             </Button>
             <BrandMark tone="light" className="ce-topbar__mark" />
           </Space>

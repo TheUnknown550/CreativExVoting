@@ -12,24 +12,27 @@ import type { MenuProps } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { BrandMark } from '../components/BrandMark';
+import { LanguageToggle } from '../components/LanguageToggle';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const { Sider, Header, Content } = Layout;
-
-const items: MenuProps['items'] = [
-  { key: '/admin/dashboard', icon: <AppstoreOutlined />, label: 'แดชบอร์ด' },
-  { key: '/admin/projects', icon: <FolderOpenOutlined />, label: 'ผลงาน' },
-  { key: '/admin/categories', icon: <TagsOutlined />, label: 'หมวดหมู่' },
-  { key: '/admin/criteria', icon: <BarChartOutlined />, label: 'เกณฑ์การให้คะแนน' },
-  { key: '/admin/judges', icon: <TeamOutlined />, label: 'กรรมการ' },
-  { key: '/admin/results', icon: <BarChartOutlined />, label: 'ผลคะแนน' },
-  { key: '/admin/rankings', icon: <OrderedListOutlined />, label: 'อันดับคะแนน' },
-];
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
+
+  const items: MenuProps['items'] = [
+    { key: '/admin/dashboard', icon: <AppstoreOutlined />, label: t('adminLayout.nav.dashboard') },
+    { key: '/admin/projects', icon: <FolderOpenOutlined />, label: t('adminLayout.nav.projects') },
+    { key: '/admin/categories', icon: <TagsOutlined />, label: t('adminLayout.nav.categories') },
+    { key: '/admin/criteria', icon: <BarChartOutlined />, label: t('adminLayout.nav.criteria') },
+    { key: '/admin/judges', icon: <TeamOutlined />, label: t('adminLayout.nav.judges') },
+    { key: '/admin/results', icon: <BarChartOutlined />, label: t('adminLayout.nav.results') },
+    { key: '/admin/rankings', icon: <OrderedListOutlined />, label: t('adminLayout.nav.rankings') },
+  ];
 
   return (
     <Layout className="admin-shell">
@@ -42,7 +45,7 @@ export function AdminLayout() {
         <div className="admin-sider__brand">
           <BrandMark tone="light" className="admin-sider__mark" />
           <Typography.Text className="admin-sider__title">CE Awards 2026</Typography.Text>
-          <Typography.Text className="admin-sider__subtitle">ศูนย์ควบคุมผู้ดูแลระบบ</Typography.Text>
+          <Typography.Text className="admin-sider__subtitle">{t('adminLayout.controlRoom')}</Typography.Text>
         </div>
 
         <Menu
@@ -62,14 +65,15 @@ export function AdminLayout() {
                 CE Awards 2026
               </Typography.Title>
               <Typography.Text className="ce-brandline__subtitle">
-                ผู้ดูแลระบบ
+                {t('adminLayout.subtitle')}
               </Typography.Text>
             </div>
 
             <Space>
+              <LanguageToggle />
               <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>
               <Button className="ce-ghost-button" icon={<LogoutOutlined />} onClick={logout}>
-                ออกจากระบบ
+                {t('common.logout')}
               </Button>
             </Space>
           </div>

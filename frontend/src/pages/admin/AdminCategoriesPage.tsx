@@ -17,10 +17,12 @@ import { useEffect, useState } from 'react';
 import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { Category, CategoryPayload } from '../../types/domain';
 
 export function AdminCategoriesPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [form] = Form.useForm<CategoryPayload>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ export function AdminCategoriesPage() {
     try {
       setCategories(await adminApi.getAdminCategories(token));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCategories.loadError'));
     } finally {
       setLoading(false);
     }
@@ -77,9 +79,13 @@ export function AdminCategoriesPage() {
       }
       setModalOpen(false);
       await loadCategories();
-      messageApi.success(`${editingCategory ? 'แก้ไข' : 'สร้าง'}หมวดหมู่สำเร็จแล้ว`);
+      messageApi.success(
+        t('adminCategories.savedSuccess', {
+          action: editingCategory ? t('adminCategories.updated') : t('adminCategories.created'),
+        }),
+      );
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกหมวดหมู่ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCategories.saveError'));
     } finally {
       setSaving(false);
     }
@@ -92,9 +98,9 @@ export function AdminCategoriesPage() {
     try {
       await adminApi.deleteCategory(token, id);
       await loadCategories();
-      messageApi.success('ปิดการใช้งานหมวดหมู่แล้ว');
+      messageApi.success(t('adminCategories.deactivatedSuccess'));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานหมวดหมู่ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminCategories.deactivateError'));
     }
   }
 
@@ -104,21 +110,18 @@ export function AdminCategoriesPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            จัดการหมวดหมู่
+            {t('adminCategories.title')}
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">
-            สร้างกลุ่มรางวัล ปรับคำอธิบาย และควบคุมว่าหมวดหมู่ใดสามารถใช้สำหรับมอบหมายผลงาน
-            และการตัดสินได้
-          </Typography.Paragraph>
+          <Typography.Paragraph className="page-subtitle">{t('adminCategories.subtitle')}</Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
           <div className="table-toolbar">
             <Typography.Title level={4} style={{ margin: 0 }}>
-              หมวดหมู่
+              {t('adminCategories.categories')}
             </Typography.Title>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              สร้างหมวดหมู่ใหม่
+              {t('adminCategories.newCategory')}
             </Button>
           </div>
 
@@ -128,32 +131,37 @@ export function AdminCategoriesPage() {
             dataSource={categories}
             pagination={false}
             columns={[
-              { title: 'ชื่อ', dataIndex: 'name' },
+              { title: t('common.name'), dataIndex: 'name' },
               {
-                title: 'คำอธิบาย',
+                title: t('common.description'),
                 dataIndex: 'description',
-                render: (value: string) => value || <Typography.Text type="secondary">ไม่มีคำอธิบาย</Typography.Text>,
+                render: (value: string) =>
+                  value || <Typography.Text type="secondary">{t('common.noDescription')}</Typography.Text>,
               },
               {
-                title: 'สถานะ',
+                title: t('common.status'),
                 dataIndex: 'is_active',
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
+                  value ? (
+                    <Typography.Text style={{ color: '#4f7a57' }}>{t('common.active')}</Typography.Text>
+                  ) : (
+                    t('common.inactive')
+                  ),
               },
               {
-                title: 'การจัดการ',
+                title: t('common.actions'),
                 width: 180,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      แก้ไข
+                      {t('common.edit')}
                     </Button>
                     <Popconfirm
-                      title="ปิดการใช้งานหมวดหมู่นี้หรือไม่?"
+                      title={t('adminCategories.deactivateConfirm')}
                       onConfirm={() => void handleDelete(record.id)}
                     >
                       <Button danger icon={<DeleteOutlined />}>
-                        ปิดการใช้งาน
+                        {t('common.deactivate')}
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -166,19 +174,19 @@ export function AdminCategoriesPage() {
 
       <Modal
         open={modalOpen}
-        title={editingCategory ? 'แก้ไขหมวดหมู่' : 'สร้างหมวดหมู่'}
+        title={editingCategory ? t('adminCategories.editTitle') : t('adminCategories.createTitle')}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ is_active: true }}>
-          <Form.Item name="name" label="ชื่อหมวดหมู่" rules={[{ required: true }]}>
+          <Form.Item name="name" label={t('adminCategories.categoryName')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="คำอธิบาย">
+          <Form.Item name="description" label={t('common.description')}>
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
+          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

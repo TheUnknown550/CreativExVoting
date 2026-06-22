@@ -18,6 +18,7 @@ import { useDeferredValue, useEffect, useState } from 'react';
 import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { Category, Project, ProjectPayload } from '../../types/domain';
 
 const blankProject: ProjectPayload = {
@@ -39,6 +40,7 @@ const blankProject: ProjectPayload = {
 
 export function AdminProjectsPage() {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [form] = Form.useForm<ProjectPayload>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -59,7 +61,7 @@ export function AdminProjectsPage() {
     try {
       setCategories(await adminApi.getAdminCategories(token));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดหมวดหมู่ได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.loadCategoriesError'));
     }
   }
 
@@ -72,7 +74,7 @@ export function AdminProjectsPage() {
     try {
       setProjects(await adminApi.getAdminProjects(token, categoryFilter, deferredSearch));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถโหลดผลงานได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.loadProjectsError'));
     } finally {
       setLoading(false);
     }
@@ -127,9 +129,13 @@ export function AdminProjectsPage() {
       }
       setModalOpen(false);
       await loadProjects();
-      messageApi.success(`${editingProject ? 'แก้ไข' : 'สร้าง'}ผลงานสำเร็จแล้ว`);
+      messageApi.success(
+        t('adminProjects.savedSuccess', {
+          action: editingProject ? t('adminProjects.updated') : t('adminProjects.created'),
+        }),
+      );
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถบันทึกผลงานได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.saveError'));
     } finally {
       setSaving(false);
     }
@@ -142,9 +148,9 @@ export function AdminProjectsPage() {
     try {
       await adminApi.deleteProject(token, id);
       await loadProjects();
-      messageApi.success('ปิดการใช้งานผลงานแล้ว');
+      messageApi.success(t('adminProjects.deactivatedSuccess'));
     } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : 'ไม่สามารถปิดการใช้งานผลงานได้');
+      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.deactivateError'));
     }
   }
 
@@ -154,19 +160,16 @@ export function AdminProjectsPage() {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="page-hero">
           <Typography.Title className="page-title" level={1}>
-            จัดการผลงาน
+            {t('adminProjects.title')}
           </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">
-            ดูแลผลงานที่เข้าชิงทุกชิ้น เพิ่มรายละเอียดสำหรับการตัดสิน
-            และเตรียมรายการที่เปิดใช้งานให้พร้อมสำหรับกรรมการที่ได้รับมอบหมาย
-          </Typography.Paragraph>
+          <Typography.Paragraph className="page-subtitle">{t('adminProjects.subtitle')}</Typography.Paragraph>
         </section>
 
         <Card className="soft-card">
           <div className="table-toolbar">
             <div className="table-toolbar__filters">
               <Input
-                placeholder="ค้นหาด้วยชื่อ ทีม หรือผู้ออกแบบ"
+                placeholder={t('adminProjects.searchPlaceholder')}
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 allowClear
@@ -175,7 +178,7 @@ export function AdminProjectsPage() {
               />
               <Select
                 allowClear
-                placeholder="กรองตามหมวดหมู่"
+                placeholder={t('adminProjects.filterByCategory')}
                 value={categoryFilter}
                 onChange={(value) => setCategoryFilter(value)}
                 options={categories.map((category) => ({ value: category.id, label: category.name }))}
@@ -184,7 +187,7 @@ export function AdminProjectsPage() {
             </div>
 
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              สร้างผลงานใหม่
+              {t('adminProjects.newProject')}
             </Button>
           </div>
 
@@ -194,38 +197,45 @@ export function AdminProjectsPage() {
             dataSource={projects}
             scroll={{ x: 1020 }}
             columns={[
-              { title: 'ชื่อผลงาน', dataIndex: 'title', fixed: 'left', width: 240 },
-              { title: 'หมวดหมู่', dataIndex: 'category_name', width: 180 },
+              { title: t('adminProjects.title_col'), dataIndex: 'title', fixed: 'left', width: 240 },
+              { title: t('adminProjects.category'), dataIndex: 'category_name', width: 180 },
               {
-                title: 'ผู้ออกแบบ / ทีม',
+                title: t('adminProjects.designerTeam'),
                 width: 220,
-                render: (_, record) => record.designer_name || record.team_name || 'ไม่ได้ระบุ',
+                render: (_, record) => record.designer_name || record.team_name || t('common.notProvided'),
               },
               {
-                title: 'คำอธิบายสั้น',
+                title: t('adminProjects.shortDescription'),
                 dataIndex: 'short_description',
                 width: 320,
-                render: (value: string) => value || 'ไม่มีคำอธิบายสั้น',
+                render: (value: string) => value || t('adminProjects.noShortDescription'),
               },
               {
-                title: 'สถานะ',
+                title: t('common.status'),
                 dataIndex: 'is_active',
                 width: 120,
                 render: (value: boolean) =>
-                  value ? <Typography.Text style={{ color: '#4f7a57' }}>เปิดใช้งาน</Typography.Text> : 'ปิดใช้งาน',
+                  value ? (
+                    <Typography.Text style={{ color: '#4f7a57' }}>{t('common.active')}</Typography.Text>
+                  ) : (
+                    t('common.inactive')
+                  ),
               },
               {
-                title: 'การจัดการ',
+                title: t('common.actions'),
                 fixed: 'right',
                 width: 190,
                 render: (_, record) => (
                   <Space>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
-                      แก้ไข
+                      {t('common.edit')}
                     </Button>
-                    <Popconfirm title="ปิดการใช้งานผลงานนี้หรือไม่?" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm
+                      title={t('adminProjects.deactivateConfirm')}
+                      onConfirm={() => void handleDelete(record.id)}
+                    >
                       <Button danger icon={<DeleteOutlined />}>
-                        ปิดการใช้งาน
+                        {t('common.deactivate')}
                       </Button>
                     </Popconfirm>
                   </Space>
@@ -238,53 +248,53 @@ export function AdminProjectsPage() {
 
       <Modal
         open={modalOpen}
-        title={editingProject ? 'แก้ไขผลงาน' : 'สร้างผลงาน'}
+        title={editingProject ? t('adminProjects.editProject') : t('adminProjects.createProject')}
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
         width={840}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankProject}>
-          <Form.Item name="category_id" label="หมวดหมู่" rules={[{ required: true }]}>
+          <Form.Item name="category_id" label={t('adminProjects.category')} rules={[{ required: true }]}>
             <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
           </Form.Item>
-          <Form.Item name="title" label="ชื่อผลงาน" rules={[{ required: true }]}>
+          <Form.Item name="title" label={t('adminProjects.projectTitle')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="short_description" label="คำอธิบายสั้น">
+          <Form.Item name="short_description" label={t('adminProjects.shortDescriptionLabel')}>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="full_description" label="คำอธิบายแบบเต็ม">
+          <Form.Item name="full_description" label={t('adminProjects.fullDescription')}>
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="concept" label="แนวคิด">
+          <Form.Item name="concept" label={t('adminProjects.concept')}>
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="designer_name" label="ชื่อผู้ออกแบบ">
+          <Form.Item name="designer_name" label={t('adminProjects.designerName')}>
             <Input />
           </Form.Item>
-          <Form.Item name="team_name" label="ชื่อทีม">
+          <Form.Item name="team_name" label={t('adminProjects.teamName')}>
             <Input />
           </Form.Item>
-          <Form.Item name="image_url" label="URL รูปภาพ">
+          <Form.Item name="image_url" label={t('adminProjects.imageUrl')}>
             <Input />
           </Form.Item>
-          <Form.Item name="proposal_link" label="ลิงก์ข้อเสนอโครงการ">
+          <Form.Item name="proposal_link" label={t('adminProjects.proposalLink')}>
             <Input />
           </Form.Item>
-          <Form.Item name="social_media_link" label="ลิงก์โซเชียลมีเดีย">
+          <Form.Item name="social_media_link" label={t('adminProjects.socialMediaLink')}>
             <Input />
           </Form.Item>
-          <Form.Item name="drive_link" label="ลิงก์ Google Drive / ข้อมูลเพิ่มเติม">
+          <Form.Item name="drive_link" label={t('adminProjects.driveLink')}>
             <Input />
           </Form.Item>
-          <Form.Item name="attached_file_link" label="ลิงก์ไฟล์แนบ">
+          <Form.Item name="attached_file_link" label={t('adminProjects.attachedFileLink')}>
             <Input />
           </Form.Item>
-          <Form.Item name="extra_details" label="รายละเอียดเพิ่มเติม">
+          <Form.Item name="extra_details" label={t('adminProjects.extraDetails')}>
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="is_active" label="เปิดใช้งาน" valuePropName="checked">
+          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

@@ -1,5 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 
+import { useLanguage } from '../contexts/LanguageContext';
+
 interface ProjectPreviewProps {
   alt: string;
   className?: string;
@@ -13,10 +15,11 @@ export function ProjectPreview({
   alt,
   className,
   placeholderClassName,
-  placeholderLabel = 'ตัวอย่างผลงาน',
+  placeholderLabel,
   src,
   style,
 }: ProjectPreviewProps) {
+  const { t } = useLanguage();
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -26,7 +29,7 @@ export function ProjectPreview({
   if (!src || hasError) {
     return (
       <div className={placeholderClassName ?? className} style={style}>
-        {placeholderLabel}
+        {placeholderLabel ?? t('projectPreview.placeholder')}
       </div>
     );
   }
