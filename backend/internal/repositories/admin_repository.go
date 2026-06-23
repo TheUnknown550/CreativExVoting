@@ -28,9 +28,9 @@ func (r *AdminRepository) GetDashboardStats(ctx context.Context) (models.Dashboa
 	query := `
 		WITH possible_votes AS (
 			SELECT COUNT(*) AS total
-			FROM judge_category_assignments a
+			FROM judge_group_assignments a
 			JOIN users u ON u.id = a.judge_id AND u.role = 'judge' AND u.is_active = TRUE
-			JOIN categories c ON c.id = a.category_id AND c.is_active = TRUE
+			JOIN categories c ON c.award_group_id = a.group_id AND c.is_active = TRUE
 			JOIN projects p ON p.category_id = c.id AND p.is_active = TRUE
 		)
 		SELECT
@@ -58,11 +58,34 @@ func (r *AdminRepository) GetDashboardStats(ctx context.Context) (models.Dashboa
 	return stats, nil
 }
 
+func (r *AdminRepository) ListAwardGroups(ctx context.Context) ([]models.AwardGroup, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, code, name, COALESCE(name_th, ''), description, COALESCE(description_th, ''), display_order, is_active, created_at, updated_at
+		FROM award_groups
+		ORDER BY display_order, code, name
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var groups []models.AwardGroup
+	for rows.Next() {
+		var group models.AwardGroup
+		if err := rows.Scan(&group.ID, &group.Code, &group.Name, &group.NameTh, &group.Description, &group.DescriptionTh, &group.DisplayOrder, &group.IsActive, &group.CreatedAt, &group.UpdatedAt); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+
+	return groups, rows.Err()
+}
+
 func (r *AdminRepository) ListCategories(ctx context.Context) ([]models.Category, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, name, description, is_active, created_at, updated_at
+		SELECT id, award_group_id, name, COALESCE(name_th, ''), description, COALESCE(description_th, ''), display_order, is_active, created_at, updated_at
 		FROM categories
-		ORDER BY is_active DESC, created_at DESC
+		ORDER BY is_active DESC, display_order, created_at DESC
 	`)
 	if err != nil {
 		return nil, err
@@ -72,7 +95,7 @@ func (r *AdminRepository) ListCategories(ctx context.Context) ([]models.Category
 	var categories []models.Category
 	for rows.Next() {
 		var category models.Category
-		if err := rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsActive, &category.CreatedAt, &category.UpdatedAt); err != nil {
+		if err := rows.Scan(&category.ID, &category.AwardGroupID, &category.Name, &category.NameTh, &category.Description, &category.DescriptionTh, &category.DisplayOrder, &category.IsActive, &category.CreatedAt, &category.UpdatedAt); err != nil {
 			return nil, err
 		}
 		categories = append(categories, category)
@@ -83,35 +106,43 @@ func (r *AdminRepository) ListCategories(ctx context.Context) ([]models.Category
 
 func (r *AdminRepository) CreateCategory(ctx context.Context, payload models.CategoryPayload) (models.Category, error) {
 	category := models.Category{
-		ID:          uuid.NewString(),
-		Name:        payload.Name,
-		Description: payload.Description,
-		IsActive:    payload.IsActive,
+		ID:            uuid.NewString(),
+		AwardGroupID:  payload.AwardGroupID,
+		Name:          payload.Name,
+		NameTh:        payload.NameTh,
+		Description:   payload.Description,
+		DescriptionTh: payload.DescriptionTh,
+		DisplayOrder:  payload.DisplayOrder,
+		IsActive:      payload.IsActive,
 	}
 
 	err := r.pool.QueryRow(ctx, `
-		INSERT INTO categories (id, name, description, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW())
+		INSERT INTO categories (id, award_group_id, name, name_th, description, description_th, display_order, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
 		RETURNING created_at, updated_at
-	`, category.ID, category.Name, category.Description, category.IsActive).Scan(&category.CreatedAt, &category.UpdatedAt)
+	`, category.ID, category.AwardGroupID, category.Name, category.NameTh, category.Description, category.DescriptionTh, category.DisplayOrder, category.IsActive).Scan(&category.CreatedAt, &category.UpdatedAt)
 
 	return category, err
 }
 
 func (r *AdminRepository) UpdateCategory(ctx context.Context, id string, payload models.CategoryPayload) (models.Category, error) {
 	category := models.Category{
-		ID:          id,
-		Name:        payload.Name,
-		Description: payload.Description,
-		IsActive:    payload.IsActive,
+		ID:            id,
+		AwardGroupID:  payload.AwardGroupID,
+		Name:          payload.Name,
+		NameTh:        payload.NameTh,
+		Description:   payload.Description,
+		DescriptionTh: payload.DescriptionTh,
+		DisplayOrder:  payload.DisplayOrder,
+		IsActive:      payload.IsActive,
 	}
 
 	err := r.pool.QueryRow(ctx, `
 		UPDATE categories
-		SET name = $2, description = $3, is_active = $4, updated_at = NOW()
+		SET award_group_id = $2, name = $3, name_th = $4, description = $5, description_th = $6, display_order = $7, is_active = $8, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
-	`, id, category.Name, category.Description, category.IsActive).Scan(&category.CreatedAt, &category.UpdatedAt)
+	`, id, category.AwardGroupID, category.Name, category.NameTh, category.Description, category.DescriptionTh, category.DisplayOrder, category.IsActive).Scan(&category.CreatedAt, &category.UpdatedAt)
 
 	return category, err
 }
@@ -379,7 +410,7 @@ func (r *AdminRepository) CreateJudge(ctx context.Context, payload models.JudgeP
 		return user, err
 	}
 
-	if err = r.replaceAssignmentsTx(ctx, tx, user.ID, payload.CategoryIDs); err != nil {
+	if err = r.replaceAssignmentsTx(ctx, tx, user.ID, payload.GroupIDs); err != nil {
 		return user, err
 	}
 
@@ -410,7 +441,7 @@ func (r *AdminRepository) UpdateJudge(ctx context.Context, id string, payload mo
 		return user, err
 	}
 
-	if err = r.replaceAssignmentsTx(ctx, tx, user.ID, payload.CategoryIDs); err != nil {
+	if err = r.replaceAssignmentsTx(ctx, tx, user.ID, payload.GroupIDs); err != nil {
 		return user, err
 	}
 
@@ -427,12 +458,12 @@ func (r *AdminRepository) SoftDeleteJudge(ctx context.Context, id string) error 
 	return err
 }
 
-func (r *AdminRepository) GetJudgeCategoryIDs(ctx context.Context, judgeID string) ([]string, error) {
+func (r *AdminRepository) GetJudgeGroupIDs(ctx context.Context, judgeID string) ([]string, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT category_id
-		FROM judge_category_assignments
+		SELECT group_id
+		FROM judge_group_assignments
 		WHERE judge_id = $1
-		ORDER BY category_id
+		ORDER BY group_id
 	`, judgeID)
 	if err != nil {
 		return nil, err
@@ -450,25 +481,25 @@ func (r *AdminRepository) GetJudgeCategoryIDs(ctx context.Context, judgeID strin
 	return ids, rows.Err()
 }
 
-func (r *AdminRepository) ReplaceJudgeAssignments(ctx context.Context, judgeID string, categoryIDs []string) error {
+func (r *AdminRepository) ReplaceJudgeAssignments(ctx context.Context, judgeID string, groupIDs []string) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
 
-	if err = r.replaceAssignmentsTx(ctx, tx, judgeID, categoryIDs); err != nil {
+	if err = r.replaceAssignmentsTx(ctx, tx, judgeID, groupIDs); err != nil {
 		return err
 	}
 
 	return tx.Commit(ctx)
 }
 
-func (r *AdminRepository) DeleteJudgeAssignment(ctx context.Context, judgeID string, categoryID string) error {
+func (r *AdminRepository) DeleteJudgeAssignment(ctx context.Context, judgeID string, groupID string) error {
 	_, err := r.pool.Exec(ctx, `
-		DELETE FROM judge_category_assignments
-		WHERE judge_id = $1 AND category_id = $2
-	`, judgeID, categoryID)
+		DELETE FROM judge_group_assignments
+		WHERE judge_id = $1 AND group_id = $2
+	`, judgeID, groupID)
 	return err
 }
 
@@ -642,25 +673,25 @@ func (r *AdminRepository) ExportResults(ctx context.Context, categoryID string, 
 	return exportRows, rows.Err()
 }
 
-func (r *AdminRepository) replaceAssignmentsTx(ctx context.Context, tx pgx.Tx, judgeID string, categoryIDs []string) error {
-	if _, err := tx.Exec(ctx, `DELETE FROM judge_category_assignments WHERE judge_id = $1`, judgeID); err != nil {
+func (r *AdminRepository) replaceAssignmentsTx(ctx context.Context, tx pgx.Tx, judgeID string, groupIDs []string) error {
+	if _, err := tx.Exec(ctx, `DELETE FROM judge_group_assignments WHERE judge_id = $1`, judgeID); err != nil {
 		return err
 	}
 
 	seen := map[string]struct{}{}
-	for _, categoryID := range categoryIDs {
-		if categoryID == "" {
+	for _, groupID := range groupIDs {
+		if groupID == "" {
 			continue
 		}
-		if _, exists := seen[categoryID]; exists {
+		if _, exists := seen[groupID]; exists {
 			continue
 		}
-		seen[categoryID] = struct{}{}
+		seen[groupID] = struct{}{}
 
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO judge_category_assignments (id, judge_id, category_id, created_at)
+			INSERT INTO judge_group_assignments (id, judge_id, group_id, created_at)
 			VALUES ($1, $2, $3, NOW())
-		`, uuid.NewString(), judgeID, categoryID); err != nil {
+		`, uuid.NewString(), judgeID, groupID); err != nil {
 			return err
 		}
 	}
@@ -686,9 +717,10 @@ func (r *AdminRepository) getProjectRankings(ctx context.Context, categoryID str
 
 	query := fmt.Sprintf(`
 		WITH judge_counts AS (
-			SELECT category_id, COUNT(*) AS assigned_judges
-			FROM judge_category_assignments
-			GROUP BY category_id
+			SELECT c.id AS category_id, COUNT(a.judge_id) AS assigned_judges
+			FROM categories c
+			LEFT JOIN judge_group_assignments a ON a.group_id = c.award_group_id
+			GROUP BY c.id
 		),
 		aggregates AS (
 			SELECT

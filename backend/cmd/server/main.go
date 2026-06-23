@@ -108,6 +108,7 @@ func main() {
 
 			secured.Route("/judge", func(judge chi.Router) {
 				judge.Use(appMiddleware.RequireRole(models.RoleJudge))
+				judge.Get("/groups", judgeHandler.Groups)
 				judge.Get("/categories", judgeHandler.Categories)
 				judge.Get("/projects", judgeHandler.Projects)
 				judge.Get("/projects/{id}", judgeHandler.ProjectDetail)
@@ -120,6 +121,8 @@ func main() {
 			secured.Route("/admin", func(admin chi.Router) {
 				admin.Use(appMiddleware.RequireRole(models.RoleAdmin))
 				admin.Get("/dashboard", adminHandler.Dashboard)
+
+				admin.Get("/groups", adminHandler.ListAwardGroups)
 
 				admin.Get("/categories", adminHandler.ListCategories)
 				admin.Post("/categories", adminHandler.CreateCategory)
@@ -142,9 +145,9 @@ func main() {
 				admin.Put("/judges/{id}", adminHandler.UpdateJudge)
 				admin.Delete("/judges/{id}", adminHandler.DeleteJudge)
 				admin.Post("/judges/{id}/reset-password", adminHandler.ResetPassword)
-				admin.Get("/judges/{id}/categories", adminHandler.GetJudgeAssignments)
-				admin.Post("/judges/{id}/categories", adminHandler.ReplaceJudgeAssignments)
-				admin.Delete("/judges/{id}/categories/{category_id}", adminHandler.DeleteJudgeAssignment)
+				admin.Get("/judges/{id}/groups", adminHandler.GetJudgeAssignments)
+				admin.Post("/judges/{id}/groups", adminHandler.ReplaceJudgeAssignments)
+				admin.Delete("/judges/{id}/groups/{group_id}", adminHandler.DeleteJudgeAssignment)
 
 				admin.Get("/results", adminHandler.Results)
 				admin.Get("/results/export.csv", adminHandler.ExportResults)

@@ -16,8 +16,12 @@ func NewJudgeService(repo *repositories.JudgeRepository) *JudgeService {
 	return &JudgeService{repo: repo}
 }
 
-func (s *JudgeService) Categories(ctx context.Context, judgeID string) ([]models.Category, error) {
-	return s.repo.ListAssignedCategories(ctx, judgeID)
+func (s *JudgeService) Groups(ctx context.Context, judgeID string) ([]models.JudgeAwardGroup, error) {
+	return s.repo.ListGroups(ctx, judgeID)
+}
+
+func (s *JudgeService) Categories(ctx context.Context, judgeID string, groupID string) ([]models.Category, error) {
+	return s.repo.ListAssignedCategories(ctx, judgeID, groupID)
 }
 
 func (s *JudgeService) Projects(ctx context.Context, judgeID string, categoryID string) ([]models.JudgeProjectCard, error) {

@@ -1,5 +1,6 @@
 import { apiRequest, buildQuery, downloadAuthorizedFile } from './client';
 import type {
+  AwardGroup,
   Category,
   CategoryPayload,
   CriterionPayload,
@@ -15,6 +16,10 @@ import type {
 
 export function getDashboard(token: string) {
   return apiRequest<DashboardStats>('/admin/dashboard', { token });
+}
+
+export function getAdminGroups(token: string) {
+  return apiRequest<AwardGroup[] | null>('/admin/groups', { token }).then((data) => data ?? []);
 }
 
 export function getAdminCategories(token: string) {
@@ -140,19 +145,19 @@ export function resetJudgePassword(token: string, id: string, password: string) 
 }
 
 export function getJudgeAssignments(token: string, id: string) {
-  return apiRequest<string[] | null>(`/admin/judges/${id}/categories`, { token }).then((data) => data ?? []);
+  return apiRequest<string[] | null>(`/admin/judges/${id}/groups`, { token }).then((data) => data ?? []);
 }
 
-export function replaceJudgeAssignments(token: string, id: string, categoryIds: string[]) {
-  return apiRequest<{ message: string }>(`/admin/judges/${id}/categories`, {
+export function replaceJudgeAssignments(token: string, id: string, groupIds: string[]) {
+  return apiRequest<{ message: string }>(`/admin/judges/${id}/groups`, {
     method: 'POST',
     token,
-    body: JSON.stringify({ category_ids: categoryIds }),
+    body: JSON.stringify({ group_ids: groupIds }),
   });
 }
 
-export function deleteJudgeAssignment(token: string, id: string, categoryId: string) {
-  return apiRequest<{ message: string }>(`/admin/judges/${id}/categories/${categoryId}`, {
+export function deleteJudgeAssignment(token: string, id: string, groupId: string) {
+  return apiRequest<{ message: string }>(`/admin/judges/${id}/groups/${groupId}`, {
     method: 'DELETE',
     token,
   });

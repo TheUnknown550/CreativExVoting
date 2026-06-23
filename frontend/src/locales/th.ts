@@ -36,6 +36,26 @@ export const th: TranslationDict = {
   judgeLayout: {
     subtitle: 'พื้นที่ทำงานกรรมการ',
   },
+  judgeStepper: {
+    step1: 'เลือกหมวด',
+    step2: 'เลือกสาขา',
+    step3: 'โหวตผู้สมัคร',
+    step4: 'สรุปผลโหวต',
+  },
+  judgeGroups: {
+    heading: 'เลือกหมวดรางวัล',
+    intro: 'เลือกหมวดรางวัลที่ต้องการตัดสิน หมวดที่คุณไม่ได้รับมอบหมายจะถูกล็อกไว้',
+    loadError: 'ไม่สามารถโหลดหมวดรางวัลได้',
+    locked: 'ล็อก',
+    saakhaaCount: 'จำนวน {count} สาขา',
+    empty: 'ยังไม่มีหมวดรางวัลให้เลือก',
+  },
+  judgeCategories: {
+    chooseBranch: 'เลือกสาขา',
+    loadError: 'ไม่สามารถโหลดสาขาได้',
+    noDescription: 'ไม่มีคำอธิบาย',
+    empty: 'ยังไม่มีสาขาในหมวดนี้',
+  },
   adminLayout: {
     subtitle: 'ผู้ดูแลระบบ',
     controlRoom: 'ศูนย์ควบคุมผู้ดูแลระบบ',
@@ -77,6 +97,7 @@ export const th: TranslationDict = {
     noProjects: 'ยังไม่มีผลงานในหมวดหมู่นี้',
     yourSummary: 'สรุปคะแนนของคุณ',
     detail: 'รายละเอียด',
+    backToCategories: 'กลับไปเลือกสาขา',
   },
   projectVoteDrawer: {
     proposalLink: 'ลิงก์ข้อเสนอโครงการ',
@@ -147,6 +168,10 @@ export const th: TranslationDict = {
     editTitle: 'แก้ไขหมวดหมู่',
     createTitle: 'สร้างหมวดหมู่',
     categoryName: 'ชื่อหมวดหมู่',
+    categoryNameEn: 'ชื่อหมวดหมู่ (อังกฤษ)',
+    categoryNameTh: 'ชื่อหมวดหมู่ (ไทย)',
+    descriptionEn: 'คำอธิบาย (อังกฤษ)',
+    descriptionTh: 'คำอธิบาย (ไทย)',
   },
   adminCriteria: {
     title: 'จัดการเกณฑ์การให้คะแนน',
@@ -197,6 +222,7 @@ export const th: TranslationDict = {
     judgeRole: 'กรรมการ',
     adminRole: 'ผู้ดูแลระบบ',
     assignedCategories: 'หมวดหมู่ที่ได้รับมอบหมาย',
+    assignedGroups: 'หมวดรางวัลที่ได้รับมอบหมาย',
     newPassword: 'รหัสผ่านใหม่',
   },
   adminProjects: {

@@ -1,6 +1,7 @@
 import { apiRequest, buildQuery } from './client';
 import type {
   Category,
+  JudgeAwardGroup,
   JudgeProjectCard,
   JudgeProjectDetail,
   JudgeSummaryRow,
@@ -8,8 +9,15 @@ import type {
   VoteSubmissionPayload,
 } from '../types/domain';
 
-export function getJudgeCategories(token: string) {
-  return apiRequest<Category[] | null>('/judge/categories', { token }).then((data) => data ?? []);
+export function getJudgeGroups(token: string) {
+  return apiRequest<JudgeAwardGroup[] | null>('/judge/groups', { token }).then((data) => data ?? []);
+}
+
+export function getJudgeCategories(token: string, groupId?: string) {
+  return apiRequest<Category[] | null>(
+    `/judge/categories${buildQuery({ group_id: groupId })}`,
+    { token },
+  ).then((data) => data ?? []);
 }
 
 export function getJudgeProjects(token: string, categoryId?: string) {

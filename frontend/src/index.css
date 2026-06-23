@@ -1003,3 +1003,166 @@ img {
     margin-right: 0;
   }
 }
+
+/* ===== Judge flow: stepper + award group / category selection ===== */
+.judge-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  background: var(--ce-surface);
+  border: 1px solid var(--ce-border);
+  border-radius: 16px;
+  box-shadow: var(--ce-shadow);
+}
+
+.judge-stepper__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ce-text-muted);
+  font: inherit;
+}
+
+.judge-stepper__item:not(:last-child)::after {
+  content: '';
+  width: 26px;
+  height: 2px;
+  margin-left: 6px;
+  background: var(--ce-border);
+}
+
+.judge-stepper__item:disabled {
+  cursor: default;
+}
+
+.judge-stepper__item--active {
+  color: var(--ce-text);
+}
+
+.judge-stepper__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--ce-surface-muted);
+  color: var(--ce-text-muted);
+  font-weight: 700;
+  flex: none;
+}
+
+.judge-stepper__badge--active {
+  background: var(--ce-orange);
+  color: #ffffff;
+}
+
+.judge-stepper__label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.award-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.award-group-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  padding: 18px 20px;
+  border: 1px solid var(--ce-border);
+  border-radius: 18px;
+  background: var(--ce-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  font: inherit;
+}
+
+.award-group-card:hover:not(:disabled) {
+  border-color: var(--ce-orange);
+  box-shadow: var(--ce-shadow);
+  transform: translateY(-1px);
+}
+
+.award-group-card--locked {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background: var(--ce-surface-soft);
+}
+
+.award-group-card__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--ce-charcoal);
+  color: #ffffff;
+  font-weight: 700;
+  flex: none;
+}
+
+.award-group-card--locked .award-group-card__index {
+  background: var(--ce-text-muted);
+}
+
+.award-group-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.award-group-card__titlerow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.award-group-card__title.ant-typography {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.award-group-card__copy.ant-typography {
+  margin: 6px 0 0;
+  color: var(--ce-text-muted);
+  font-size: 0.94rem;
+}
+
+.award-group-card__lock.ant-tag {
+  background: var(--ce-surface-muted);
+  border-color: var(--ce-border);
+  color: var(--ce-text-muted);
+}
+
+.award-group-card__chevron {
+  color: var(--ce-orange);
+  font-size: 1rem;
+  margin-top: 12px;
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .judge-stepper__item:not(:last-child)::after {
+    width: 14px;
+  }
+  .judge-stepper__label {
+    display: none;
+  }
+}

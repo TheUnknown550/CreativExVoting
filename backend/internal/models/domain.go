@@ -18,13 +18,45 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+type AwardGroup struct {
+	ID            string    `json:"id"`
+	Code          string    `json:"code"`
+	Name          string    `json:"name"`
+	NameTh        string    `json:"name_th"`
+	Description   string    `json:"description"`
+	DescriptionTh string    `json:"description_th"`
+	DisplayOrder  int       `json:"display_order"`
+	IsActive      bool      `json:"is_active"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// JudgeAwardGroup is the per-judge view of an award group used on the
+// group selection screen. Assigned indicates whether the current judge may
+// open it; locked groups are shown greyed out.
+type JudgeAwardGroup struct {
+	ID            string `json:"id"`
+	Code          string `json:"code"`
+	Name          string `json:"name"`
+	NameTh        string `json:"name_th"`
+	Description   string `json:"description"`
+	DescriptionTh string `json:"description_th"`
+	DisplayOrder  int    `json:"display_order"`
+	Assigned      bool   `json:"assigned"`
+	CategoryCount int    `json:"category_count"`
+}
+
 type Category struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	IsActive    bool      `json:"is_active"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	AwardGroupID  *string   `json:"award_group_id"`
+	Name          string    `json:"name"`
+	NameTh        string    `json:"name_th"`
+	Description   string    `json:"description"`
+	DescriptionTh string    `json:"description_th"`
+	DisplayOrder  int       `json:"display_order"`
+	IsActive      bool      `json:"is_active"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type Project struct {

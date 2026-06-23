@@ -51,7 +51,7 @@ export function AdminCategoriesPage() {
 
   function openCreateModal() {
     setEditingCategory(null);
-    form.setFieldsValue({ name: '', description: '', is_active: true });
+    form.setFieldsValue({ name: '', name_th: '', description: '', description_th: '', is_active: true });
     setModalOpen(true);
   }
 
@@ -59,7 +59,9 @@ export function AdminCategoriesPage() {
     setEditingCategory(category);
     form.setFieldsValue({
       name: category.name,
+      name_th: category.name_th,
       description: category.description,
+      description_th: category.description_th,
       is_active: category.is_active,
     });
     setModalOpen(true);
@@ -180,10 +182,16 @@ export function AdminCategoriesPage() {
         confirmLoading={saving}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ is_active: true }}>
-          <Form.Item name="name" label={t('adminCategories.categoryName')} rules={[{ required: true }]}>
+          <Form.Item name="name" label={t('adminCategories.categoryNameEn')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="description" label={t('common.description')}>
+          <Form.Item name="name_th" label={t('adminCategories.categoryNameTh')}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label={t('adminCategories.descriptionEn')}>
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item name="description_th" label={t('adminCategories.descriptionTh')}>
             <Input.TextArea rows={4} />
           </Form.Item>
           <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">

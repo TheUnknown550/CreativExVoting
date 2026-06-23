@@ -11,7 +11,6 @@ import {
   Empty,
   Modal,
   Segmented,
-  Select,
   Space,
   Spin,
   Tag,
@@ -19,15 +18,17 @@ import {
   message,
 } from 'antd';
 import { startTransition, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import * as judgeApi from '../../api/judge';
 import { ApiError } from '../../api/client';
 import { BrandMark } from '../../components/BrandMark';
+import { JudgeStepper } from '../../components/JudgeStepper';
 import { ProjectPreview } from '../../components/ProjectPreview';
 import { ProjectVoteDrawer } from '../../components/ProjectVoteDrawer';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { localize } from '../../locales/localize';
 import type { Category, JudgeProjectCard, JudgeProjectDetail, JudgeSummaryRow, Vote } from '../../types/domain';
 
 type WorkspaceTab = 'projects' | 'summary';
@@ -35,12 +36,13 @@ type WorkspaceTab = 'projects' | 'summary';
 export function JudgeWorkspacePage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { groupId, categoryId } = useParams<{ groupId: string; categoryId: string }>();
   const { token, user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const currentTab: WorkspaceTab = location.pathname.endsWith('/summary') ? 'summary' : 'projects';
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
+  const projectsBasePath = `/judge/groups/${groupId}/categories/${categoryId}`;
+  const [category, setCategory] = useState<Category | null>(null);
   const [projects, setProjects] = useState<JudgeProjectCard[]>([]);
   const [summaryRows, setSummaryRows] = useState<JudgeSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,47 +55,12 @@ export function JudgeWorkspacePage() {
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !groupId || !categoryId) {
       return;
     }
     const activeToken: string = token;
-
-    let cancelled = false;
-    setLoading(true);
-    setErrorMessage(null);
-
-    async function loadInitialData() {
-      try {
-        const nextCategories = await judgeApi.getJudgeCategories(activeToken);
-        if (cancelled) {
-          return;
-        }
-
-        setCategories(nextCategories);
-        const nextCategoryId = nextCategories[0]?.id;
-        setSelectedCategoryId((current) => current ?? nextCategoryId);
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(error instanceof ApiError ? error.message : t('judgeWorkspace.loadCategoriesError'));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadInitialData();
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  useEffect(() => {
-    if (!token || !selectedCategoryId) {
-      return;
-    }
-    const activeToken: string = token;
+    const activeGroupId: string = groupId;
+    const activeCategoryId: string = categoryId;
 
     let cancelled = false;
     setLoading(true);
@@ -101,15 +68,25 @@ export function JudgeWorkspacePage() {
 
     async function loadWorkspaceData() {
       try {
-        const [nextProjects, nextSummary] = await Promise.all([
-          judgeApi.getJudgeProjects(activeToken, selectedCategoryId),
-          judgeApi.getJudgeSummary(activeToken, selectedCategoryId),
+        const [nextCategories, nextProjects, nextSummary] = await Promise.all([
+          judgeApi.getJudgeCategories(activeToken, activeGroupId),
+          judgeApi.getJudgeProjects(activeToken, activeCategoryId),
+          judgeApi.getJudgeSummary(activeToken, activeCategoryId),
         ]);
 
-        if (!cancelled) {
-          setProjects(nextProjects);
-          setSummaryRows(nextSummary);
+        if (cancelled) {
+          return;
         }
+
+        const currentCategory = nextCategories.find((item) => item.id === activeCategoryId) ?? null;
+        if (!currentCategory) {
+          navigate('/judge', { replace: true });
+          return;
+        }
+
+        setCategory(currentCategory);
+        setProjects(nextProjects);
+        setSummaryRows(nextSummary);
       } catch (error) {
         if (!cancelled) {
           setErrorMessage(error instanceof ApiError ? error.message : t('judgeWorkspace.loadDataError'));
@@ -125,7 +102,7 @@ export function JudgeWorkspacePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedCategoryId, token]);
+  }, [token, groupId, categoryId, navigate]);
 
   async function openProject(projectId: string) {
     if (!token) {
@@ -151,13 +128,13 @@ export function JudgeWorkspacePage() {
   }
 
   async function refreshWorkspace(projectId?: string) {
-    if (!token || !selectedCategoryId) {
+    if (!token || !categoryId) {
       return;
     }
 
     const [nextProjects, nextSummary] = await Promise.all([
-      judgeApi.getJudgeProjects(token, selectedCategoryId),
-      judgeApi.getJudgeSummary(token, selectedCategoryId),
+      judgeApi.getJudgeProjects(token, categoryId),
+      judgeApi.getJudgeSummary(token, categoryId),
     ]);
     setProjects(nextProjects);
     setSummaryRows(nextSummary);
@@ -197,23 +174,33 @@ export function JudgeWorkspacePage() {
     }
   }
 
-  const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
   const projectsScored = summaryRows.filter((item) => item.has_voted).length;
+
+  const tabSwitcher = (
+    <Segmented<WorkspaceTab>
+      value={currentTab}
+      options={[
+        { label: t('judgeWorkspace.voteProjectsTab'), value: 'projects' },
+        { label: t('judgeWorkspace.summaryTab'), value: 'summary' },
+      ]}
+      onChange={(value) => {
+        startTransition(() => {
+          navigate(value === 'summary' ? `${projectsBasePath}/summary` : `${projectsBasePath}/projects`);
+        });
+      }}
+    />
+  );
 
   return (
     <>
       {contextHolder}
+      <JudgeStepper current={currentTab === 'summary' ? 4 : 3} groupId={groupId} categoryId={categoryId} />
+
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="judge-toolbar">
-          <Select
-            value={selectedCategoryId}
-            onChange={(value) => {
-              startTransition(() => setSelectedCategoryId(value));
-            }}
-            options={categories.map((category) => ({ value: category.id, label: category.name }))}
-            placeholder={t('judgeWorkspace.selectCategory')}
-            className="judge-category-select"
-          />
+          <Button onClick={() => navigate(`/judge/groups/${groupId}`)}>
+            {t('judgeWorkspace.backToCategories')}
+          </Button>
 
           <div className="judge-toolbar__meta">
             <Typography.Text className="judge-toolbar__judge">{user?.display_name}</Typography.Text>
@@ -236,10 +223,11 @@ export function JudgeWorkspacePage() {
               <aside className="judge-brand-panel">
                 <BrandMark className="judge-brand-panel__mark" />
                 <Typography.Title level={3} className="judge-brand-panel__title">
-                  {selectedCategory?.name ?? t('judgeWorkspace.brandFallbackTitle')}
+                  {category ? localize(language, category.name, category.name_th) : t('judgeWorkspace.brandFallbackTitle')}
                 </Typography.Title>
                 <Typography.Paragraph className="judge-brand-panel__copy">
-                  {selectedCategory?.description || t('judgeWorkspace.brandFallbackCopy')}
+                  {(category && localize(language, category.description, category.description_th)) ||
+                    t('judgeWorkspace.brandFallbackCopy')}
                 </Typography.Paragraph>
               </aside>
 
@@ -248,18 +236,7 @@ export function JudgeWorkspacePage() {
                   <Typography.Title level={2} className="judge-nominees__title">
                     {projects.length} {t('judgeWorkspace.nominatedWorks')}
                   </Typography.Title>
-                  <Segmented<WorkspaceTab>
-                    value={currentTab}
-                    options={[
-                      { label: t('judgeWorkspace.voteProjectsTab'), value: 'projects' },
-                      { label: t('judgeWorkspace.summaryTab'), value: 'summary' },
-                    ]}
-                    onChange={(value) => {
-                      startTransition(() => {
-                        navigate(value === 'summary' ? '/judge/summary' : '/judge/projects');
-                      });
-                    }}
-                  />
+                  {tabSwitcher}
                 </div>
 
                 <div className="judge-nominee-list">
@@ -291,7 +268,9 @@ export function JudgeWorkspacePage() {
                             {t('judgeWorkspace.teamDesignerLabel')}
                           </Typography.Text>
                           <Typography.Paragraph className="nominee-row__text">
-                            {project.designer_name || project.team_name || selectedCategory?.name}
+                            {project.designer_name ||
+                              project.team_name ||
+                              (category ? localize(language, category.name, category.name_th) : '')}
                           </Typography.Paragraph>
                         </div>
 
@@ -338,18 +317,7 @@ export function JudgeWorkspacePage() {
               <Typography.Title level={2} className="judge-summary__title">
                 {t('judgeWorkspace.yourSummary')}
               </Typography.Title>
-              <Segmented<WorkspaceTab>
-                value={currentTab}
-                options={[
-                  { label: t('judgeWorkspace.voteProjectsTab'), value: 'projects' },
-                  { label: t('judgeWorkspace.summaryTab'), value: 'summary' },
-                ]}
-                onChange={(value) => {
-                  startTransition(() => {
-                    navigate(value === 'summary' ? '/judge/summary' : '/judge/projects');
-                  });
-                }}
-              />
+              {tabSwitcher}
             </div>
 
             <div className="judge-summary-list">

@@ -22,15 +22,60 @@ func NewJudgeRepository(pool *pgxpool.Pool) *JudgeRepository {
 	return &JudgeRepository{pool: pool}
 }
 
-func (r *JudgeRepository) ListAssignedCategories(ctx context.Context, judgeID string) ([]models.Category, error) {
+// ListGroups returns every active award group together with a flag indicating
+// whether the given judge is assigned to it. Unassigned groups are still
+// returned so the UI can render them locked.
+func (r *JudgeRepository) ListGroups(ctx context.Context, judgeID string) ([]models.JudgeAwardGroup, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT c.id, c.name, c.description, c.is_active, c.created_at, c.updated_at
-		FROM judge_category_assignments a
-		JOIN categories c ON c.id = a.category_id
-		JOIN users u ON u.id = a.judge_id
-		WHERE a.judge_id = $1 AND c.is_active = TRUE AND u.is_active = TRUE
-		ORDER BY c.name
+		SELECT
+			g.id, g.code, g.name, COALESCE(g.name_th, ''), g.description, COALESCE(g.description_th, ''), g.display_order,
+			(a.judge_id IS NOT NULL) AS assigned,
+			(SELECT COUNT(*) FROM categories c WHERE c.award_group_id = g.id AND c.is_active = TRUE) AS category_count
+		FROM award_groups g
+		LEFT JOIN judge_group_assignments a ON a.group_id = g.id AND a.judge_id = $1
+		WHERE g.is_active = TRUE
+		ORDER BY g.display_order, g.code, g.name
 	`, judgeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var groups []models.JudgeAwardGroup
+	for rows.Next() {
+		var group models.JudgeAwardGroup
+		if err := rows.Scan(&group.ID, &group.Code, &group.Name, &group.NameTh, &group.Description, &group.DescriptionTh, &group.DisplayOrder, &group.Assigned, &group.CategoryCount); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+
+	return groups, rows.Err()
+}
+
+// ListAssignedCategories returns the sub-categories the judge can score. When
+// groupID is provided it is limited to that award group. Access is derived from
+// the judge's group assignments, so a judge sees every sub-category in their
+// group(s).
+func (r *JudgeRepository) ListAssignedCategories(ctx context.Context, judgeID string, groupID string) ([]models.Category, error) {
+	args := []any{judgeID}
+	conditions := []string{"a.judge_id = $1", "c.is_active = TRUE", "u.is_active = TRUE"}
+
+	if groupID != "" {
+		args = append(args, groupID)
+		conditions = append(conditions, fmt.Sprintf("c.award_group_id = $%d", len(args)))
+	}
+
+	query := fmt.Sprintf(`
+		SELECT c.id, c.award_group_id, c.name, COALESCE(c.name_th, ''), c.description, COALESCE(c.description_th, ''), c.display_order, c.is_active, c.created_at, c.updated_at
+		FROM judge_group_assignments a
+		JOIN categories c ON c.award_group_id = a.group_id
+		JOIN users u ON u.id = a.judge_id
+		WHERE %s
+		ORDER BY c.display_order, c.name
+	`, strings.Join(conditions, " AND "))
+
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +84,7 @@ func (r *JudgeRepository) ListAssignedCategories(ctx context.Context, judgeID st
 	var categories []models.Category
 	for rows.Next() {
 		var category models.Category
-		if err := rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsActive, &category.CreatedAt, &category.UpdatedAt); err != nil {
+		if err := rows.Scan(&category.ID, &category.AwardGroupID, &category.Name, &category.NameTh, &category.Description, &category.DescriptionTh, &category.DisplayOrder, &category.IsActive, &category.CreatedAt, &category.UpdatedAt); err != nil {
 			return nil, err
 		}
 		categories = append(categories, category)
@@ -63,8 +108,8 @@ func (r *JudgeRepository) ListProjects(ctx context.Context, judgeID string, cate
 			(v.id IS NOT NULL) AS has_voted,
 			v.total_score,
 			c.name
-		FROM judge_category_assignments a
-		JOIN categories c ON c.id = a.category_id
+		FROM judge_group_assignments a
+		JOIN categories c ON c.award_group_id = a.group_id
 		JOIN projects p ON p.category_id = c.id
 		LEFT JOIN votes v ON v.project_id = p.id AND v.judge_id = a.judge_id
 		WHERE %s
@@ -112,7 +157,7 @@ func (r *JudgeRepository) GetProjectDetail(ctx context.Context, judgeID string, 
 			p.drive_link, p.attached_file_link, p.extra_details, p.is_active, p.created_at, p.updated_at
 		FROM projects p
 		JOIN categories c ON c.id = p.category_id
-		JOIN judge_category_assignments a ON a.category_id = p.category_id AND a.judge_id = $1
+		JOIN judge_group_assignments a ON a.group_id = c.award_group_id AND a.judge_id = $1
 		WHERE p.id = $2 AND p.is_active = TRUE AND c.is_active = TRUE
 	`, judgeID, projectID)
 	if err != nil {
@@ -310,8 +355,9 @@ func (r *JudgeRepository) GetSummary(ctx context.Context, judgeID string, catego
 			p.category_id,
 			COALESCE(v.total_score, 0) AS total_score,
 			(v.id IS NOT NULL) AS has_voted
-		FROM judge_category_assignments a
-		JOIN projects p ON p.category_id = a.category_id AND p.is_active = TRUE
+		FROM judge_group_assignments a
+		JOIN categories c ON c.award_group_id = a.group_id AND c.is_active = TRUE
+		JOIN projects p ON p.category_id = c.id AND p.is_active = TRUE
 		LEFT JOIN votes v ON v.project_id = p.id AND v.judge_id = a.judge_id
 		WHERE %s
 		ORDER BY COALESCE(v.total_score, 0) DESC, p.title

@@ -21,6 +21,10 @@ func (s *AdminService) Dashboard(ctx context.Context) (models.DashboardStats, er
 	return s.repo.GetDashboardStats(ctx)
 }
 
+func (s *AdminService) ListAwardGroups(ctx context.Context) ([]models.AwardGroup, error) {
+	return s.repo.ListAwardGroups(ctx)
+}
+
 func (s *AdminService) ListCategories(ctx context.Context) ([]models.Category, error) {
 	return s.repo.ListCategories(ctx)
 }
@@ -134,15 +138,15 @@ func (s *AdminService) ResetPassword(ctx context.Context, id string, password st
 }
 
 func (s *AdminService) GetJudgeAssignments(ctx context.Context, judgeID string) ([]string, error) {
-	return s.repo.GetJudgeCategoryIDs(ctx, judgeID)
+	return s.repo.GetJudgeGroupIDs(ctx, judgeID)
 }
 
-func (s *AdminService) ReplaceJudgeAssignments(ctx context.Context, judgeID string, categoryIDs []string) error {
-	return s.repo.ReplaceJudgeAssignments(ctx, judgeID, categoryIDs)
+func (s *AdminService) ReplaceJudgeAssignments(ctx context.Context, judgeID string, groupIDs []string) error {
+	return s.repo.ReplaceJudgeAssignments(ctx, judgeID, groupIDs)
 }
 
-func (s *AdminService) DeleteJudgeAssignment(ctx context.Context, judgeID string, categoryID string) error {
-	return s.repo.DeleteJudgeAssignment(ctx, judgeID, categoryID)
+func (s *AdminService) DeleteJudgeAssignment(ctx context.Context, judgeID string, groupID string) error {
+	return s.repo.DeleteJudgeAssignment(ctx, judgeID, groupID)
 }
 
 func (s *AdminService) Results(ctx context.Context, categoryID string, judgeID string) (models.ResultsResponse, error) {

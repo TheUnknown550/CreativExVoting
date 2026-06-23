@@ -25,7 +25,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge/projects'} replace />;
+    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge'} replace />;
   }
 
   return <Outlet />;

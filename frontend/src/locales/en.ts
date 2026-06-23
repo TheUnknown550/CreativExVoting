@@ -34,6 +34,26 @@ export const en = {
   judgeLayout: {
     subtitle: 'Judge workspace',
   },
+  judgeStepper: {
+    step1: 'Select Group',
+    step2: 'Select Category',
+    step3: 'Vote Candidates',
+    step4: 'Vote Summary',
+  },
+  judgeGroups: {
+    heading: 'Award Groups',
+    intro: 'Choose an award group to start judging. Groups you are not assigned to are locked.',
+    loadError: 'Unable to load award groups.',
+    locked: 'Locked',
+    saakhaaCount: '{count} categories',
+    empty: 'No award groups are available yet.',
+  },
+  judgeCategories: {
+    chooseBranch: 'Select a category',
+    loadError: 'Unable to load categories.',
+    noDescription: 'No description provided.',
+    empty: 'No categories are available in this group yet.',
+  },
   adminLayout: {
     subtitle: 'Platform administrator',
     controlRoom: 'Admin control room',
@@ -75,6 +95,7 @@ export const en = {
     noProjects: 'No projects are available in this category yet.',
     yourSummary: 'Your voting summary',
     detail: 'Detail',
+    backToCategories: 'Back to categories',
   },
   projectVoteDrawer: {
     proposalLink: 'Proposal link',
@@ -145,6 +166,10 @@ export const en = {
     editTitle: 'Edit Category',
     createTitle: 'Create Category',
     categoryName: 'Category Name',
+    categoryNameEn: 'Category Name (English)',
+    categoryNameTh: 'Category Name (Thai)',
+    descriptionEn: 'Description (English)',
+    descriptionTh: 'Description (Thai)',
   },
   adminCriteria: {
     title: 'Criteria Management',
@@ -195,6 +220,7 @@ export const en = {
     judgeRole: 'Judge',
     adminRole: 'Admin',
     assignedCategories: 'Assigned Categories',
+    assignedGroups: 'Assigned Award Groups',
     newPassword: 'New Password',
   },
   adminProjects: {

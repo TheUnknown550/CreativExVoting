@@ -23,7 +23,7 @@ export function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (user) {
-    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge/projects'} replace />;
+    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge'} replace />;
   }
 
   async function handleFinish(values: LoginFormValues) {
@@ -35,7 +35,7 @@ export function LoginPage() {
       const nextPath =
         currentUser.role === 'admin'
           ? '/admin/dashboard'
-          : ((location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/judge/projects');
+          : ((location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/judge');
 
       navigate(nextPath, { replace: true });
     } catch (error) {

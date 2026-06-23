@@ -10,10 +10,40 @@ export interface User {
   updated_at: string;
 }
 
+export interface AwardGroup {
+  id: string;
+  code: string;
+  name: string;
+  name_th: string;
+  description: string;
+  description_th: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Per-judge view of an award group on the group selection screen.
+export interface JudgeAwardGroup {
+  id: string;
+  code: string;
+  name: string;
+  name_th: string;
+  description: string;
+  description_th: string;
+  display_order: number;
+  assigned: boolean;
+  category_count: number;
+}
+
 export interface Category {
   id: string;
+  award_group_id: string | null;
   name: string;
+  name_th: string;
   description: string;
+  description_th: string;
+  display_order: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -164,7 +194,11 @@ export interface LoginResponse {
 
 export interface CategoryPayload {
   name: string;
+  name_th?: string;
   description: string;
+  description_th?: string;
+  award_group_id?: string | null;
+  display_order?: number;
   is_active: boolean;
 }
 
@@ -200,7 +234,7 @@ export interface JudgePayload {
   password?: string;
   role: Role;
   is_active: boolean;
-  category_ids: string[];
+  group_ids: string[];
 }
 
 export interface VoteSubmissionPayload {

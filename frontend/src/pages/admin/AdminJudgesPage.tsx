@@ -19,7 +19,7 @@ import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import type { Category, JudgePayload, User } from '../../types/domain';
+import type { AwardGroup, JudgePayload, User } from '../../types/domain';
 
 const blankJudge: JudgePayload = {
   username: '',
@@ -27,7 +27,7 @@ const blankJudge: JudgePayload = {
   password: '',
   role: 'judge',
   is_active: true,
-  category_ids: [],
+  group_ids: [],
 };
 
 export function AdminJudgesPage() {
@@ -35,7 +35,7 @@ export function AdminJudgesPage() {
   const { t } = useLanguage();
   const [form] = Form.useForm<JudgePayload>();
   const [passwordForm] = Form.useForm<{ password: string }>();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [groups, setGroups] = useState<AwardGroup[]>([]);
   const [judges, setJudges] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -50,12 +50,12 @@ export function AdminJudgesPage() {
     }
     setLoading(true);
     try {
-      const [nextJudges, nextCategories] = await Promise.all([
+      const [nextJudges, nextGroups] = await Promise.all([
         adminApi.getAdminJudges(token),
-        adminApi.getAdminCategories(token),
+        adminApi.getAdminGroups(token),
       ]);
       setJudges(nextJudges);
-      setCategories(nextCategories);
+      setGroups(nextGroups);
     } catch (error) {
       messageApi.error(error instanceof ApiError ? error.message : t('adminJudges.loadError'));
     } finally {
@@ -80,13 +80,13 @@ export function AdminJudgesPage() {
 
     setEditingJudge(judge);
     try {
-      const categoryIds = await adminApi.getJudgeAssignments(token, judge.id);
+      const groupIds = await adminApi.getJudgeAssignments(token, judge.id);
       form.setFieldsValue({
         username: judge.username,
         display_name: judge.display_name,
         role: judge.role,
         is_active: judge.is_active,
-        category_ids: categoryIds,
+        group_ids: groupIds,
       });
       setModalOpen(true);
     } catch (error) {
@@ -254,10 +254,10 @@ export function AdminJudgesPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item name="category_ids" label={t('adminJudges.assignedCategories')}>
+          <Form.Item name="group_ids" label={t('adminJudges.assignedGroups')}>
             <Select
               mode="multiple"
-              options={categories.map((category) => ({ value: category.id, label: category.name }))}
+              options={groups.map((group) => ({ value: group.id, label: group.name }))}
             />
           </Form.Item>
           <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">

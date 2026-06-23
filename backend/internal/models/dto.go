@@ -11,9 +11,13 @@ type LoginResponse struct {
 }
 
 type CategoryPayload struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	IsActive    bool   `json:"is_active"`
+	Name          string  `json:"name"`
+	NameTh        string  `json:"name_th"`
+	Description   string  `json:"description"`
+	DescriptionTh string  `json:"description_th"`
+	AwardGroupID  *string `json:"award_group_id"`
+	DisplayOrder  int     `json:"display_order"`
+	IsActive      bool    `json:"is_active"`
 }
 
 type ProjectPayload struct {
@@ -48,7 +52,7 @@ type JudgePayload struct {
 	Password    string   `json:"password,omitempty"`
 	Role        string   `json:"role"`
 	IsActive    bool     `json:"is_active"`
-	CategoryIDs []string `json:"category_ids,omitempty"`
+	GroupIDs    []string `json:"group_ids,omitempty"`
 }
 
 type ResetPasswordPayload struct {
@@ -56,7 +60,7 @@ type ResetPasswordPayload struct {
 }
 
 type AssignmentPayload struct {
-	CategoryIDs []string `json:"category_ids"`
+	GroupIDs []string `json:"group_ids"`
 }
 
 type VoteCriterionInput struct {

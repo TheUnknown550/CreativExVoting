@@ -27,10 +27,78 @@ var demoSeedNamespace = uuid.MustParse("80d57efd-047a-4b2f-9dd9-4c7c8ca9e96a")
 type demoCategoryGroup string
 
 const (
-	demoGroupCity     demoCategoryGroup = "city"
-	demoGroupBusiness demoCategoryGroup = "business"
-	demoGroupSocial   demoCategoryGroup = "social"
+	demoGroupCity       demoCategoryGroup = "city"
+	demoGroupBusiness   demoCategoryGroup = "business"
+	demoGroupSocial     demoCategoryGroup = "social"
+	demoGroupHallOfFame demoCategoryGroup = "halloffame"
 )
+
+// demoGroupSeed defines a superset award group (หมวด). Each group owns several
+// sub-category awards (สาขา) and is judged by a single seeded judge account who
+// can score every project across the group's sub-categories.
+type demoGroupSeed struct {
+	Group            demoCategoryGroup
+	Code             string
+	Slug             string
+	Name             string
+	NameTh           string
+	Description      string
+	DescriptionTh    string
+	DisplayOrder     int
+	JudgeUsername    string
+	JudgeDisplayName string
+}
+
+var demoGroups = []demoGroupSeed{
+	{
+		Group:            demoGroupCity,
+		Code:             "1",
+		Slug:             "creative-city-awards",
+		Name:             "Creative City Awards",
+		NameTh:           "รางวัลเมืองสร้างสรรค์",
+		Description:      "The Creative City Awards celebrate the development, revitalization, and elevation of places by combining local cultural assets and identity — traditions, culture, food, architecture and more — with creative thinking and innovation to add economic value, stimulate employment, and sustainably improve the quality of life of local communities.",
+		DescriptionTh:    "รางวัลเมืองสร้างสรรค์ มุ่งเชิดชูการพัฒนา ฟื้นฟู และต่อยอดพื้นที่ ผ่านการนำสินทรัพย์ทางวัฒนธรรมและอัตลักษณ์ท้องถิ่น เช่น ประเพณี วัฒนธรรม อาหาร สถาปัตยกรรม ฯลฯ มาผสานเข้ากับกระบวนการคิดเชิงสร้างสรรค์และนวัตกรรม เพื่อสร้างมูลค่าเพิ่มทางเศรษฐกิจ กระตุ้นการจ้างงาน และยกระดับคุณภาพชีวิตของคนในพื้นที่อย่างยั่งยืน",
+		DisplayOrder:     1,
+		JudgeUsername:    "judge-city",
+		JudgeDisplayName: "กรรมการ – รางวัลเมืองสร้างสรรค์",
+	},
+	{
+		Group:            demoGroupBusiness,
+		Code:             "2",
+		Slug:             "creative-business-awards",
+		Name:             "Creative Business Awards",
+		NameTh:           "รางวัลธุรกิจสร้างสรรค์",
+		Description:      "The Creative Business Awards honor businesses driven by creativity across every dimension — from design and production through to business-model development — with a focus on sustainability, environmental responsibility, and added value through products, services, or projects that can compete on an international level.",
+		DescriptionTh:    "รางวัลธุรกิจสร้างสรรค์ มุ่งยกย่องธุรกิจที่ขับเคลื่อนด้วยความคิดสร้างสรรค์ในทุกมิติ ตั้งแต่การออกแบบ กระบวนการผลิต ไปจนถึงการพัฒนาโมเดลธุรกิจ โดยให้ความสำคัญกับความยั่งยืน การคำนึงถึงผลกระทบต่อสิ่งแวดล้อม และการสร้างมูลค่าเพิ่มผ่านผลิตภัณฑ์ บริการ หรือโครงการ ที่สามารถแข่งขันได้ในระดับสากล",
+		DisplayOrder:     2,
+		JudgeUsername:    "judge-business",
+		JudgeDisplayName: "กรรมการ – รางวัลธุรกิจสร้างสรรค์",
+	},
+	{
+		Group:            demoGroupSocial,
+		Code:             "3",
+		Slug:             "creative-social-impact-awards",
+		Name:             "Creative Social Impact Awards",
+		NameTh:           "รางวัลพลังสร้างสรรค์เพื่อสังคม",
+		Description:      "The Creative Social Impact Awards recognize work that uses creativity as an effective tool to solve social problems, generating sustainable positive impact with concrete, measurable results at the community, provincial, or national level.",
+		DescriptionTh:    "รางวัลพลังสร้างสรรค์เพื่อสังคม มุ่งยกย่องผลงานที่ใช้ความคิดสร้างสรรค์เป็นเครื่องมือในการแก้ไขปัญหาสังคมอย่างมีประสิทธิภาพ โดยสร้างผลกระทบเชิงบวกที่ยั่งยืน และสามารถเห็นผลได้อย่างเป็นรูปธรรมในระดับชุมชน จังหวัด หรือประเทศ",
+		DisplayOrder:     3,
+		JudgeUsername:    "judge-social",
+		JudgeDisplayName: "กรรมการ – รางวัลพลังสร้างสรรค์เพื่อสังคม",
+	},
+	{
+		Group:            demoGroupHallOfFame,
+		Code:             "4",
+		Slug:             "creative-hall-of-fame-awards",
+		Name:             "Creative Hall of Fame Awards",
+		NameTh:           "รางวัลเชิดชูเกียรติพิเศษ",
+		Description:      "Special honors for organizations and brands that play an outstanding role in setting new directions for Thai creativity, demonstrating the use of creativity as a key mechanism to drive organizations, create change, and make a broad impact on society.",
+		DescriptionTh:    "รางวัลเพื่อเชิดชูองค์กรและแบรนด์ที่มีบทบาทโดดเด่นด้านการกำหนดทิศทางใหม่ของความคิดสร้างสรรค์ไทย และแสดงให้เห็นถึงการใช้ความคิดสร้างสรรค์เป็นกลไกสำคัญในการขับเคลื่อนองค์กร สร้างการเปลี่ยนแปลง และสร้างผลกระทบในวงกว้างต่อสังคม",
+		DisplayOrder:     4,
+		JudgeUsername:    "judge-halloffame",
+		JudgeDisplayName: "กรรมการ – รางวัลเชิดชูเกียรติพิเศษ",
+	},
+}
 
 type demoProjectSeed struct {
 	Slug             string
@@ -45,8 +113,10 @@ type demoCategorySeed struct {
 	Code                string
 	Slug                string
 	Name                string
+	NameTh              string
 	Group               demoCategoryGroup
 	Description         string
+	DescriptionTh       string
 	JudgeUsername       string
 	JudgeDisplayName    string
 	CreativeFocus       string
@@ -104,8 +174,20 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 	}
 	defer tx.Rollback(ctx)
 
+	// 1. Upsert the superset award groups (หมวด) and remember their IDs.
+	groupIDByGroup := map[demoCategoryGroup]string{}
+	for _, group := range demoGroups {
+		groupID, err := upsertGroupSeed(ctx, tx, group)
+		if err != nil {
+			return err
+		}
+		groupIDByGroup[group.Group] = groupID
+	}
+
+	// 2. Upsert sub-categories (สาขา) linked to their group, plus criteria and projects.
 	for _, category := range demoCategories {
-		categoryID, err := upsertCategorySeed(ctx, tx, category)
+		groupID := groupIDByGroup[category.Group]
+		categoryID, err := upsertCategorySeed(ctx, tx, category, groupID)
 		if err != nil {
 			return err
 		}
@@ -114,15 +196,6 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 			if err := upsertCriterionSeed(ctx, tx, categoryID, category.Slug, criterion); err != nil {
 				return err
 			}
-		}
-
-		judgeID, err := upsertJudgeSeed(ctx, tx, category, judgePasswordHash)
-		if err != nil {
-			return err
-		}
-
-		if err := replaceJudgeAssignment(ctx, tx, judgeID, categoryID); err != nil {
-			return err
 		}
 
 		for _, project := range expandedProjectsForCategory(category) {
@@ -134,6 +207,23 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 		if err := removeStaleSeedProjects(ctx, tx, category); err != nil {
 			return err
 		}
+	}
+
+	// 3. One judge per group, assigned to the whole group so they can score every
+	//    project across the group's sub-categories.
+	for _, group := range demoGroups {
+		judgeID, err := upsertGroupJudgeSeed(ctx, tx, group, judgePasswordHash)
+		if err != nil {
+			return err
+		}
+		if err := replaceJudgeGroupAssignment(ctx, tx, judgeID, groupIDByGroup[group.Group]); err != nil {
+			return err
+		}
+	}
+
+	// 4. Retire the legacy per-sub-category demo judge accounts from earlier seeds.
+	if err := deactivateLegacySeedJudges(ctx, tx); err != nil {
+		return err
 	}
 
 	return tx.Commit(ctx)
@@ -230,6 +320,37 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 				DisplayOrder: 4,
 			},
 		}
+	case demoGroupHallOfFame:
+		return []demoCriterionSeed{
+			{
+				Slug:         "creative-leadership",
+				Name:         "Creative leadership and vision",
+				Description:  scoreBandDescription(category.CreativeFocus),
+				MaxScore:     30,
+				DisplayOrder: 1,
+			},
+			{
+				Slug:         "creative-execution-culture",
+				Name:         "Creativity embedded in execution and culture",
+				Description:  scoreBandDescription(category.ExecutionFocus),
+				MaxScore:     25,
+				DisplayOrder: 2,
+			},
+			{
+				Slug:         "lasting-impact",
+				Name:         "Lasting impact and influence",
+				Description:  scoreBandDescription(category.ImpactFocus),
+				MaxScore:     25,
+				DisplayOrder: 3,
+			},
+			{
+				Slug:         "future-role-model",
+				Name:         "Future-facing role model",
+				Description:  scoreBandDescription(category.SustainabilityFocus),
+				MaxScore:     20,
+				DisplayOrder: 4,
+			},
+		}
 	default:
 		return []demoCriterionSeed{
 			{
@@ -271,20 +392,61 @@ func scoreBandDescription(focus string) string {
 	)
 }
 
-func upsertCategorySeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed) (string, error) {
-	id := deterministicSeedID("category:" + category.Slug)
+func upsertGroupSeed(ctx context.Context, tx pgx.Tx, group demoGroupSeed) (string, error) {
+	id := deterministicSeedID("group:" + group.Slug)
 	var persistedID string
 	err := tx.QueryRow(ctx, `
-		INSERT INTO categories (id, name, description, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, TRUE, NOW(), NOW())
+		INSERT INTO award_groups (id, code, name, name_th, description, description_th, display_order, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, NOW(), NOW())
 		ON CONFLICT (id) DO UPDATE
-		SET name = EXCLUDED.name,
+		SET code = EXCLUDED.code,
+			name = EXCLUDED.name,
+			name_th = EXCLUDED.name_th,
 			description = EXCLUDED.description,
+			description_th = EXCLUDED.description_th,
+			display_order = EXCLUDED.display_order,
 			is_active = TRUE,
 			updated_at = NOW()
 		RETURNING id
-	`, id, category.Name, category.Description).Scan(&persistedID)
+	`, id, group.Code, group.Name, group.NameTh, group.Description, group.DescriptionTh, group.DisplayOrder).Scan(&persistedID)
 	return persistedID, err
+}
+
+func upsertCategorySeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed, groupID string) (string, error) {
+	id := deterministicSeedID("category:" + category.Slug)
+	var persistedID string
+	err := tx.QueryRow(ctx, `
+		INSERT INTO categories (id, award_group_id, name, name_th, description, description_th, display_order, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, NOW(), NOW())
+		ON CONFLICT (id) DO UPDATE
+		SET award_group_id = EXCLUDED.award_group_id,
+			name = EXCLUDED.name,
+			name_th = EXCLUDED.name_th,
+			description = EXCLUDED.description,
+			description_th = EXCLUDED.description_th,
+			display_order = EXCLUDED.display_order,
+			is_active = TRUE,
+			updated_at = NOW()
+		RETURNING id
+	`, id, groupID, category.Name, category.NameTh, category.Description, category.DescriptionTh, categoryDisplayOrder(category.Code)).Scan(&persistedID)
+	return persistedID, err
+}
+
+// categoryDisplayOrder turns a code like "1.3" into the minor number (3) so
+// sub-categories sort naturally within their group.
+func categoryDisplayOrder(code string) int {
+	parts := strings.Split(code, ".")
+	if len(parts) < 2 {
+		return 0
+	}
+	order := 0
+	for _, ch := range parts[1] {
+		if ch < '0' || ch > '9' {
+			break
+		}
+		order = order*10 + int(ch-'0')
+	}
+	return order
 }
 
 func upsertCriterionSeed(ctx context.Context, tx pgx.Tx, categoryID string, categorySlug string, criterion demoCriterionSeed) error {
@@ -306,8 +468,8 @@ func upsertCriterionSeed(ctx context.Context, tx pgx.Tx, categoryID string, cate
 	return err
 }
 
-func upsertJudgeSeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed, passwordHash string) (string, error) {
-	id := deterministicSeedID("user:" + category.JudgeUsername)
+func upsertGroupJudgeSeed(ctx context.Context, tx pgx.Tx, group demoGroupSeed, passwordHash string) (string, error) {
+	id := deterministicSeedID("user:" + group.JudgeUsername)
 	var persistedID string
 	err := tx.QueryRow(ctx, `
 		INSERT INTO users (id, username, password_hash, display_name, role, is_active, created_at, updated_at)
@@ -319,20 +481,41 @@ func upsertJudgeSeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed, 
 			is_active = TRUE,
 			updated_at = NOW()
 		RETURNING id
-	`, id, category.JudgeUsername, passwordHash, category.JudgeDisplayName).Scan(&persistedID)
+	`, id, group.JudgeUsername, passwordHash, group.JudgeDisplayName).Scan(&persistedID)
 	return persistedID, err
 }
 
-func replaceJudgeAssignment(ctx context.Context, tx pgx.Tx, judgeID string, categoryID string) error {
-	if _, err := tx.Exec(ctx, `DELETE FROM judge_category_assignments WHERE judge_id = $1`, judgeID); err != nil {
+func replaceJudgeGroupAssignment(ctx context.Context, tx pgx.Tx, judgeID string, groupID string) error {
+	if _, err := tx.Exec(ctx, `DELETE FROM judge_group_assignments WHERE judge_id = $1`, judgeID); err != nil {
 		return err
 	}
 
 	_, err := tx.Exec(ctx, `
-		INSERT INTO judge_category_assignments (id, judge_id, category_id, created_at)
+		INSERT INTO judge_group_assignments (id, judge_id, group_id, created_at)
 		VALUES ($1, $2, $3, NOW())
-		ON CONFLICT (judge_id, category_id) DO NOTHING
-	`, deterministicSeedID("assignment:"+judgeID+":"+categoryID), judgeID, categoryID)
+		ON CONFLICT (judge_id, group_id) DO NOTHING
+	`, deterministicSeedID("group-assignment:"+judgeID+":"+groupID), judgeID, groupID)
+	return err
+}
+
+// deactivateLegacySeedJudges disables the old one-judge-per-sub-category demo
+// accounts created before the group-based model so the judge list stays clean.
+func deactivateLegacySeedJudges(ctx context.Context, tx pgx.Tx) error {
+	usernames := make([]string, 0, len(demoCategories))
+	for _, category := range demoCategories {
+		if category.JudgeUsername != "" {
+			usernames = append(usernames, category.JudgeUsername)
+		}
+	}
+	if len(usernames) == 0 {
+		return nil
+	}
+
+	_, err := tx.Exec(ctx, `
+		UPDATE users
+		SET is_active = FALSE, updated_at = NOW()
+		WHERE role = 'judge' AND username = ANY($1)
+	`, usernames)
 	return err
 }
 
@@ -414,6 +597,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative City Festival Award",
 		Group:               demoGroupCity,
 		Description:         "Honors festivals and place-based creative programs that reinterpret local culture, food, art, and everyday identity into memorable public experiences with visible district impact.",
+		DescriptionTh:       "รางวัลสำหรับกิจกรรมหรือเทศกาลสร้างสรรค์ ที่นำทุนทางวัฒนธรรม ศิลปะ ประเพณี อาหาร ฯลฯ ภายในพื้นที่มาประยุกต์ใช้ เพื่อสร้างประสบการณ์ใหม่และก่อให้เกิดผลกระทบเชิงบวกต่อย่าน ชุมชน หรือพื้นที่",
 		JudgeUsername:       "judge-city-festival",
 		JudgeDisplayName:    "Judge 1.1 Festival",
 		CreativeFocus:       "reinterprets local culture, food, art, or rituals into a festival experience that feels unmistakably rooted in the place",
@@ -432,6 +616,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative City Branding Award",
 		Group:               demoGroupCity,
 		Description:         "Recognizes cities or districts that turn local identity into a clear, memorable, and widely adopted place brand across physical and digital touchpoints.",
+		DescriptionTh:       "รางวัลสำหรับเมืองหรือพื้นที่ที่สามารถพัฒนาอัตลักษณ์ให้โดดเด่นและมีจุดยืน (Positioning) ที่ชัดเจนจนเกิดการจดจำและการรับรู้ในวงกว้าง",
 		JudgeUsername:       "judge-city-branding",
 		JudgeDisplayName:    "Judge 1.2 Branding",
 		CreativeFocus:       "turns local identity into a distinctive and memorable positioning that feels both authentic and contemporary",
@@ -450,6 +635,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative City Policy Award",
 		Group:               demoGroupCity,
 		Description:         "Celebrates policies, plans, or public-private programs that turn creative economy strategy into practical city-level action with lasting quality-of-life benefits.",
+		DescriptionTh:       "รางวัลสำหรับนโยบายหรือมาตรการภาครัฐที่ออกแบบอย่างสร้างสรรค์ เพื่อขับเคลื่อนเศรษฐกิจสร้างสรรค์ในระดับเมืองหรือพื้นที่ โดยต้องแสดงให้เห็นถึงการนำไปปฏิบัติได้จริง การบูรณาการความร่วมมือระหว่างภาคส่วน และการสร้างผลลัพธ์ที่เป็นรูปธรรมในมิติทางเศรษฐกิจ สังคม หรือการพัฒนาเมือง รวมถึงการใช้ทุนทางวัฒนธรรมและอัตลักษณ์ท้องถิ่นอย่างมีคุณค่า",
 		JudgeUsername:       "judge-city-policy",
 		JudgeDisplayName:    "Judge 1.3 Policy",
 		CreativeFocus:       "uses policy or planning in an original way to unlock creative-economy growth, cultural value, or better urban outcomes",
@@ -468,6 +654,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative City Regeneration Award",
 		Group:               demoGroupCity,
 		Description:         "Rewards regeneration projects that revive neglected places through creative reuse, stronger local identity, and renewed economic or social life.",
+		DescriptionTh:       "รางวัลสำหรับโครงการหรือกิจกรรมที่มีความโดดเด่นในการฟื้นฟู ปรับปรุง และพัฒนาพื้นที่ ให้กลับมามีชีวิตชีวา สร้างบรรยากาศใหม่ และต่อยอดสู่การเป็นพื้นที่เศรษฐกิจสร้างสรรค์",
 		JudgeUsername:       "judge-city-regeneration",
 		JudgeDisplayName:    "Judge 1.4 Regeneration",
 		CreativeFocus:       "reimagines a neglected or underused place through a compelling blend of heritage, design, and new urban activity",
@@ -486,6 +673,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative City Collaboration Award",
 		Group:               demoGroupCity,
 		Description:         "Highlights collaborations that align government, communities, and private partners to build stronger creative districts through shared ownership and delivery.",
+		DescriptionTh:       "รางวัลสำหรับความร่วมมือระหว่างภาครัฐ ภาคเอกชน ชุมชน และภาคสร้างสรรค์ ในการพัฒนาเมืองหรือพื้นที่ผ่านแนวคิดสร้างสรรค์ โดยแสดงให้เห็นถึงการผสานศักยภาพของหลายภาคส่วนเพื่อสร้างคุณค่าใหม่ ขับเคลื่อนกิจกรรมทางเศรษฐกิจสร้างสรรค์ และก่อให้เกิดผลลัพธ์ที่เป็นรูปธรรมในระดับพื้นที่",
 		JudgeUsername:       "judge-city-collaboration",
 		JudgeDisplayName:    "Judge 1.5 Collaboration",
 		CreativeFocus:       "uses collaboration itself as a creative mechanism to unlock stronger district outcomes than any one actor could deliver alone",
@@ -504,6 +692,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative IP Award",
 		Group:               demoGroupBusiness,
 		Description:         "Recognizes intellectual property, characters, worlds, and original ideas that are translated into distinctive products, services, or brand ecosystems.",
+		DescriptionTh:       "รางวัลสำหรับผลงานที่พัฒนาทรัพย์สินทางปัญญา (Intellectual Property: IP) อย่างเป็นระบบ จนสามารถสร้างมูลค่าเชิงเศรษฐกิจ และมีศักยภาพในการต่อยอดสู่แพลตฟอร์ม อุตสาหกรรม หรือบริบทใหม่ ๆ",
 		JudgeUsername:       "judge-creative-ip",
 		JudgeDisplayName:    "Judge 2.1 IP",
 		CreativeFocus:       "builds an original character, narrative world, or creative asset with a strong point of view and strong recall",
@@ -522,6 +711,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative Transformation Award",
 		Group:               demoGroupBusiness,
 		Description:         "Honors organizations using creativity to transform products, services, internal operations, or customer journeys in ways that unlock new value.",
+		DescriptionTh:       "รางวัลสำหรับธุรกิจที่สามารถปรับตัวและยกระดับศักยภาพด้วยการประยุกต์ใช้ความคิดสร้างสรรค์ จนพัฒนาสินค้าหรือบริการที่โดดเด่น มีความสามารถในการแข่งขัน และสร้างผลกระทบเชิงบวกในวงกว้าง",
 		JudgeUsername:       "judge-transformation",
 		JudgeDisplayName:    "Judge 2.2 Transformation",
 		CreativeFocus:       "reframes a business challenge through a new creative model rather than a minor optimization or cosmetic refresh",
@@ -540,6 +730,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative Data Award",
 		Group:               demoGroupBusiness,
 		Description:         "Celebrates teams that turn data into clearer strategy, smarter services, and better decisions through creative interpretation and practical application.",
+		DescriptionTh:       "รางวัลสำหรับธุรกิจหรือผลงานที่ใช้ “ข้อมูล (Data)” เป็นแกนหลักในการพัฒนาแนวคิด ออกแบบประสบการณ์ หรือสร้างโซลูชันใหม่ โดยผสานการวิเคราะห์ข้อมูลเข้ากับความคิดสร้างสรรค์ เพื่อสร้างคุณค่าในเชิงธุรกิจ สังคม หรือวัฒนธรรม นำไปสู่ผลลัพธ์ที่แตกต่างและสามารถขยายผลได้",
 		JudgeUsername:       "judge-data",
 		JudgeDisplayName:    "Judge 2.3 Data",
 		CreativeFocus:       "uses data in a fresh way to uncover insights, shape decisions, or create new value beyond standard reporting",
@@ -558,6 +749,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative Campaign Award",
 		Group:               demoGroupBusiness,
 		Description:         "Rewards creative campaigns that combine sharp insight, strong execution, and measurable communication or commercial outcomes.",
+		DescriptionTh:       "รางวัลสำหรับแคมเปญที่ใช้ความคิดสร้างสรรค์ในการสื่อสารและขับเคลื่อนธุรกิจ (Marketing-Driven) ผ่านการบูรณาการกลยุทธ์ เนื้อหา และความเข้าใจผู้บริโภค เพื่อสร้างการรับรู้ การมีส่วนร่วม และผลลัพธ์ทางการตลาดอย่างเป็นรูปธรรม",
 		JudgeUsername:       "judge-campaign",
 		JudgeDisplayName:    "Judge 2.4 Campaign",
 		CreativeFocus:       "builds a memorable campaign idea that truly connects with audience motivations rather than just broadcasting brand messages",
@@ -576,6 +768,7 @@ var demoCategories = []demoCategorySeed{
 		Name:                "Creative Commerce Award",
 		Group:               demoGroupBusiness,
 		Description:         "Recognizes commercial strategy that uses creativity to improve purchasing journeys, conversion, retail experience, or cross-channel sales performance.",
+		DescriptionTh:       "รางวัลสำหรับผลงานที่ใช้ความคิดสร้างสรรค์และนวัตกรรมในการออกแบบประสบการณ์เชิงพาณิชย์ (Commerce Experience) โดยเชื่อมโยงผู้บริโภคกับแบรนด์อย่างมีประสิทธิภาพในทุกจุดสัมผัส โดยยึดลูกค้าเป็นศูนย์กลาง (Customer-Centric) เพื่อขับเคลื่อนการตัดสินใจซื้อ และสร้างความสัมพันธ์ระยะยาวอย่างยั่งยืน",
 		JudgeUsername:       "judge-commerce",
 		JudgeDisplayName:    "Judge 2.5 Commerce",
 		CreativeFocus:       "reimagines how customers discover, compare, choose, or purchase in a way that feels genuinely better",
@@ -676,6 +869,38 @@ var demoCategories = []demoCategorySeed{
 			{Slug: "refill-route", Title: "Refill Route Network", ShortDescription: "A neighborhood refill system combining map design, merchant incentives, and reusable container logistics for daily essentials.", ConceptFocus: "low-waste behavior into a convenient local routine", DesignerName: "Nawaporn I.", TeamName: "Loop Refill Lab"},
 			{Slug: "food-scrap-commons", Title: "Food Scrap Commons", ShortDescription: "A market-to-compost service that turns vendor leftovers into soil products for nearby growers with transparent impact tracking.", ConceptFocus: "organic waste into visible local circularity", DesignerName: "Apisit R.", TeamName: "Green Cycle Works"},
 			{Slug: "cool-roof-club", Title: "Cool Roof Club", ShortDescription: "A community retrofit program using creative outreach and shared financing to expand reflective roofs in heat-vulnerable neighborhoods.", ConceptFocus: "climate adaptation into a community-owned upgrade model", DesignerName: "Chanida F.", TeamName: "Heat Relief Collective"},
+		},
+	},
+	{
+		Code:                "4.1",
+		Slug:                "creative-company-of-the-year",
+		Name:                "Thailand's Most Creative Company of the Year",
+		Group:               demoGroupHallOfFame,
+		Description:         "For public agencies, state enterprises, non-profits, or private organizations that use creativity as a key mechanism to shape their vision, strategy, and operations, creating outstanding value and positive impact on the economy, society, or the environment — and serving as a role model for the organization of the future.",
+		DescriptionTh:       "รางวัลสำหรับองค์กรภาครัฐ รัฐวิสาหกิจ องค์กรไม่แสวงหากำไร หรือภาคเอกชน ที่ใช้ความคิดสร้างสรรค์เป็นกลไกสำคัญในการกำหนดวิสัยทัศน์ กลยุทธ์ และการดำเนินงาน จนสามารถสร้างคุณค่าและผลกระทบเชิงบวกต่อเศรษฐกิจ สังคม หรือสิ่งแวดล้อมได้อย่างโดดเด่น และเป็นต้นแบบขององค์กรแห่งอนาคต",
+		CreativeFocus:       "uses creativity as a core mechanism to set its vision, strategy, and operating model rather than as a surface-level activity",
+		ExecutionFocus:      "embeds creative ways of working across leadership, teams, and day-to-day delivery so the culture itself is demonstrably creative",
+		ImpactFocus:         "creates standout, lasting value and positive impact across the economy, society, or the environment",
+		SustainabilityFocus: "stands as a future-facing role model that other organizations can credibly learn from and follow",
+		Projects: []demoProjectSeed{
+			{Slug: "future-state-enterprise", Title: "Future State Enterprise", ShortDescription: "A national enterprise that rebuilt its strategy, services, and culture around creative problem-solving across every division.", ConceptFocus: "organization-wide creativity into durable competitive advantage", DesignerName: "Group Strategy Office", TeamName: "Future State Co."},
+			{Slug: "open-innovation-house", Title: "Open Innovation House", ShortDescription: "A public-sector body that turned rigid processes into an open innovation engine partnering with startups, students, and communities.", ConceptFocus: "institutional reform into a model creative organization", DesignerName: "Transformation Unit", TeamName: "Open Innovation House"},
+		},
+	},
+	{
+		Code:                "4.2",
+		Slug:                "creative-brand-of-the-year",
+		Name:                "Thailand's Most Creative Brand of the Year",
+		Group:               demoGroupHallOfFame,
+		Description:         "For brands that use creativity to build value, distinctiveness, and meaningful relationships with people, generating positive social impact and serving as a model for brand-building in a new era.",
+		DescriptionTh:       "รางวัลสำหรับแบรนด์ที่ใช้ความคิดสร้างสรรค์ในการสร้างคุณค่า ความแตกต่าง ความสัมพันธ์ที่มีความหมายกับผู้คน จนสามารถสร้างผลกระทบเชิงบวกต่อสังคม และเป็นต้นแบบของการสร้างแบรนด์ในยุคใหม่",
+		CreativeFocus:       "uses creativity to build distinctive value, meaning, and a genuine relationship with people",
+		ExecutionFocus:      "expresses that creativity consistently across products, communication, and customer experience",
+		ImpactFocus:         "generates positive social impact and cultural relevance beyond commercial performance alone",
+		SustainabilityFocus: "sets the template for how brands should be built in a new era and can sustain that leadership over time",
+		Projects: []demoProjectSeed{
+			{Slug: "brand-with-meaning", Title: "Brand With Meaning", ShortDescription: "A consumer brand that grew by standing for a clear creative idea and turning every touchpoint into a shared cultural moment.", ConceptFocus: "brand creativity into meaningful customer relationships", DesignerName: "Brand Studio", TeamName: "Meaning Brand Co."},
+			{Slug: "everyday-icon", Title: "Everyday Icon", ShortDescription: "A homegrown brand that reinvented an ordinary category through bold design language and socially conscious storytelling.", ConceptFocus: "design-led branding into nationwide cultural recognition", DesignerName: "Creative Direction Team", TeamName: "Everyday Icon"},
 		},
 	},
 }

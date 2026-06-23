@@ -21,9 +21,20 @@ func NewJudgeHandler(service *services.JudgeService) *JudgeHandler {
 	return &JudgeHandler{service: service}
 }
 
+func (h *JudgeHandler) Groups(w http.ResponseWriter, r *http.Request) {
+	user := middleware.CurrentUser(r.Context())
+	groups, err := h.service.Groups(r.Context(), user.ID)
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(w, http.StatusOK, ensureSlice(groups))
+}
+
 func (h *JudgeHandler) Categories(w http.ResponseWriter, r *http.Request) {
 	user := middleware.CurrentUser(r.Context())
-	categories, err := h.service.Categories(r.Context(), user.ID)
+	categories, err := h.service.Categories(r.Context(), user.ID, r.URL.Query().Get("group_id"))
 	if err != nil {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return

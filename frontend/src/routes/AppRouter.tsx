@@ -8,6 +8,12 @@ import { ProtectedRoute } from './ProtectedRoute';
 const LoginPage = lazy(async () => import('../pages/auth/LoginPage').then((module) => ({ default: module.LoginPage })));
 const JudgeLayout = lazy(async () => import('../layouts/JudgeLayout').then((module) => ({ default: module.JudgeLayout })));
 const AdminLayout = lazy(async () => import('../layouts/AdminLayout').then((module) => ({ default: module.AdminLayout })));
+const JudgeGroupSelectPage = lazy(async () =>
+  import('../pages/judge/JudgeGroupSelectPage').then((module) => ({ default: module.JudgeGroupSelectPage })),
+);
+const JudgeCategorySelectPage = lazy(async () =>
+  import('../pages/judge/JudgeCategorySelectPage').then((module) => ({ default: module.JudgeCategorySelectPage })),
+);
 const JudgeWorkspacePage = lazy(async () =>
   import('../pages/judge/JudgeWorkspacePage').then((module) => ({ default: module.JudgeWorkspacePage })),
 );
@@ -56,7 +62,7 @@ function LandingRedirect() {
     return <Navigate to="/login" replace />;
   }
 
-  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge/projects'} replace />;
+  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge'} replace />;
 }
 
 export function AppRouter() {
@@ -69,8 +75,19 @@ export function AppRouter() {
 
           <Route element={<ProtectedRoute allowedRoles={['judge']} />}>
             <Route element={<JudgeLayout />}>
-              <Route path="/judge/projects" element={<JudgeWorkspacePage />} />
-              <Route path="/judge/summary" element={<JudgeWorkspacePage />} />
+              <Route path="/judge" element={<JudgeGroupSelectPage />} />
+              <Route path="/judge/groups/:groupId" element={<JudgeCategorySelectPage />} />
+              <Route
+                path="/judge/groups/:groupId/categories/:categoryId/projects"
+                element={<JudgeWorkspacePage />}
+              />
+              <Route
+                path="/judge/groups/:groupId/categories/:categoryId/summary"
+                element={<JudgeWorkspacePage />}
+              />
+              {/* Legacy paths from the pre-group flow */}
+              <Route path="/judge/projects" element={<Navigate to="/judge" replace />} />
+              <Route path="/judge/summary" element={<Navigate to="/judge" replace />} />
             </Route>
           </Route>
 

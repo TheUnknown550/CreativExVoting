@@ -35,6 +35,15 @@ func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	utils.Success(w, http.StatusOK, stats)
 }
 
+func (h *AdminHandler) ListAwardGroups(w http.ResponseWriter, r *http.Request) {
+	groups, err := h.adminService.ListAwardGroups(r.Context())
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.Success(w, http.StatusOK, ensureSlice(groups))
+}
+
 func (h *AdminHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.adminService.ListCategories(r.Context())
 	if err != nil {
@@ -245,7 +254,7 @@ func (h *AdminHandler) ReplaceJudgeAssignments(w http.ResponseWriter, r *http.Re
 		utils.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if err := h.adminService.ReplaceJudgeAssignments(r.Context(), chimw.URLParam(r, "id"), payload.CategoryIDs); err != nil {
+	if err := h.adminService.ReplaceJudgeAssignments(r.Context(), chimw.URLParam(r, "id"), payload.GroupIDs); err != nil {
 		utils.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -253,7 +262,7 @@ func (h *AdminHandler) ReplaceJudgeAssignments(w http.ResponseWriter, r *http.Re
 }
 
 func (h *AdminHandler) DeleteJudgeAssignment(w http.ResponseWriter, r *http.Request) {
-	if err := h.adminService.DeleteJudgeAssignment(r.Context(), chimw.URLParam(r, "id"), chimw.URLParam(r, "category_id")); err != nil {
+	if err := h.adminService.DeleteJudgeAssignment(r.Context(), chimw.URLParam(r, "id"), chimw.URLParam(r, "group_id")); err != nil {
 		utils.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
