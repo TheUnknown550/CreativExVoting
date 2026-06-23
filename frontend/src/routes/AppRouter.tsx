@@ -17,6 +17,9 @@ const JudgeCategorySelectPage = lazy(async () =>
 const JudgeWorkspacePage = lazy(async () =>
   import('../pages/judge/JudgeWorkspacePage').then((module) => ({ default: module.JudgeWorkspacePage })),
 );
+const JudgeProjectDetailPage = lazy(async () =>
+  import('../pages/judge/JudgeProjectDetailPage').then((module) => ({ default: module.JudgeProjectDetailPage })),
+);
 const AdminDashboardPage = lazy(async () =>
   import('../pages/admin/AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })),
 );
@@ -84,6 +87,10 @@ export function AppRouter() {
               <Route
                 path="/judge/groups/:groupId/categories/:categoryId/summary"
                 element={<JudgeWorkspacePage />}
+              />
+              <Route
+                path="/judge/groups/:groupId/categories/:categoryId/projects/:projectId"
+                element={<JudgeProjectDetailPage />}
               />
               {/* Legacy paths from the pre-group flow */}
               <Route path="/judge/projects" element={<Navigate to="/judge" replace />} />

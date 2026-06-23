@@ -9,13 +9,11 @@ import {
   Button,
   Card,
   Empty,
-  Modal,
   Segmented,
   Space,
   Spin,
   Tag,
   Typography,
-  message,
 } from 'antd';
 import { startTransition, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -25,11 +23,10 @@ import { ApiError } from '../../api/client';
 import { BrandMark } from '../../components/BrandMark';
 import { JudgeStepper } from '../../components/JudgeStepper';
 import { ProjectPreview } from '../../components/ProjectPreview';
-import { ProjectVoteDrawer } from '../../components/ProjectVoteDrawer';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localize } from '../../locales/localize';
-import type { Category, JudgeProjectCard, JudgeProjectDetail, JudgeSummaryRow, Vote } from '../../types/domain';
+import type { Category, JudgeProjectCard, JudgeSummaryRow } from '../../types/domain';
 
 type WorkspaceTab = 'projects' | 'summary';
 
@@ -47,12 +44,6 @@ export function JudgeWorkspacePage() {
   const [summaryRows, setSummaryRows] = useState<JudgeSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerLoading, setDrawerLoading] = useState(false);
-  const [drawerSubmitting, setDrawerSubmitting] = useState(false);
-  const [activeProjectDetail, setActiveProjectDetail] = useState<JudgeProjectDetail | null>(null);
-  const [activeVote, setActiveVote] = useState<Vote | null>(null);
-  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (!token || !groupId || !categoryId) {
@@ -104,74 +95,8 @@ export function JudgeWorkspacePage() {
     };
   }, [token, groupId, categoryId, navigate]);
 
-  async function openProject(projectId: string) {
-    if (!token) {
-      return;
-    }
-
-    setDrawerOpen(true);
-    setDrawerLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const [detail, vote] = await Promise.all([
-        judgeApi.getJudgeProjectDetail(token, projectId),
-        judgeApi.getMyVote(token, projectId),
-      ]);
-      setActiveProjectDetail(detail);
-      setActiveVote(vote);
-    } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : t('judgeWorkspace.openProjectError'));
-    } finally {
-      setDrawerLoading(false);
-    }
-  }
-
-  async function refreshWorkspace(projectId?: string) {
-    if (!token || !categoryId) {
-      return;
-    }
-
-    const [nextProjects, nextSummary] = await Promise.all([
-      judgeApi.getJudgeProjects(token, categoryId),
-      judgeApi.getJudgeSummary(token, categoryId),
-    ]);
-    setProjects(nextProjects);
-    setSummaryRows(nextSummary);
-
-    if (projectId) {
-      const [detail, vote] = await Promise.all([
-        judgeApi.getJudgeProjectDetail(token, projectId),
-        judgeApi.getMyVote(token, projectId),
-      ]);
-      setActiveProjectDetail(detail);
-      setActiveVote(vote);
-    }
-  }
-
-  async function handleSubmitVote(
-    projectId: string,
-    scores: Array<{ criterion_id: string; score: number }>,
-  ) {
-    if (!token || !activeProjectDetail) {
-      return;
-    }
-
-    setDrawerSubmitting(true);
-    try {
-      const apiCall = activeVote ? judgeApi.updateVote : judgeApi.submitVote;
-      await apiCall(token, projectId, { scores });
-      await refreshWorkspace(projectId);
-      Modal.success({
-        title: t('judgeWorkspace.submitSuccessTitle'),
-        content: t('judgeWorkspace.submitSuccessContent'),
-      });
-      messageApi.success(t('judgeWorkspace.submitSuccessToast'));
-    } catch (error) {
-      messageApi.error(error instanceof ApiError ? error.message : t('judgeWorkspace.submitError'));
-    } finally {
-      setDrawerSubmitting(false);
-    }
+  function openProject(projectId: string) {
+    navigate(`${projectsBasePath}/projects/${projectId}`);
   }
 
   const projectsScored = summaryRows.filter((item) => item.has_voted).length;
@@ -193,7 +118,6 @@ export function JudgeWorkspacePage() {
 
   return (
     <>
-      {contextHolder}
       <JudgeStepper current={currentTab === 'summary' ? 4 : 3} groupId={groupId} categoryId={categoryId} />
 
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -297,7 +221,7 @@ export function JudgeWorkspacePage() {
                             ? `${t('judgeWorkspace.scorePrefix')} ${project.current_score}`
                             : t('judgeWorkspace.notScoredYet')}
                         </Typography.Text>
-                        <Button type="primary" icon={<EyeOutlined />} onClick={() => void openProject(project.id)}>
+                        <Button type="primary" icon={<EyeOutlined />} onClick={() => openProject(project.id)}>
                           {t('judgeWorkspace.moreDetails')}
                         </Button>
                       </div>
@@ -328,7 +252,7 @@ export function JudgeWorkspacePage() {
                   </div>
                   <Typography.Text className="rank-row__name">{record.project_name}</Typography.Text>
                   <div className="rank-row__score-pill">{record.total_score}</div>
-                  <Button icon={<FileDoneOutlined />} onClick={() => void openProject(record.project_id)}>
+                  <Button icon={<FileDoneOutlined />} onClick={() => openProject(record.project_id)}>
                     {t('judgeWorkspace.detail')}
                   </Button>
                 </article>
@@ -337,16 +261,6 @@ export function JudgeWorkspacePage() {
           </section>
         )}
       </Space>
-
-      <ProjectVoteDrawer
-        open={drawerOpen}
-        loading={drawerLoading}
-        detail={activeProjectDetail}
-        vote={activeVote}
-        submitting={drawerSubmitting}
-        onClose={() => setDrawerOpen(false)}
-        onSubmit={handleSubmitVote}
-      />
     </>
   );
 }

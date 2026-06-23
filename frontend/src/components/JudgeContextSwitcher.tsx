@@ -19,7 +19,7 @@ export function JudgeContextSwitcher() {
   const [groups, setGroups] = useState<JudgeAwardGroup[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const catMatch = matchPath('/judge/groups/:groupId/categories/:categoryId/:tab', location.pathname);
+  const catMatch = matchPath('/judge/groups/:groupId/categories/:categoryId/*', location.pathname);
   const groupMatch = catMatch ? null : matchPath('/judge/groups/:groupId', location.pathname);
   const groupId = catMatch?.params.groupId ?? groupMatch?.params.groupId;
   const categoryId = catMatch?.params.categoryId;

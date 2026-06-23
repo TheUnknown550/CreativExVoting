@@ -1199,3 +1199,117 @@ img {
     min-width: 150px;
   }
 }
+
+/* ===== Judge: full project detail page ===== */
+.project-detail {
+  background: var(--ce-surface);
+  border: 1px solid var(--ce-border);
+  border-radius: 18px;
+  box-shadow: var(--ce-shadow);
+  padding: 28px 32px;
+}
+
+.project-detail__head {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.project-detail__media-wrap {
+  position: relative;
+}
+
+.project-detail__index {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ce-orange);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-detail__media {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.project-detail__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.project-detail__field--block {
+  margin-top: 22px;
+}
+
+.project-detail__label {
+  display: block;
+  font-weight: 700;
+  color: var(--ce-text);
+  border-bottom: 1px solid var(--ce-border);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.project-detail__title.ant-typography {
+  margin: 0;
+}
+
+.project-detail__value.ant-typography,
+.project-detail__value {
+  margin: 0;
+  color: var(--ce-text);
+  word-break: break-word;
+}
+
+a.project-detail__value {
+  color: var(--ce-orange-dark);
+}
+
+.project-detail__scoring-title.ant-typography {
+  margin: 28px 0 14px;
+}
+
+.project-detail__table .ant-table-thead > tr > th {
+  background: var(--ce-surface-muted);
+  font-weight: 700;
+}
+
+.project-detail__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.project-detail__submit {
+  margin-inline: auto;
+  min-width: 200px;
+}
+
+@media (max-width: 820px) {
+  .project-detail {
+    padding: 18px;
+  }
+  .project-detail__head {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .project-detail__submit {
+    margin-inline: 0;
+  }
+}
