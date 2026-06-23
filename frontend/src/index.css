@@ -1007,10 +1007,10 @@ img {
 /* ===== Judge flow: stepper + award group / category selection ===== */
 .judge-stepper {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 0;
   align-items: center;
-  padding: 14px 18px;
+  padding: 14px 22px;
   margin-bottom: 20px;
   background: var(--ce-surface);
   border: 1px solid var(--ce-border);
@@ -1019,23 +1019,29 @@ img {
 }
 
 .judge-stepper__item {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
   align-items: center;
   gap: 10px;
-  padding: 6px 16px 6px 6px;
+  padding: 6px 0;
   border: none;
   background: transparent;
-  border-radius: 999px;
   cursor: pointer;
   color: var(--ce-text-muted);
   font: inherit;
 }
 
+.judge-stepper__item:last-child {
+  flex: 0 0 auto;
+}
+
 .judge-stepper__item:not(:last-child)::after {
   content: '';
-  width: 26px;
+  flex: 1 1 auto;
+  min-width: 24px;
   height: 2px;
-  margin-left: 6px;
+  margin: 0 12px;
   background: var(--ce-border);
 }
 
@@ -1159,8 +1165,12 @@ img {
 }
 
 @media (max-width: 720px) {
+  .judge-stepper {
+    padding: 12px 14px;
+  }
   .judge-stepper__item:not(:last-child)::after {
-    width: 14px;
+    min-width: 12px;
+    margin: 0 6px;
   }
   .judge-stepper__label {
     display: none;
