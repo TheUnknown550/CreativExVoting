@@ -51,7 +51,7 @@ func main() {
 	adminService := services.NewAdminService(adminRepo)
 	judgeService := services.NewJudgeService(judgeRepo)
 	importService := services.NewGoogleSheetsImportService()
-	demoSeedService := services.NewDemoSeedService(pool, authRepo)
+	demoSeedService := services.NewDemoSeedService(pool, authRepo, cfg.MigrationsDir)
 
 	if *createAdmin {
 		if *adminUsername == "" || *adminPassword == "" || *adminDisplayName == "" {

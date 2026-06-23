@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"creativexvoting/backend/internal/models"
@@ -13,6 +15,14 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// criteriaTranslationFiles are re-applied after the demo seed so the Thai
+// scoring-criteria copy wins over the English values the seed upserts. They are
+// idempotent (UPDATE ... WHERE id = ...) and live alongside the schema migrations.
+var criteriaTranslationFiles = []string{
+	"002_translate_scoring_criteria_to_thai.sql",
+	"003_translate_scoring_criteria_full_rubric.sql",
+}
 
 const (
 	demoAdminUsername       = "admin"
@@ -135,14 +145,16 @@ type demoCriterionSeed struct {
 }
 
 type DemoSeedService struct {
-	pool     *pgxpool.Pool
-	authRepo *repositories.AuthRepository
+	pool          *pgxpool.Pool
+	authRepo      *repositories.AuthRepository
+	migrationsDir string
 }
 
-func NewDemoSeedService(pool *pgxpool.Pool, authRepo *repositories.AuthRepository) *DemoSeedService {
+func NewDemoSeedService(pool *pgxpool.Pool, authRepo *repositories.AuthRepository, migrationsDir string) *DemoSeedService {
 	return &DemoSeedService{
-		pool:     pool,
-		authRepo: authRepo,
+		pool:          pool,
+		authRepo:      authRepo,
+		migrationsDir: migrationsDir,
 	}
 }
 
@@ -226,7 +238,34 @@ func (s *DemoSeedService) Seed(ctx context.Context) error {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	// 5. Re-apply the Thai scoring-criteria translations last, so they win over
+	//    the English copy this seed just upserted.
+	return s.applyCriteriaTranslations(ctx)
+}
+
+func (s *DemoSeedService) applyCriteriaTranslations(ctx context.Context) error {
+	if s.migrationsDir == "" {
+		return nil
+	}
+
+	for _, name := range criteriaTranslationFiles {
+		content, err := os.ReadFile(filepath.Join(s.migrationsDir, name))
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return fmt.Errorf("read criteria translation %s: %w", name, err)
+		}
+		if _, err := s.pool.Exec(ctx, string(content)); err != nil {
+			return fmt.Errorf("apply criteria translation %s: %w", name, err)
+		}
+	}
+
+	return nil
 }
 
 func deterministicSeedID(key string) string {
@@ -324,29 +363,29 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 		return []demoCriterionSeed{
 			{
 				Slug:         "creative-leadership",
-				Name:         "Creative leadership and vision",
-				Description:  scoreBandDescription(category.CreativeFocus),
+				Name:         "ความเป็นผู้นำและวิสัยทัศน์เชิงสร้างสรรค์",
+				Description:  "องค์กรหรือแบรนด์ใช้ความคิดสร้างสรรค์เป็นกลไกหลักในการกำหนดวิสัยทัศน์และทิศทาง (30 คะแนน)\n\n25-30 = ใช้ความคิดสร้างสรรค์กำหนดวิสัยทัศน์และทิศทางได้อย่างโดดเด่น เป็นผู้นำการเปลี่ยนแปลงในวงการ\n\n15-24 = มีวิสัยทัศน์เชิงสร้างสรรค์ที่ดี แต่ยังไม่ถึงระดับผู้นำที่สร้างการเปลี่ยนแปลงในวงกว้าง\n\n0-14 = ใช้ความคิดสร้างสรรค์ในระดับทั่วไป ยังไม่สะท้อนวิสัยทัศน์ที่ชัดเจน",
 				MaxScore:     30,
 				DisplayOrder: 1,
 			},
 			{
 				Slug:         "creative-execution-culture",
-				Name:         "Creativity embedded in execution and culture",
-				Description:  scoreBandDescription(category.ExecutionFocus),
+				Name:         "ความคิดสร้างสรรค์ที่ฝังอยู่ในการดำเนินงานและวัฒนธรรมองค์กร",
+				Description:  "ความคิดสร้างสรรค์ถูกฝังอยู่ในการทำงานประจำวันและวัฒนธรรมขององค์กรอย่างแท้จริง (25 คะแนน)\n\n20-25 = ความคิดสร้างสรรค์ฝังอยู่ในทุกระดับขององค์กรและการดำเนินงานจริง\n\n11-19 = มีวัฒนธรรมสร้างสรรค์ในบางส่วน แต่ยังไม่ครอบคลุมทั้งองค์กร\n\n0-10 = ความคิดสร้างสรรค์ยังเป็นกิจกรรมเฉพาะกิจ ไม่ได้ฝังในวัฒนธรรม",
 				MaxScore:     25,
 				DisplayOrder: 2,
 			},
 			{
 				Slug:         "lasting-impact",
-				Name:         "Lasting impact and influence",
-				Description:  scoreBandDescription(category.ImpactFocus),
+				Name:         "ผลกระทบและอิทธิพลที่ยั่งยืน",
+				Description:  "สร้างคุณค่าและผลกระทบเชิงบวกที่โดดเด่นและยั่งยืนต่อเศรษฐกิจ สังคม หรือสิ่งแวดล้อม (25 คะแนน)\n\n20-25 = สร้างผลกระทบเชิงบวกที่วัดได้และยั่งยืนในวงกว้าง\n\n11-19 = มีผลกระทบเชิงบวกที่ชัดเจน แต่ยังจำกัดขอบเขตหรือระยะเวลา\n\n0-10 = ผลกระทบยังไม่ชัดเจนหรือยังวัดไม่ได้",
 				MaxScore:     25,
 				DisplayOrder: 3,
 			},
 			{
 				Slug:         "future-role-model",
-				Name:         "Future-facing role model",
-				Description:  scoreBandDescription(category.SustainabilityFocus),
+				Name:         "ต้นแบบที่มุ่งสู่อนาคต",
+				Description:  "เป็นต้นแบบขององค์กรหรือแบรนด์แห่งอนาคตที่ผู้อื่นเรียนรู้และทำตามได้ (20 คะแนน)\n\n15-20 = เป็นต้นแบบที่น่าเชื่อถือและสร้างแรงบันดาลใจให้องค์กรอื่นทำตาม\n\n6-14 = มีแนวปฏิบัติที่ดีบางส่วนที่ผู้อื่นเรียนรู้ได้\n\n0-5 = ยังไม่ชัดเจนว่าจะเป็นต้นแบบให้ผู้อื่นได้อย่างไร",
 				MaxScore:     20,
 				DisplayOrder: 4,
 			},
