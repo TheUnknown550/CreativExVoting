@@ -3,6 +3,7 @@ import { LogoutOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
 
 import { BrandMark } from '../components/BrandMark';
+import { JudgeContextSwitcher } from '../components/JudgeContextSwitcher';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -27,6 +28,7 @@ export function JudgeLayout() {
           </div>
 
           <Space size="middle" wrap>
+            <JudgeContextSwitcher />
             <LanguageToggle />
             <Tag className="ce-role-tag">{user?.role}</Tag>
             <Typography.Text className="ce-topbar__user">{user?.display_name}</Typography.Text>

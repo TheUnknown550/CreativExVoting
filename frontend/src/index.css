@@ -1166,3 +1166,26 @@ img {
     display: none;
   }
 }
+
+/* ===== Judge top-bar group/category quick switcher ===== */
+.judge-switcher {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.judge-switcher__select {
+  min-width: 190px;
+}
+
+.judge-switcher__select .ant-select-selector {
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  border: 1px solid #cfd5dc !important;
+}
+
+@media (max-width: 900px) {
+  .judge-switcher__select {
+    min-width: 150px;
+  }
+}
