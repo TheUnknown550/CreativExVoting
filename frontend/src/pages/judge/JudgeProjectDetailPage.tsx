@@ -1,15 +1,5 @@
-import { ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
-import {
-  Alert,
-  Button,
-  Form,
-  InputNumber,
-  Modal,
-  Spin,
-  Table,
-  Typography,
-  message,
-} from 'antd';
+import { ArrowLeftOutlined, ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
+import { Alert, Button, Form, InputNumber, Modal, Segmented, Spin, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -19,12 +9,33 @@ import { JudgeStepper } from '../../components/JudgeStepper';
 import { ProjectPreview } from '../../components/ProjectPreview';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import type {
-  JudgeProjectCard,
-  JudgeProjectDetail,
-  ScoringCriterion,
-  Vote,
-} from '../../types/domain';
+import { localize } from '../../locales/localize';
+import type { JudgeProjectCard, JudgeProjectDetail, Vote } from '../../types/domain';
+
+interface RubricLine {
+  range: string;
+  text: string;
+}
+
+// Splits a stored rubric description into an optional intro plus the scoring
+// bands (e.g. "20-25 = ...") so we can render them as readable rows.
+function parseRubric(description: string): { intro: string[]; bands: RubricLine[] } {
+  const intro: string[] = [];
+  const bands: RubricLine[] = [];
+  for (const raw of (description ?? '').split(/\n+/)) {
+    const line = raw.trim();
+    if (!line) {
+      continue;
+    }
+    const match = line.match(/^(\d+\s*[-–]\s*\d+)\s*=\s*([\s\S]*)$/);
+    if (match) {
+      bands.push({ range: match[1].replace(/\s+/g, ''), text: match[2].trim() });
+    } else {
+      intro.push(line);
+    }
+  }
+  return { intro, bands };
+}
 
 export function JudgeProjectDetailPage() {
   const navigate = useNavigate();
@@ -34,8 +45,9 @@ export function JudgeProjectDetailPage() {
     projectId: string;
   }>();
   const { token } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [form] = Form.useForm<{ scores: Record<string, number> }>();
+  const scoreValues = Form.useWatch('scores', form);
 
   const [detail, setDetail] = useState<JudgeProjectDetail | null>(null);
   const [vote, setVote] = useState<Vote | null>(null);
@@ -101,18 +113,21 @@ export function JudgeProjectDetailPage() {
   }, [token, categoryId, projectId, form]);
 
   const currentIndex = siblings.findIndex((item) => item.id === projectId);
+  const prevProject = currentIndex > 0 ? siblings[currentIndex - 1] : undefined;
   const nextProject = currentIndex >= 0 ? siblings[currentIndex + 1] : undefined;
   const totalMax = useMemo(
     () => detail?.criteria.reduce((sum, criterion) => sum + criterion.max_score, 0) ?? 0,
     [detail],
   );
+  const currentTotal = detail
+    ? detail.criteria.reduce((sum, criterion) => {
+        const value = scoreValues?.[criterion.id];
+        return sum + (typeof value === 'number' ? value : 0);
+      }, 0)
+    : 0;
 
   function goNext() {
-    if (nextProject) {
-      navigate(`${basePath}/projects/${nextProject.id}`);
-    } else {
-      navigate(`${basePath}/summary`);
-    }
+    navigate(nextProject ? `${basePath}/projects/${nextProject.id}` : `${basePath}/summary`);
   }
 
   async function handleFinish(values: { scores: Record<string, number> }) {
@@ -162,16 +177,18 @@ export function JudgeProjectDetailPage() {
   }
 
   const project = detail.project;
-  const fields: Array<{ label: string; value?: string; link?: boolean }> = [
+  // Field order matches the original detail layout.
+  const heroFields: Array<{ label: string; value?: string; link?: boolean }> = [
     { label: t('judgeProjectDetail.owner'), value: project.team_name },
     { label: t('judgeProjectDetail.designer'), value: project.designer_name },
     { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link, link: true },
     { label: t('judgeProjectDetail.creativeArea'), value: project.extra_details },
     { label: t('judgeProjectDetail.objective'), value: project.short_description },
   ];
-  const longSections: Array<{ label: string; value?: string }> = [
+  const infoBlocks: Array<{ label: string; value?: string; link?: boolean }> = [
     { label: t('judgeProjectDetail.designProcess'), value: project.full_description },
     { label: t('judgeProjectDetail.impact'), value: project.concept },
+    { label: t('judgeProjectDetail.moreInfo'), value: project.drive_link, link: true },
   ];
 
   return (
@@ -181,137 +198,187 @@ export function JudgeProjectDetailPage() {
 
       {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
 
-      <div className="project-detail">
-        <div className="project-detail__head">
-          <div className="project-detail__media-wrap">
-            {currentIndex >= 0 ? <div className="project-detail__index">{currentIndex + 1}</div> : null}
+      <div className="pd">
+        <div className="pd__topbar">
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+            {t('judgeProjectDetail.back')}
+          </Button>
+          <Segmented<string>
+            value=""
+            options={[
+              { label: t('judgeWorkspace.voteProjectsTab'), value: 'projects' },
+              { label: t('judgeWorkspace.summaryTab'), value: 'summary' },
+            ]}
+            onChange={(value) =>
+              navigate(value === 'summary' ? `${basePath}/summary` : `${basePath}/projects`)
+            }
+          />
+        </div>
+
+        <header className="pd__hero">
+          <div className="pd__media-wrap">
             <ProjectPreview
               src={project.image_url}
               alt={project.title}
-              className="project-detail__media"
-              placeholderClassName="project-card__placeholder project-detail__media"
+              className="pd__media"
+              placeholderClassName="pd__media pd__media--placeholder"
             />
+            {currentIndex >= 0 ? (
+              <span className="pd__badge">
+                {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
+              </span>
+            ) : null}
           </div>
 
-          <div className="project-detail__fields">
-            <div className="project-detail__field">
-              <span className="project-detail__label">{t('judgeProjectDetail.projectTitle')}</span>
-              <Typography.Title level={4} className="project-detail__title">
-                {project.title}
-              </Typography.Title>
+          <div className="pd__hero-info">
+            <span className="pd__eyebrow">{t('judgeProjectDetail.projectTitle')}</span>
+            <Typography.Title level={2} className="pd__title">
+              {project.title}
+            </Typography.Title>
+
+            <dl className="pd__fields">
+              {heroFields.map((field) => (
+                <div className="pd__field" key={field.label}>
+                  <dt className="pd__field-label">{field.label}</dt>
+                  <dd className="pd__field-value">
+                    {field.value ? (
+                      field.link ? (
+                        <a href={field.value} target="_blank" rel="noreferrer" className="pd__field-link">
+                          <LinkOutlined /> {field.value}
+                        </a>
+                      ) : (
+                        field.value
+                      )
+                    ) : (
+                      <span className="pd__field-empty">{t('common.notProvided')}</span>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </header>
+
+        <section className="pd__info">
+          {infoBlocks.map((block) => (
+            <div className="pd__info-block" key={block.label}>
+              <h3 className="pd__info-label">{block.label}</h3>
+              {block.value ? (
+                block.link ? (
+                  <a href={block.value} target="_blank" rel="noreferrer" className="pd__field-link">
+                    <LinkOutlined /> {block.value}
+                  </a>
+                ) : (
+                  <p className="pd__info-text">{block.value}</p>
+                )
+              ) : (
+                <p className="pd__info-text pd__field-empty">{t('common.notProvided')}</p>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <Form form={form} onFinish={handleFinish} className="pd__form">
+          <div className="pd__scoring-head">
+            <Typography.Title level={3} className="pd__scoring-title">
+              {t('judgeProjectDetail.scoringTitle')}
+            </Typography.Title>
+            <div className="pd__total">
+              <span className="pd__total-label">{t('projectVoteDrawer.totalScore')}</span>
+              <span className="pd__total-value">
+                {currentTotal} <span className="pd__total-max">/ {totalMax}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="pd__criteria">
+            {detail.criteria.map((criterion, index) => {
+              const { intro, bands } = parseRubric(
+                localize(language, criterion.description, criterion.description_th),
+              );
+              return (
+                <div className="score-card" key={criterion.id}>
+                  <div className="score-card__num">{index + 1}</div>
+
+                  <div className="score-card__main">
+                    <div className="score-card__head">
+                      <h4 className="score-card__name">{localize(language, criterion.name, criterion.name_th)}</h4>
+                      <span className="score-card__max">{t('judgeProjectDetail.maxScoreSuffix', { max: criterion.max_score })}</span>
+                    </div>
+
+                    {intro.map((line) => (
+                      <p className="score-card__intro" key={line}>
+                        {line}
+                      </p>
+                    ))}
+
+                    {bands.length > 0 ? (
+                      <ul className="rubric">
+                        {bands.map((band) => (
+                          <li className="rubric__row" key={band.range}>
+                            <span className="rubric__range">{band.range}</span>
+                            <span className="rubric__text">{band.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+
+                  <div className="score-card__score">
+                    <Form.Item
+                      name={['scores', criterion.id]}
+                      className="score-card__field"
+                      rules={[
+                        { required: true, message: t('projectVoteDrawer.scoreRequired') },
+                        {
+                          validator: async (_rule, value) => {
+                            if (typeof value !== 'number') {
+                              throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
+                            }
+                            if (value < 0 || value > criterion.max_score) {
+                              throw new Error(t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }));
+                            }
+                          },
+                        },
+                      ]}
+                    >
+                      <InputNumber
+                        size="large"
+                        min={0}
+                        max={criterion.max_score}
+                        controls={false}
+                        addonAfter={`/ ${criterion.max_score}`}
+                        className="score-card__input"
+                        placeholder="0"
+                      />
+                    </Form.Item>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pd__actionbar">
+            <div className="pd__actionbar-side">
+              {prevProject ? (
+                <Button onClick={() => navigate(`${basePath}/projects/${prevProject.id}`)} icon={<ArrowLeftOutlined />}>
+                  {t('judgeProjectDetail.previousCandidate')}
+                </Button>
+              ) : (
+                <Button onClick={() => navigate(`${basePath}/projects`)}>{t('judgeProjectDetail.backToList')}</Button>
+              )}
             </div>
 
-            {fields.map((field) => (
-              <div className="project-detail__field" key={field.label}>
-                <span className="project-detail__label">{field.label}</span>
-                {field.value ? (
-                  field.link ? (
-                    <a href={field.value} target="_blank" rel="noreferrer" className="project-detail__value">
-                      <LinkOutlined /> {field.value}
-                    </a>
-                  ) : (
-                    <Typography.Paragraph className="project-detail__value">{field.value}</Typography.Paragraph>
-                  )
-                ) : (
-                  <Typography.Text type="secondary">{t('common.notProvided')}</Typography.Text>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {longSections.map((section) => (
-          <div className="project-detail__field project-detail__field--block" key={section.label}>
-            <span className="project-detail__label">{section.label}</span>
-            <Typography.Paragraph className="project-detail__value">
-              {section.value || t('common.notProvided')}
-            </Typography.Paragraph>
-          </div>
-        ))}
-
-        {project.drive_link ? (
-          <div className="project-detail__field project-detail__field--block">
-            <span className="project-detail__label">{t('judgeProjectDetail.moreInfo')}</span>
-            <a href={project.drive_link} target="_blank" rel="noreferrer" className="project-detail__value">
-              <LinkOutlined /> {project.drive_link}
-            </a>
-          </div>
-        ) : null}
-
-        <Typography.Title level={3} className="project-detail__scoring-title">
-          {t('judgeProjectDetail.scoringTitle')}
-        </Typography.Title>
-
-        <Form form={form} onFinish={handleFinish} className="project-detail__form">
-          <Table<ScoringCriterion>
-            rowKey="id"
-            dataSource={detail.criteria}
-            pagination={false}
-            className="project-detail__table"
-            columns={[
-              {
-                title: t('judgeProjectDetail.colOrder'),
-                width: 70,
-                align: 'center',
-                render: (_, __, index) => index + 1,
-              },
-              {
-                title: t('judgeProjectDetail.colCriterion', { total: totalMax }),
-                render: (_, criterion) => (
-                  <>
-                    <Typography.Text strong>{criterion.name}</Typography.Text>{' '}
-                    <Typography.Text type="secondary">
-                      {t('judgeProjectDetail.maxScoreSuffix', { max: criterion.max_score })}
-                    </Typography.Text>
-                  </>
-                ),
-              },
-              {
-                title: t('judgeProjectDetail.colRubric'),
-                dataIndex: 'description',
-                render: (value: string) =>
-                  value || <Typography.Text type="secondary">{t('common.noDescription')}</Typography.Text>,
-              },
-              {
-                title: t('judgeProjectDetail.colScore'),
-                width: 130,
-                align: 'center',
-                render: (_, criterion) => (
-                  <Form.Item
-                    name={['scores', criterion.id]}
-                    noStyle
-                    rules={[
-                      { required: true, message: t('projectVoteDrawer.scoreRequired') },
-                      {
-                        validator: async (_rule, value) => {
-                          if (typeof value !== 'number') {
-                            throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
-                          }
-                          if (value < 0 || value > criterion.max_score) {
-                            throw new Error(t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }));
-                          }
-                        },
-                      },
-                    ]}
-                  >
-                    <InputNumber min={0} max={criterion.max_score} style={{ width: 90 }} />
-                  </Form.Item>
-                ),
-              },
-            ]}
-          />
-
-          <div className="project-detail__footer">
-            <Button onClick={() => navigate(`${basePath}/projects`)}>
-              {t('judgeProjectDetail.backToList')}
+            <Button type="primary" size="large" htmlType="submit" loading={submitting} className="pd__submit">
+              {t('judgeProjectDetail.submit')} · {currentTotal}/{totalMax}
             </Button>
-            <Button type="primary" size="large" htmlType="submit" loading={submitting} className="project-detail__submit">
-              {t('judgeProjectDetail.submit')}
-            </Button>
-            <Button size="large" onClick={goNext}>
-              {nextProject ? t('judgeProjectDetail.nextCandidate') : t('judgeProjectDetail.finishToSummary')}{' '}
-              <ArrowRightOutlined />
-            </Button>
+
+            <div className="pd__actionbar-side pd__actionbar-side--end">
+              <Button size="large" onClick={goNext}>
+                {nextProject ? t('judgeProjectDetail.nextCandidate') : t('judgeProjectDetail.finishToSummary')}{' '}
+                <ArrowRightOutlined />
+              </Button>
+            </div>
           </div>
         </Form>
       </div>

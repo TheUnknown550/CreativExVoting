@@ -176,7 +176,7 @@ func (r *JudgeRepository) GetProjectDetail(ctx context.Context, judgeID string, 
 	}
 
 	criteriaRows, err := r.pool.Query(ctx, `
-		SELECT id, category_id, name, description, max_score, display_order, is_active, created_at, updated_at
+		SELECT id, category_id, name, COALESCE(name_th, ''), description, COALESCE(description_th, ''), max_score, display_order, is_active, created_at, updated_at
 		FROM scoring_criteria
 		WHERE category_id = $1 AND is_active = TRUE
 		ORDER BY display_order, created_at
@@ -192,7 +192,9 @@ func (r *JudgeRepository) GetProjectDetail(ctx context.Context, judgeID string, 
 			&criterion.ID,
 			&criterion.CategoryID,
 			&criterion.Name,
+			&criterion.NameTh,
 			&criterion.Description,
+			&criterion.DescriptionTh,
 			&criterion.MaxScore,
 			&criterion.DisplayOrder,
 			&criterion.IsActive,

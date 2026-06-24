@@ -74,8 +74,11 @@ export const th: TranslationDict = {
     maxScoreSuffix: '({max} คะแนน)',
     submit: 'ลงคะแนน',
     nextCandidate: 'ผู้สมัครคนถัดไป',
+    previousCandidate: 'ก่อนหน้า',
     finishToSummary: 'เสร็จสิ้น & ดูสรุปผล',
     backToList: 'กลับไปหน้ารายการ',
+    back: 'ย้อนกลับ',
+    position: 'ผลงานที่ {current} จาก {total}',
   },
   adminLayout: {
     subtitle: 'ผู้ดูแลระบบ',

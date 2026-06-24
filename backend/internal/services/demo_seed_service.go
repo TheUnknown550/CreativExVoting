@@ -137,11 +137,13 @@ type demoCategorySeed struct {
 }
 
 type demoCriterionSeed struct {
-	Slug         string
-	Name         string
-	Description  string
-	MaxScore     int
-	DisplayOrder int
+	Slug          string
+	Name          string
+	NameTh        string
+	Description   string
+	DescriptionTh string
+	MaxScore      int
+	DisplayOrder  int
 }
 
 type DemoSeedService struct {
@@ -260,7 +262,12 @@ func (s *DemoSeedService) applyCriteriaTranslations(ctx context.Context) error {
 			}
 			return fmt.Errorf("read criteria translation %s: %w", name, err)
 		}
-		if _, err := s.pool.Exec(ctx, string(content)); err != nil {
+		// The translation files were written to overwrite the English name/description
+		// columns. Redirect them to the Thai columns so English (from the seed) is kept
+		// and Thai lives alongside it for locale switching.
+		sql := strings.ReplaceAll(string(content), "SET name = ", "SET name_th = ")
+		sql = strings.ReplaceAll(sql, ", description = ", ", description_th = ")
+		if _, err := s.pool.Exec(ctx, sql); err != nil {
 			return fmt.Errorf("apply criteria translation %s: %w", name, err)
 		}
 	}
@@ -362,32 +369,40 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 	case demoGroupHallOfFame:
 		return []demoCriterionSeed{
 			{
-				Slug:         "creative-leadership",
-				Name:         "ความเป็นผู้นำและวิสัยทัศน์เชิงสร้างสรรค์",
-				Description:  "องค์กรหรือแบรนด์ใช้ความคิดสร้างสรรค์เป็นกลไกหลักในการกำหนดวิสัยทัศน์และทิศทาง (30 คะแนน)\n\n25-30 = ใช้ความคิดสร้างสรรค์กำหนดวิสัยทัศน์และทิศทางได้อย่างโดดเด่น เป็นผู้นำการเปลี่ยนแปลงในวงการ\n\n15-24 = มีวิสัยทัศน์เชิงสร้างสรรค์ที่ดี แต่ยังไม่ถึงระดับผู้นำที่สร้างการเปลี่ยนแปลงในวงกว้าง\n\n0-14 = ใช้ความคิดสร้างสรรค์ในระดับทั่วไป ยังไม่สะท้อนวิสัยทัศน์ที่ชัดเจน",
-				MaxScore:     30,
-				DisplayOrder: 1,
+				Slug:          "creative-leadership",
+				Name:          "Creative leadership and vision",
+				NameTh:        "ความเป็นผู้นำและวิสัยทัศน์เชิงสร้างสรรค์",
+				Description:   scoreBandDescription(category.CreativeFocus),
+				DescriptionTh: "องค์กรหรือแบรนด์ใช้ความคิดสร้างสรรค์เป็นกลไกหลักในการกำหนดวิสัยทัศน์และทิศทาง (30 คะแนน)\n\n25-30 = ใช้ความคิดสร้างสรรค์กำหนดวิสัยทัศน์และทิศทางได้อย่างโดดเด่น เป็นผู้นำการเปลี่ยนแปลงในวงการ\n\n15-24 = มีวิสัยทัศน์เชิงสร้างสรรค์ที่ดี แต่ยังไม่ถึงระดับผู้นำที่สร้างการเปลี่ยนแปลงในวงกว้าง\n\n0-14 = ใช้ความคิดสร้างสรรค์ในระดับทั่วไป ยังไม่สะท้อนวิสัยทัศน์ที่ชัดเจน",
+				MaxScore:      30,
+				DisplayOrder:  1,
 			},
 			{
-				Slug:         "creative-execution-culture",
-				Name:         "ความคิดสร้างสรรค์ที่ฝังอยู่ในการดำเนินงานและวัฒนธรรมองค์กร",
-				Description:  "ความคิดสร้างสรรค์ถูกฝังอยู่ในการทำงานประจำวันและวัฒนธรรมขององค์กรอย่างแท้จริง (25 คะแนน)\n\n20-25 = ความคิดสร้างสรรค์ฝังอยู่ในทุกระดับขององค์กรและการดำเนินงานจริง\n\n11-19 = มีวัฒนธรรมสร้างสรรค์ในบางส่วน แต่ยังไม่ครอบคลุมทั้งองค์กร\n\n0-10 = ความคิดสร้างสรรค์ยังเป็นกิจกรรมเฉพาะกิจ ไม่ได้ฝังในวัฒนธรรม",
-				MaxScore:     25,
-				DisplayOrder: 2,
+				Slug:          "creative-execution-culture",
+				Name:          "Creativity embedded in execution and culture",
+				NameTh:        "ความคิดสร้างสรรค์ที่ฝังอยู่ในการดำเนินงานและวัฒนธรรมองค์กร",
+				Description:   scoreBandDescription(category.ExecutionFocus),
+				DescriptionTh: "ความคิดสร้างสรรค์ถูกฝังอยู่ในการทำงานประจำวันและวัฒนธรรมขององค์กรอย่างแท้จริง (25 คะแนน)\n\n20-25 = ความคิดสร้างสรรค์ฝังอยู่ในทุกระดับขององค์กรและการดำเนินงานจริง\n\n11-19 = มีวัฒนธรรมสร้างสรรค์ในบางส่วน แต่ยังไม่ครอบคลุมทั้งองค์กร\n\n0-10 = ความคิดสร้างสรรค์ยังเป็นกิจกรรมเฉพาะกิจ ไม่ได้ฝังในวัฒนธรรม",
+				MaxScore:      25,
+				DisplayOrder:  2,
 			},
 			{
-				Slug:         "lasting-impact",
-				Name:         "ผลกระทบและอิทธิพลที่ยั่งยืน",
-				Description:  "สร้างคุณค่าและผลกระทบเชิงบวกที่โดดเด่นและยั่งยืนต่อเศรษฐกิจ สังคม หรือสิ่งแวดล้อม (25 คะแนน)\n\n20-25 = สร้างผลกระทบเชิงบวกที่วัดได้และยั่งยืนในวงกว้าง\n\n11-19 = มีผลกระทบเชิงบวกที่ชัดเจน แต่ยังจำกัดขอบเขตหรือระยะเวลา\n\n0-10 = ผลกระทบยังไม่ชัดเจนหรือยังวัดไม่ได้",
-				MaxScore:     25,
-				DisplayOrder: 3,
+				Slug:          "lasting-impact",
+				Name:          "Lasting impact and influence",
+				NameTh:        "ผลกระทบและอิทธิพลที่ยั่งยืน",
+				Description:   scoreBandDescription(category.ImpactFocus),
+				DescriptionTh: "สร้างคุณค่าและผลกระทบเชิงบวกที่โดดเด่นและยั่งยืนต่อเศรษฐกิจ สังคม หรือสิ่งแวดล้อม (25 คะแนน)\n\n20-25 = สร้างผลกระทบเชิงบวกที่วัดได้และยั่งยืนในวงกว้าง\n\n11-19 = มีผลกระทบเชิงบวกที่ชัดเจน แต่ยังจำกัดขอบเขตหรือระยะเวลา\n\n0-10 = ผลกระทบยังไม่ชัดเจนหรือยังวัดไม่ได้",
+				MaxScore:      25,
+				DisplayOrder:  3,
 			},
 			{
-				Slug:         "future-role-model",
-				Name:         "ต้นแบบที่มุ่งสู่อนาคต",
-				Description:  "เป็นต้นแบบขององค์กรหรือแบรนด์แห่งอนาคตที่ผู้อื่นเรียนรู้และทำตามได้ (20 คะแนน)\n\n15-20 = เป็นต้นแบบที่น่าเชื่อถือและสร้างแรงบันดาลใจให้องค์กรอื่นทำตาม\n\n6-14 = มีแนวปฏิบัติที่ดีบางส่วนที่ผู้อื่นเรียนรู้ได้\n\n0-5 = ยังไม่ชัดเจนว่าจะเป็นต้นแบบให้ผู้อื่นได้อย่างไร",
-				MaxScore:     20,
-				DisplayOrder: 4,
+				Slug:          "future-role-model",
+				Name:          "Future-facing role model",
+				NameTh:        "ต้นแบบที่มุ่งสู่อนาคต",
+				Description:   scoreBandDescription(category.SustainabilityFocus),
+				DescriptionTh: "เป็นต้นแบบขององค์กรหรือแบรนด์แห่งอนาคตที่ผู้อื่นเรียนรู้และทำตามได้ (20 คะแนน)\n\n15-20 = เป็นต้นแบบที่น่าเชื่อถือและสร้างแรงบันดาลใจให้องค์กรอื่นทำตาม\n\n6-14 = มีแนวปฏิบัติที่ดีบางส่วนที่ผู้อื่นเรียนรู้ได้\n\n0-5 = ยังไม่ชัดเจนว่าจะเป็นต้นแบบให้ผู้อื่นได้อย่างไร",
+				MaxScore:      20,
+				DisplayOrder:  4,
 			},
 		}
 	default:
@@ -492,18 +507,20 @@ func upsertCriterionSeed(ctx context.Context, tx pgx.Tx, categoryID string, cate
 	id := deterministicSeedID("criterion:" + categorySlug + ":" + criterion.Slug)
 	_, err := tx.Exec(ctx, `
 		INSERT INTO scoring_criteria (
-			id, category_id, name, description, max_score, display_order, is_active, created_at, updated_at
+			id, category_id, name, name_th, description, description_th, max_score, display_order, is_active, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, TRUE, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, NOW(), NOW())
 		ON CONFLICT (id) DO UPDATE
 		SET category_id = EXCLUDED.category_id,
 			name = EXCLUDED.name,
+			name_th = EXCLUDED.name_th,
 			description = EXCLUDED.description,
+			description_th = EXCLUDED.description_th,
 			max_score = EXCLUDED.max_score,
 			display_order = EXCLUDED.display_order,
 			is_active = TRUE,
 			updated_at = NOW()
-	`, id, categoryID, criterion.Name, criterion.Description, criterion.MaxScore, criterion.DisplayOrder)
+	`, id, categoryID, criterion.Name, criterion.NameTh, criterion.Description, criterion.DescriptionTh, criterion.MaxScore, criterion.DisplayOrder)
 	return err
 }
 

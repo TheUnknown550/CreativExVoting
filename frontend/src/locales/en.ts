@@ -72,8 +72,11 @@ export const en = {
     maxScoreSuffix: '({max} pts)',
     submit: 'Submit score',
     nextCandidate: 'Next candidate',
+    previousCandidate: 'Previous',
     finishToSummary: 'Finish & view summary',
     backToList: 'Back to list',
+    back: 'Back',
+    position: 'Entry {current} of {total}',
   },
   adminLayout: {
     subtitle: 'Platform administrator',

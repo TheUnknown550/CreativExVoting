@@ -81,15 +81,17 @@ type Project struct {
 }
 
 type ScoringCriterion struct {
-	ID           string    `json:"id"`
-	CategoryID   string    `json:"category_id"`
-	Name         string    `json:"name"`
-	Description  string    `json:"description"`
-	MaxScore     int       `json:"max_score"`
-	DisplayOrder int       `json:"display_order"`
-	IsActive     bool      `json:"is_active"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	CategoryID    string    `json:"category_id"`
+	Name          string    `json:"name"`
+	NameTh        string    `json:"name_th"`
+	Description   string    `json:"description"`
+	DescriptionTh string    `json:"description_th"`
+	MaxScore      int       `json:"max_score"`
+	DisplayOrder  int       `json:"display_order"`
+	IsActive      bool      `json:"is_active"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type Vote struct {
