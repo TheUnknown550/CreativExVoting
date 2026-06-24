@@ -367,44 +367,10 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 			},
 		}
 	case demoGroupHallOfFame:
-		return []demoCriterionSeed{
-			{
-				Slug:          "creative-leadership",
-				Name:          "Creative leadership and vision",
-				NameTh:        "ความเป็นผู้นำและวิสัยทัศน์เชิงสร้างสรรค์",
-				Description:   scoreBandDescription(category.CreativeFocus),
-				DescriptionTh: "องค์กรหรือแบรนด์ใช้ความคิดสร้างสรรค์เป็นกลไกหลักในการกำหนดวิสัยทัศน์และทิศทาง (30 คะแนน)\n\n25-30 = ใช้ความคิดสร้างสรรค์กำหนดวิสัยทัศน์และทิศทางได้อย่างโดดเด่น เป็นผู้นำการเปลี่ยนแปลงในวงการ\n\n15-24 = มีวิสัยทัศน์เชิงสร้างสรรค์ที่ดี แต่ยังไม่ถึงระดับผู้นำที่สร้างการเปลี่ยนแปลงในวงกว้าง\n\n0-14 = ใช้ความคิดสร้างสรรค์ในระดับทั่วไป ยังไม่สะท้อนวิสัยทัศน์ที่ชัดเจน",
-				MaxScore:      30,
-				DisplayOrder:  1,
-			},
-			{
-				Slug:          "creative-execution-culture",
-				Name:          "Creativity embedded in execution and culture",
-				NameTh:        "ความคิดสร้างสรรค์ที่ฝังอยู่ในการดำเนินงานและวัฒนธรรมองค์กร",
-				Description:   scoreBandDescription(category.ExecutionFocus),
-				DescriptionTh: "ความคิดสร้างสรรค์ถูกฝังอยู่ในการทำงานประจำวันและวัฒนธรรมขององค์กรอย่างแท้จริง (25 คะแนน)\n\n20-25 = ความคิดสร้างสรรค์ฝังอยู่ในทุกระดับขององค์กรและการดำเนินงานจริง\n\n11-19 = มีวัฒนธรรมสร้างสรรค์ในบางส่วน แต่ยังไม่ครอบคลุมทั้งองค์กร\n\n0-10 = ความคิดสร้างสรรค์ยังเป็นกิจกรรมเฉพาะกิจ ไม่ได้ฝังในวัฒนธรรม",
-				MaxScore:      25,
-				DisplayOrder:  2,
-			},
-			{
-				Slug:          "lasting-impact",
-				Name:          "Lasting impact and influence",
-				NameTh:        "ผลกระทบและอิทธิพลที่ยั่งยืน",
-				Description:   scoreBandDescription(category.ImpactFocus),
-				DescriptionTh: "สร้างคุณค่าและผลกระทบเชิงบวกที่โดดเด่นและยั่งยืนต่อเศรษฐกิจ สังคม หรือสิ่งแวดล้อม (25 คะแนน)\n\n20-25 = สร้างผลกระทบเชิงบวกที่วัดได้และยั่งยืนในวงกว้าง\n\n11-19 = มีผลกระทบเชิงบวกที่ชัดเจน แต่ยังจำกัดขอบเขตหรือระยะเวลา\n\n0-10 = ผลกระทบยังไม่ชัดเจนหรือยังวัดไม่ได้",
-				MaxScore:      25,
-				DisplayOrder:  3,
-			},
-			{
-				Slug:          "future-role-model",
-				Name:          "Future-facing role model",
-				NameTh:        "ต้นแบบที่มุ่งสู่อนาคต",
-				Description:   scoreBandDescription(category.SustainabilityFocus),
-				DescriptionTh: "เป็นต้นแบบขององค์กรหรือแบรนด์แห่งอนาคตที่ผู้อื่นเรียนรู้และทำตามได้ (20 คะแนน)\n\n15-20 = เป็นต้นแบบที่น่าเชื่อถือและสร้างแรงบันดาลใจให้องค์กรอื่นทำตาม\n\n6-14 = มีแนวปฏิบัติที่ดีบางส่วนที่ผู้อื่นเรียนรู้ได้\n\n0-5 = ยังไม่ชัดเจนว่าจะเป็นต้นแบบให้ผู้อื่นได้อย่างไร",
-				MaxScore:      20,
-				DisplayOrder:  4,
-			},
+		if category.Slug == "creative-brand-of-the-year" {
+			return creativeBrandCriteria()
 		}
+		return creativeOrganizationCriteria()
 	default:
 		return []demoCriterionSeed{
 			{
@@ -444,6 +410,215 @@ func scoreBandDescription(focus string) string {
 		"High scores reward work that %s. Mid scores are for work with a clear idea but uneven proof or incomplete delivery. Low scores are for work that stays generic, lightly evidenced, or weakly connected to the category intent.",
 		focus,
 	)
+}
+
+// hofDescription assembles a Hall of Fame rubric: an intro question followed by
+// the scoring bands ("24-30 = ...") separated by blank lines, matching how the
+// judge UI parses rubric bands.
+func hofDescription(intro string, bands ...string) string {
+	return intro + "\n\n" + strings.Join(bands, "\n\n")
+}
+
+// creativeBrandCriteria is the official rubric for 4.2 Most Creative Brand (total 100).
+func creativeBrandCriteria() []demoCriterionSeed {
+	return []demoCriterionSeed{
+		{
+			Slug:         "brand-creative-resilience",
+			Name:         "Creativity in overcoming obstacles",
+			NameTh:       "ความคิดสร้างสรรค์ในการฝ่าอุปสรรค",
+			MaxScore:     25,
+			DisplayOrder: 1,
+			Description: hofDescription(
+				"Does the brand use creativity to overcome obstacles while keeping its identity clear? (25 pts)",
+				"20-25 = Turns the brand's limits or crises into fresh creative campaigns or ideas that not only solve the problem but make the Brand Identity stand out more clearly.",
+				"11-19 = Solves the problem and gets through the obstacle, but the brand's identity stays the same, with no new perspective or sharpened identity.",
+				"0-10 = Loses its sense of identity under the pressure, or uses a generic fix that does not reflect the brand at all.",
+			),
+			DescriptionTh: hofDescription(
+				"แบรนด์ใช้ความคิดสร้างสรรค์ฝ่าอุปสรรคโดยควบคุมตัวตนได้ชัดเจนไหม? (25 คะแนน)",
+				"20-25 = พลิกข้อจำกัดหรือวิกฤตที่แบรนด์เผชิญ ให้กลายเป็นแคมเปญหรือแนวคิดสร้างสรรค์ที่แปลกใหม่ ซึ่งไม่เพียงแต่แก้ปัญหาได้ แต่ยังต่อยอดทำให้ตัวตนของแบรนด์ (Brand Identity) โดดเด่นและชัดเจนยิ่งขึ้น",
+				"11-19 = แก้ไขปัญหาและฝ่าฟันอุปสรรคไปได้ แต่ตัวตนของแบรนด์ยังคงเดิม ไม่ได้เกิดมุมมองใหม่หรือสร้างอัตลักษณ์ที่ทำให้แบรนด์ชัดเจนยิ่งขึ้น",
+				"0-10 = ได้รับผลกระทบจากอุปสรรคจนสูญเสียความเป็นตัวตน หรือใช้วิธีแก้ปัญหาแบบทั่วไปที่ไม่สะท้อนตัวตนของแบรนด์เลย",
+			),
+		},
+		{
+			Slug:         "brand-tech-storytelling",
+			Name:         "Expanding creativity with technology",
+			NameTh:       "ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี",
+			MaxScore:     15,
+			DisplayOrder: 2,
+			Description: hofDescription(
+				"Does the brand use technology creatively to tell stories differently? (15 pts)",
+				"12-15 = Blends technology with storytelling so creatively that it becomes a new form of communication, campaign, or experience unlike the usual.",
+				"7-11 = Uses technology to support storytelling or campaigns well, but in commonly seen forms (e.g. just a filter or an event), without creating a new perception.",
+				"0-6 = Tells the story in the same old way, with almost no technology used to extend creativity.",
+			),
+			DescriptionTh: hofDescription(
+				"แบรนด์ใช้ความคิดสร้างสรรค์ผ่านเทคโนโลยีเล่าเรื่องที่ต่างจากเดิมได้ไหม? (15 คะแนน)",
+				"12-15 = ผสมผสานเทคโนโลยีเข้ากับศิลปะการเล่าเรื่อง (Storytelling) ได้อย่างสร้างสรรค์ จนเกิดเป็นรูปแบบการสื่อสาร แคมเปญ หรือประสบการณ์ใหม่ (New Experience) ที่ต่างไปจากวิธีเดิม ๆ",
+				"7-11 = นำเทคโนโลยีมาใช้ช่วยเสริมในการเล่าเรื่องหรือทำแคมเปญได้ดี แต่ยังเป็นรูปแบบที่พบเห็นได้ทั่วไป (เช่น แค่ทำฟิลเตอร์ หรือจัดอีเวนต์) ยังไม่สร้างความแปลกใหม่ในการรับรู้",
+				"0-6 = เล่าเรื่องด้วยวิธีแบบเดิม ๆ แทบไม่มีการนำเทคโนโลยีเข้ามาช่วยต่อยอดความคิดสร้างสรรค์",
+			),
+		},
+		{
+			Slug:         "brand-transparency",
+			Name:         "Creativity on tangible transparency",
+			NameTh:       "ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้",
+			MaxScore:     30,
+			DisplayOrder: 3,
+			Description: hofDescription(
+				"Does the brand communicate creatively so it is verifiable without being asked? (30 pts)",
+				"24-30 = Designs how it reveals information (e.g. material sources, production process, or revenue) with creativity that is easy to understand, appealing, credible, and immediately accessible without consumers asking, setting a new transparency standard for the brand.",
+				"13-23 = Is transparent and discloses information to the expected standard, but communicates it plainly, lacking the creativity to make it easy for consumers to understand and access.",
+				"0-12 = Hides information, is hard to access, or has no communication that shows the brand's transparency.",
+			),
+			DescriptionTh: hofDescription(
+				"แบรนด์ใช้ความคิดสร้างสรรค์สื่อสารจนตรวจสอบได้โดยไม่ต้องร้องขอใช่ไหม? (30 คะแนน)",
+				"24-30 = ออกแบบวิธีการเปิดเผยข้อมูล (เช่น แหล่งที่มาของวัตถุดิบ กระบวนการผลิต หรือรายได้) ด้วยความคิดสร้างสรรค์ที่น่าเข้าใจง่าย ดึงดูด น่าเชื่อถือ และเข้าถึงได้ทันทีโดยผู้บริโภคไม่ต้องร้องขอ สร้างมาตรฐานใหม่ด้านความโปร่งใสให้กับแบรนด์",
+				"13-23 = มีความโปร่งใสและเปิดเผยข้อมูลตามมาตรฐานที่ควรทำ แต่รูปแบบการสื่อสารยังเป็นการทำตรงไปตรงมา ขาดความคิดสร้างสรรค์ที่จะทำให้ผู้บริโภคเข้าใจและเข้าถึงได้ง่าย",
+				"0-12 = ปกปิดข้อมูล เข้าถึงยาก หรือไม่มีการสื่อสารใด ๆ ที่แสดงให้เห็นถึงความโปร่งใสของแบรนด์",
+			),
+		},
+		{
+			Slug:         "brand-opportunity",
+			Name:         "Creativity that opens opportunities for others",
+			NameTh:       "ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น",
+			MaxScore:     15,
+			DisplayOrder: 4,
+			Description: hofDescription(
+				"Does the brand use creativity to genuinely open opportunities for others? (15 pts)",
+				"12-15 = Designs business models, campaigns, or creative spaces that embrace, uplift, or create new opportunities for people, society, or small partners (e.g. local suppliers, communities) to grow together with the brand in a tangible way.",
+				"7-11 = Gives some opportunity or help to others, but as short CSR activities or occasional donations, without using creativity to build long-term opportunity.",
+				"0-6 = Focuses mainly on its own benefit, with no space or sharing of opportunity for others.",
+			),
+			DescriptionTh: hofDescription(
+				"แบรนด์ใช้ความคิดสร้างสรรค์เปิดโอกาสให้ผู้คนได้โอกาสจริงไหม? (15 คะแนน)",
+				"12-15 = ออกแบบโมเดลธุรกิจ แคมเปญ หรือพื้นที่สร้างสรรค์ที่เข้าไปโอบอุ้ม ยกระดับศักยภาพ หรือสร้างโอกาสใหม่ให้กับผู้คน สังคม หรือพันธมิตรตัวเล็ก ๆ (เช่น ซัพพลายเออร์ท้องถิ่น ชุมชน) ให้เติบโตไปพร้อมกับแบรนด์ได้อย่างเป็นรูปธรรม",
+				"7-11 = มีการให้โอกาสหรือช่วยเหลือคนอื่นบ้าง แต่ยังเป็นในลักษณะกิจกรรม CSR สั้น ๆ หรือการบริจาคครั้งคราว ไม่ได้ใช้ความคิดสร้างสรรค์เพื่อสร้างโอกาสในระยะยาว",
+				"0-6 = มุ่งเน้นแต่ผลประโยชน์ของตัวเองเป็นหลัก ไม่มีพื้นที่หรือการแบ่งปันโอกาสให้ผู้อื่น",
+			),
+		},
+		{
+			Slug:         "brand-ownership",
+			Name:         "Creativity that builds a sense of ownership",
+			NameTh:       "ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ",
+			MaxScore:     15,
+			DisplayOrder: 5,
+			Description: hofDescription(
+				"Does the brand use creativity so consumers feel a sense of ownership? (15 pts)",
+				"12-15 = Creates campaigns, experiences, brand culture, or identity that draw consumers in until they feel a deep bond, a Sense of Ownership, and are ready to defend and recommend the brand with pride.",
+				"7-11 = Consumers like and recognize the identity and have good Brand Loyalty, but not to the point of feeling ownership or personally defending the brand.",
+				"0-6 = Consumers see the brand as just another buy-sell option, with no emotional bond.",
+			),
+			DescriptionTh: hofDescription(
+				"แบรนด์ใช้ความคิดสร้างสรรค์จนผู้บริโภครู้สึกเป็นเจ้าของไหม? (15 คะแนน)",
+				"12-15 = สร้างแคมเปญ ประสบการณ์ วัฒนธรรมแบรนด์ หรือเอกลักษณ์ที่ทำให้ผู้บริโภคเข้ามามีส่วนร่วม จนเกิดความรู้สึกผูกพันลึกซึ้ง เกิดความรู้สึกเจ้าของร่วม (Sense of Ownership) และพร้อมจะปกป้องรวมถึงบอกต่อแบรนด์ด้วยความภูมิใจ",
+				"7-11 = ผู้บริโภคชื่นชอบและรับรู้ถึงเอกลักษณ์ มีความผูกพันต่อแบรนด์ (Brand Loyalty) ในระดับที่ดี แต่ยังไม่ถึงขั้นรู้สึกเป็นเจ้าของหรือผูกพันจนถึงขั้นปกป้องแบรนด์เป็นการส่วนตัว",
+				"0-6 = ผู้บริโภคมองแบรนด์เป็นเพียงตัวเลือกซื้อ-ขายทั่วไป ไม่มีความผูกพันทางอารมณ์กับแบรนด์",
+			),
+		},
+	}
+}
+
+// creativeOrganizationCriteria is the official rubric for 4.1 Most Creative Organization (total 100).
+func creativeOrganizationCriteria() []demoCriterionSeed {
+	return []demoCriterionSeed{
+		{
+			Slug:         "org-creative-resilience",
+			Name:         "Creativity in overcoming obstacles",
+			NameTh:       "ความคิดสร้างสรรค์ในการฝ่าอุปสรรค",
+			MaxScore:     15,
+			DisplayOrder: 1,
+			Description: hofDescription(
+				"Does the organization use creativity to turn limits into opportunities? (15 pts)",
+				"12-15 = Turns severe crises or limits into new business or operational opportunities beyond expectation, with clearly positive results.",
+				"7-11 = Handles obstacles and solves problems well, but uses familiar methods, not quite turning limits into opportunity.",
+				"0-6 = Lets obstacles become a setback, or solves problems the same old way that does not improve the situation.",
+			),
+			DescriptionTh: hofDescription(
+				"องค์กรใช้ความคิดสร้างสรรค์เปลี่ยนข้อจำกัดเป็นโอกาสได้ไหม? (15 คะแนน)",
+				"12-15 = พลิกวิกฤตหรือข้อจำกัดที่รุนแรงให้กลายเป็นโอกาสใหม่ทางธุรกิจหรือการทำงานได้อย่างเหนือความคาดหมาย และสร้างผลลัพธ์เชิงบวกได้อย่างชัดเจน",
+				"7-11 = รับมือกับอุปสรรคและแก้ปัญหาได้ดี แต่ยังใช้วิธีการหรือรูปแบบที่คุ้นเคยในการจัดการ ยังไม่ถึงขั้นเปลี่ยนข้อจำกัดเป็นโอกาส",
+				"0-6 = ปล่อยให้อุปสรรคหรือข้อจำกัดเป็นจุดถดถอยของการทำงาน หรือใช้วิธีแก้ปัญหาแบบเดิม ๆ ที่ไม่ช่วยให้สถานการณ์ดีขึ้น",
+			),
+		},
+		{
+			Slug:         "org-tech-creativity",
+			Name:         "Expanding creativity with technology",
+			NameTh:       "ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี",
+			MaxScore:     20,
+			DisplayOrder: 2,
+			Description: hofDescription(
+				"Does the organization use technology creatively to produce different work? (20 pts)",
+				"16-20 = Applies technology with creativity to produce work, service formats, or innovations that are completely different and create a new user experience.",
+				"9-15 = Uses technology well in its processes, but mainly to improve efficiency or do standard work, without truly new perspectives or output.",
+				"0-8 = Uses very little technology, or only as a basic tool, without blending creativity to build on it.",
+			),
+			DescriptionTh: hofDescription(
+				"องค์กรใช้ความคิดสร้างสรรค์ผ่านเทคโนโลยีสร้างงานที่ต่างจากเดิมได้ไหม? (20 คะแนน)",
+				"16-20 = ประยุกต์ใช้เทคโนโลยีร่วมกับความคิดสร้างสรรค์จนเกิดเป็นผลงาน รูปแบบบริการ หรือนวัตกรรมใหม่ที่ต่างไปจากเดิมอย่างสิ้นเชิง และสร้างประสบการณ์ใหม่ให้ผู้ใช้งาน",
+				"9-15 = นำเทคโนโลยีมาใช้ในกระบวนการทำงานได้ดี แต่เป็นการเพิ่มประสิทธิภาพหรือทำงานตามมาตรฐานทั่วไป ยังไม่สร้างมุมมองหรือผลงานที่แปลกใหม่อย่างแท้จริง",
+				"0-8 = ใช้เทคโนโลยีน้อยมาก หรือใช้เพียงเป็นเครื่องมือพื้นฐาน โดยไม่ได้ผสมผสานความคิดสร้างสรรค์เพื่อต่อยอดเลย",
+			),
+		},
+		{
+			Slug:         "org-transparency",
+			Name:         "Creativity on tangible transparency",
+			NameTh:       "ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้",
+			MaxScore:     20,
+			DisplayOrder: 3,
+			Description: hofDescription(
+				"Does the organization communicate creatively so it is verifiable without being asked? (20 pts)",
+				"16-20 = Designs communication and access to in-depth information creatively (interesting, easy to understand) and discloses it publicly without outsiders asking, reflecting transparency in every dimension.",
+				"9-15 = Discloses information to standard and is verifiable, but communicates formally or hard-to-understand (e.g. only numbers or long documents), lacking creativity to help explain.",
+				"0-8 = Information is hard to access, vague, or there is no communication demonstrating tangible transparency.",
+			),
+			DescriptionTh: hofDescription(
+				"องค์กรใช้ความคิดสร้างสรรค์สื่อสารจนตรวจสอบได้โดยไม่ต้องร้องขอใช่ไหม? (20 คะแนน)",
+				"16-20 = ออกแบบการสื่อสารและการเข้าถึงข้อมูลเชิงลึกได้อย่างสร้างสรรค์ น่าสนใจ เข้าใจง่าย และเปิดเผยสู่สาธารณะโดยที่คนนอกไม่ต้องร้องขอ สะท้อนความโปร่งใสในทุกมิติ",
+				"9-15 = มีการเปิดเผยข้อมูลตามเกณฑ์มาตรฐานและตรวจสอบได้ แต่รูปแบบการสื่อสารยังเป็นทางการหรือเข้าใจยาก (เช่น มีแต่ตัวเลขหรือเอกสารยาว) ยังขาดความคิดสร้างสรรค์ในการช่วยอธิบาย",
+				"0-8 = ข้อมูลเข้าถึงยาก คลุมเครือ หรือไม่มีการสื่อสารที่แสดงถึงความโปร่งใสอย่างเป็นรูปธรรม",
+			),
+		},
+		{
+			Slug:         "org-opportunity",
+			Name:         "Creativity that opens opportunities for others",
+			NameTh:       "ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น",
+			MaxScore:     30,
+			DisplayOrder: 4,
+			Description: hofDescription(
+				"Does the organization use creativity to genuinely open opportunities for outsiders? (30 pts)",
+				"24-30 = Designs mechanisms or platforms that let outsiders or communities genuinely co-create, share ideas, or collaborate, distributing opportunity and creating broad positive impact.",
+				"13-23 = Opens some participation for outsiders, but in predefined forms or set activities, not driven at a structural level.",
+				"0-12 = Works only within the internal team, with almost no mechanism or space for outsiders to participate.",
+			),
+			DescriptionTh: hofDescription(
+				"องค์กรใช้ความคิดสร้างสรรค์เปิดโอกาสให้คนนอกได้จริงไหม? (30 คะแนน)",
+				"24-30 = ออกแบบกลไกหรือแพลตฟอร์มที่เปิดให้คนภายนอกหรือชุมชนเข้ามามีส่วนร่วมสร้างสรรค์ แชร์ไอเดีย หรือร่วมงานได้อย่างแท้จริง เกิดการกระจายโอกาสและสร้างผลกระทบเชิงบวกในวงกว้าง",
+				"13-23 = มีการเปิดโอกาสให้คนนอกเข้ามามีส่วนร่วมบ้าง แต่ยังเป็นในรูปแบบที่กำหนดไว้ หรือร่วมกิจกรรมตามที่จัดให้ ไม่ได้ขับเคลื่อนในระดับโครงสร้างจริง",
+				"0-12 = ทำงานเฉพาะในกลุ่มคนภายในองค์กร แทบไม่มีกลไกหรือพื้นที่ที่เปิดโอกาสให้คนนอกเข้ามามีส่วนร่วมเลย",
+			),
+		},
+		{
+			Slug:         "org-ownership",
+			Name:         "Creativity that builds a sense of ownership",
+			NameTh:       "ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ",
+			MaxScore:     15,
+			DisplayOrder: 5,
+			Description: hofDescription(
+				"Does the organization use creativity so its people feel ownership? (15 pts)",
+				"12-15 = Designs experiences or culture that make people inside and around feel strongly bonded and proud, creating a Sense of Ownership and readiness to protect and push the organization forward.",
+				"7-11 = People cooperate according to their roles, but not to the point of pride or deep ownership.",
+				"0-6 = People feel like mere order-takers or activity participants, lacking bond or pride in the work.",
+			),
+			DescriptionTh: hofDescription(
+				"องค์กรใช้ความคิดสร้างสรรค์จนคนภายในรู้สึกเป็นเจ้าของไหม? (15 คะแนน)",
+				"12-15 = ออกแบบประสบการณ์หรือวัฒนธรรมที่ทำให้คนในและคนรอบข้างรู้สึกผูกพันและภูมิใจอย่างแรงกล้า จนเกิดความรู้สึกเป็นเจ้าของร่วม (Sense of Ownership) และพร้อมช่วยปกป้องและผลักดันองค์กร",
+				"7-11 = คนให้ความร่วมมือกับองค์กรตามบทบาทหน้าที่ แต่ยังไม่ถึงขั้นเกิดความภูมิใจหรือรู้สึกเป็นเจ้าของในระดับที่ลึก",
+				"0-6 = คนรู้สึกเป็นเพียงผู้รับคำสั่งหรือผู้เข้าร่วมกิจกรรมตามหน้าที่ ขาดความผูกพันหรือความภูมิใจต่อผลงาน",
+			),
+		},
+	}
 }
 
 func upsertGroupSeed(ctx context.Context, tx pgx.Tx, group demoGroupSeed) (string, error) {
