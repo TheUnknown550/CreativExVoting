@@ -151,14 +151,15 @@ type DashboardStats struct {
 }
 
 type AdminProjectRanking struct {
-	Ranking            int     `json:"ranking"`
-	ProjectID          string  `json:"project_id"`
-	ProjectName        string  `json:"project_name"`
-	Category           string  `json:"category"`
-	TotalScore         int     `json:"total_score"`
-	AverageScore       float64 `json:"average_score"`
-	SubmittedVotes     int     `json:"submitted_votes"`
-	CompletionPercent  float64 `json:"completion_percent"`
+	Ranking           int     `json:"ranking"`
+	ProjectID         string  `json:"project_id"`
+	ProjectName       string  `json:"project_name"`
+	CategoryID        string  `json:"category_id"`
+	Category          string  `json:"category"`
+	TotalScore        int     `json:"total_score"`
+	AverageScore      float64 `json:"average_score"`
+	SubmittedVotes    int     `json:"submitted_votes"`
+	CompletionPercent float64 `json:"completion_percent"`
 }
 
 type AdminJudgeVoteRow struct {

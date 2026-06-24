@@ -1586,3 +1586,18 @@ img {
     width: 100%;
   }
 }
+
+/* ===== Admin results: super-award groupings ===== */
+.results-group__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--ce-border);
+}
+
+.results-group__title.ant-typography {
+  margin: 0;
+}

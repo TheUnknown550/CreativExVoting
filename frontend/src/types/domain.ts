@@ -144,6 +144,7 @@ export interface AdminProjectRanking {
   ranking: number;
   project_id: string;
   project_name: string;
+  category_id: string;
   category: string;
   total_score: number;
   average_score: number;

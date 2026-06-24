@@ -736,6 +736,7 @@ func (r *AdminRepository) getProjectRankings(ctx context.Context, categoryID str
 		SELECT
 			p.id,
 			p.title,
+			p.category_id,
 			c.name,
 			a.total_score,
 			a.average_score,
@@ -768,6 +769,7 @@ func (r *AdminRepository) getProjectRankings(ctx context.Context, categoryID str
 		if err := rows.Scan(
 			&item.ProjectID,
 			&item.ProjectName,
+			&item.CategoryID,
 			&item.Category,
 			&item.TotalScore,
 			&item.AverageScore,

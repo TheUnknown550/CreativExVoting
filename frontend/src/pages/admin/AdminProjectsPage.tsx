@@ -158,13 +158,6 @@ export function AdminProjectsPage() {
     <>
       {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <section className="page-hero">
-          <Typography.Title className="page-title" level={1}>
-            {t('adminProjects.title')}
-          </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">{t('adminProjects.subtitle')}</Typography.Paragraph>
-        </section>
-
         <Card className="soft-card">
           <div className="table-toolbar">
             <div className="table-toolbar__filters">

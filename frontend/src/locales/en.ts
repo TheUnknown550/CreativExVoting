@@ -340,6 +340,8 @@ export const en = {
     footerCopy: 'Need the detailed leaderboard? Open',
     footerCopySuffix: 'from the left sidebar.',
     rankingsLink: 'Rankings',
+    ungrouped: 'Other',
+    categoryCount: '{count} categories',
   },
 };
 

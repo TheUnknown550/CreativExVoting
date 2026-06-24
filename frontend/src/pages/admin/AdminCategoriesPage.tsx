@@ -110,13 +110,6 @@ export function AdminCategoriesPage() {
     <>
       {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <section className="page-hero">
-          <Typography.Title className="page-title" level={1}>
-            {t('adminCategories.title')}
-          </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">{t('adminCategories.subtitle')}</Typography.Paragraph>
-        </section>
-
         <Card className="soft-card">
           <div className="table-toolbar">
             <Typography.Title level={4} style={{ margin: 0 }}>
@@ -143,11 +136,14 @@ export function AdminCategoriesPage() {
               {
                 title: t('common.status'),
                 dataIndex: 'is_active',
+                width: 120,
                 render: (value: boolean) =>
                   value ? (
-                    <Typography.Text style={{ color: '#4f7a57' }}>{t('common.active')}</Typography.Text>
+                    <Typography.Text style={{ color: '#4f7a57', whiteSpace: 'nowrap' }}>
+                      {t('common.active')}
+                    </Typography.Text>
                   ) : (
-                    t('common.inactive')
+                    <span style={{ whiteSpace: 'nowrap' }}>{t('common.inactive')}</span>
                   ),
               },
               {

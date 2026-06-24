@@ -206,13 +206,6 @@ export function AdminRankingsPage() {
     <>
       {contextHolder}
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <section className="page-hero">
-          <Typography.Title className="page-title" level={1}>
-            {t('adminRankings.title')}
-          </Typography.Title>
-          <Typography.Paragraph className="page-subtitle">{t('adminRankings.subtitle')}</Typography.Paragraph>
-        </section>
-
         <Tabs
           items={[
             {

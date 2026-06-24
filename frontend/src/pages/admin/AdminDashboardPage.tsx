@@ -44,38 +44,22 @@ export function AdminDashboardPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <section className="page-hero">
-        <Typography.Title className="page-title" level={1}>
-          {t('adminDashboard.title')}
-        </Typography.Title>
-        <Typography.Paragraph className="page-subtitle">{t('adminDashboard.subtitle')}</Typography.Paragraph>
-        {errorMessage ? <Typography.Text type="danger">{errorMessage}</Typography.Text> : null}
-      </section>
+      {errorMessage ? <Typography.Text type="danger">{errorMessage}</Typography.Text> : null}
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} xl={6}>
+        <Col xs={24} sm={12} xl={8}>
           <Card className="admin-kpi">
             <Statistic title={t('adminDashboard.activeProjects')} value={stats?.total_projects ?? 0} />
           </Card>
         </Col>
-        <Col xs={24} sm={12} xl={6}>
+        <Col xs={24} sm={12} xl={8}>
           <Card className="admin-kpi">
             <Statistic title={t('adminDashboard.judges')} value={stats?.total_judges ?? 0} />
           </Card>
         </Col>
-        <Col xs={24} sm={12} xl={6}>
+        <Col xs={24} sm={12} xl={8}>
           <Card className="admin-kpi">
             <Statistic title={t('adminDashboard.categories')} value={stats?.total_categories ?? 0} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} xl={6}>
-          <Card className="admin-kpi">
-            <Statistic
-              title={t('adminDashboard.completion')}
-              value={stats?.completion_percentage ?? 0}
-              precision={1}
-              suffix="%"
-            />
           </Card>
         </Col>
       </Row>

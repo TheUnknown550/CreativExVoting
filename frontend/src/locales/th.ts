@@ -342,5 +342,7 @@ export const th: TranslationDict = {
     footerCopy: 'ต้องการดูตารางอันดับคะแนนแบบละเอียดหรือไม่? เปิด',
     footerCopySuffix: 'จากแถบเมนูด้านซ้าย',
     rankingsLink: 'อันดับคะแนน',
+    ungrouped: 'อื่น ๆ',
+    categoryCount: '{count} สาขา',
   },
 };
