@@ -29,10 +29,8 @@ type ProjectPayload struct {
 	DesignerName     string `json:"designer_name"`
 	TeamName         string `json:"team_name"`
 	ImageURL         string `json:"image_url"`
-	ProposalLink     string `json:"proposal_link"`
 	SocialMediaLink  string `json:"social_media_link"`
 	DriveLink        string `json:"drive_link"`
-	AttachedFileLink string `json:"attached_file_link"`
 	ExtraDetails     string `json:"extra_details"`
 	IsActive         bool   `json:"is_active"`
 }

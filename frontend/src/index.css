@@ -1455,19 +1455,24 @@ img {
   color: var(--ce-text);
   line-height: 1.55;
   word-break: break-word;
+  white-space: pre-line;
 }
 
-.pd__field-link {
+.pd__field-link,
+.linkify-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: var(--ce-orange-dark);
   font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 71, 0, 0.35);
   word-break: break-all;
 }
 
-.pd__field-link:hover {
-  text-decoration: underline;
+.pd__field-link:hover,
+.linkify-link:hover {
+  text-decoration-color: currentColor;
 }
 
 .pd__field-empty {

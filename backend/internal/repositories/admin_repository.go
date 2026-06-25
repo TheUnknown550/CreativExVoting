@@ -170,8 +170,8 @@ func (r *AdminRepository) ListProjects(ctx context.Context, categoryID string, s
 	query := fmt.Sprintf(`
 		SELECT
 			p.id, p.category_id, c.name, p.title, p.short_description, p.full_description, p.concept,
-			p.designer_name, p.team_name, p.image_url, p.proposal_link, p.social_media_link,
-			p.drive_link, p.attached_file_link, p.extra_details, p.is_active, p.created_at, p.updated_at
+			p.designer_name, p.team_name, p.image_url, p.social_media_link,
+			p.drive_link, p.extra_details, p.is_active, p.created_at, p.updated_at
 		FROM projects p
 		JOIN categories c ON c.id = p.category_id
 		WHERE %s
@@ -207,10 +207,8 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 		DesignerName:     payload.DesignerName,
 		TeamName:         payload.TeamName,
 		ImageURL:         payload.ImageURL,
-		ProposalLink:     payload.ProposalLink,
 		SocialMediaLink:  payload.SocialMediaLink,
 		DriveLink:        payload.DriveLink,
-		AttachedFileLink: payload.AttachedFileLink,
 		ExtraDetails:     payload.ExtraDetails,
 		IsActive:         payload.IsActive,
 	}
@@ -218,14 +216,14 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 	err := r.pool.QueryRow(ctx, `
 		INSERT INTO projects (
 			id, category_id, title, short_description, full_description, concept, designer_name, team_name,
-			image_url, proposal_link, social_media_link, drive_link, attached_file_link, extra_details,
+			image_url, social_media_link, drive_link, extra_details,
 			is_active, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
 		RETURNING created_at, updated_at
 	`, project.ID, project.CategoryID, project.Title, project.ShortDescription, project.FullDescription, project.Concept,
-		project.DesignerName, project.TeamName, project.ImageURL, project.ProposalLink, project.SocialMediaLink,
-		project.DriveLink, project.AttachedFileLink, project.ExtraDetails, project.IsActive,
+		project.DesignerName, project.TeamName, project.ImageURL, project.SocialMediaLink,
+		project.DriveLink, project.ExtraDetails, project.IsActive,
 	).Scan(&project.CreatedAt, &project.UpdatedAt)
 
 	return project, err
@@ -245,10 +243,8 @@ func (r *AdminRepository) UpdateProject(ctx context.Context, id string, payload 
 		DesignerName:     payload.DesignerName,
 		TeamName:         payload.TeamName,
 		ImageURL:         payload.ImageURL,
-		ProposalLink:     payload.ProposalLink,
 		SocialMediaLink:  payload.SocialMediaLink,
 		DriveLink:        payload.DriveLink,
-		AttachedFileLink: payload.AttachedFileLink,
 		ExtraDetails:     payload.ExtraDetails,
 		IsActive:         payload.IsActive,
 	}
@@ -258,13 +254,13 @@ func (r *AdminRepository) UpdateProject(ctx context.Context, id string, payload 
 		WITH old AS (SELECT image_url FROM projects WHERE id = $1)
 		UPDATE projects
 		SET category_id = $2, title = $3, short_description = $4, full_description = $5, concept = $6,
-			designer_name = $7, team_name = $8, image_url = $9, proposal_link = $10, social_media_link = $11,
-			drive_link = $12, attached_file_link = $13, extra_details = $14, is_active = $15, updated_at = NOW()
+			designer_name = $7, team_name = $8, image_url = $9, social_media_link = $10,
+			drive_link = $11, extra_details = $12, is_active = $13, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at, (SELECT image_url FROM old)
 	`, project.ID, project.CategoryID, project.Title, project.ShortDescription, project.FullDescription, project.Concept,
-		project.DesignerName, project.TeamName, project.ImageURL, project.ProposalLink, project.SocialMediaLink,
-		project.DriveLink, project.AttachedFileLink, project.ExtraDetails, project.IsActive,
+		project.DesignerName, project.TeamName, project.ImageURL, project.SocialMediaLink,
+		project.DriveLink, project.ExtraDetails, project.IsActive,
 	).Scan(&project.CreatedAt, &project.UpdatedAt, &previousImageURL)
 
 	return project, previousImageURL, err
@@ -590,8 +586,8 @@ func (r *AdminRepository) GetProjectVoteDetail(ctx context.Context, projectID st
 	projectRows, err := r.pool.Query(ctx, `
 		SELECT
 			p.id, p.category_id, c.name, p.title, p.short_description, p.full_description, p.concept,
-			p.designer_name, p.team_name, p.image_url, p.proposal_link, p.social_media_link,
-			p.drive_link, p.attached_file_link, p.extra_details, p.is_active, p.created_at, p.updated_at
+			p.designer_name, p.team_name, p.image_url, p.social_media_link,
+			p.drive_link, p.extra_details, p.is_active, p.created_at, p.updated_at
 		FROM projects p
 		JOIN categories c ON c.id = p.category_id
 		WHERE p.id = $1

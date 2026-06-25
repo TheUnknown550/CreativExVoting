@@ -1,7 +1,6 @@
 import {
   FileSearchOutlined,
   InfoCircleOutlined,
-  LinkOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -20,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { JudgeProjectDetail, ScoringCriterion, Vote } from '../types/domain';
 import { CriteriaInfoModal } from './CriteriaInfoModal';
+import { Linkify } from './Linkify';
 import { ProjectPreview } from './ProjectPreview';
 
 interface ProjectVoteDrawerProps {
@@ -84,10 +84,8 @@ export function ProjectVoteDrawer({
 
   const externalLinks = detail
     ? [
-        { label: t('projectVoteDrawer.proposalLink'), value: detail.project.proposal_link },
         { label: t('projectVoteDrawer.socialMediaLink'), value: detail.project.social_media_link },
         { label: t('projectVoteDrawer.driveLink'), value: detail.project.drive_link },
-        { label: t('projectVoteDrawer.attachedFileLink'), value: detail.project.attached_file_link },
       ].filter((item) => item.value)
     : [];
 
@@ -127,29 +125,42 @@ export function ProjectVoteDrawer({
                 {detail.project.designer_name || detail.project.team_name || t('common.notProvided')}
               </Descriptions.Item>
               <Descriptions.Item label={t('projectVoteDrawer.shortDescription')}>
-                {detail.project.short_description || t('common.notProvided')}
+                {detail.project.short_description ? (
+                  <Linkify text={detail.project.short_description} />
+                ) : (
+                  t('common.notProvided')
+                )}
               </Descriptions.Item>
               <Descriptions.Item label={t('projectVoteDrawer.fullDescription')}>
-                {detail.project.full_description || t('common.notProvided')}
+                {detail.project.full_description ? (
+                  <Linkify text={detail.project.full_description} />
+                ) : (
+                  t('common.notProvided')
+                )}
               </Descriptions.Item>
               <Descriptions.Item label={t('projectVoteDrawer.concept')}>
-                {detail.project.concept || t('common.notProvided')}
+                {detail.project.concept ? <Linkify text={detail.project.concept} /> : t('common.notProvided')}
               </Descriptions.Item>
               <Descriptions.Item label={t('projectVoteDrawer.extraDetails')}>
-                {detail.project.extra_details || t('common.notProvided')}
+                {detail.project.extra_details ? (
+                  <Linkify text={detail.project.extra_details} />
+                ) : (
+                  t('common.notProvided')
+                )}
               </Descriptions.Item>
             </Descriptions>
 
             <div>
               <Typography.Title level={5}>{t('projectVoteDrawer.projectResources')}</Typography.Title>
               {externalLinks.length > 0 ? (
-                <div className="detail-link-list">
+                <Space direction="vertical" size="small" className="detail-link-list">
                   {externalLinks.map((item) => (
-                    <a href={item.value} key={item.label} target="_blank" rel="noreferrer">
-                      <LinkOutlined /> {item.label}
-                    </a>
+                    <div key={item.label}>
+                      <Typography.Text strong>{item.label}: </Typography.Text>
+                      <Linkify text={item.value} />
+                    </div>
                   ))}
-                </div>
+                </Space>
               ) : (
                 <Typography.Text type="secondary">{t('projectVoteDrawer.noExternalLinks')}</Typography.Text>
               )}

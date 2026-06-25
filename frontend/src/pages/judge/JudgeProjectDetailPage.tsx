@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined, ArrowRightOutlined, LinkOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Alert, Button, Form, InputNumber, Modal, Segmented, Spin, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import * as judgeApi from '../../api/judge';
 import { ApiError, resolveAssetUrl } from '../../api/client';
 import { JudgeStepper } from '../../components/JudgeStepper';
+import { Linkify } from '../../components/Linkify';
 import { ProjectPreview } from '../../components/ProjectPreview';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -179,17 +180,17 @@ export function JudgeProjectDetailPage() {
 
   const project = detail.project;
   // Field order matches the original detail layout.
-  const heroFields: Array<{ label: string; value?: string; link?: boolean }> = [
+  const heroFields: Array<{ label: string; value?: string }> = [
     { label: t('judgeProjectDetail.owner'), value: project.team_name },
     { label: t('judgeProjectDetail.designer'), value: project.designer_name },
-    { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link, link: true },
+    { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link },
     { label: t('judgeProjectDetail.creativeArea'), value: project.extra_details },
     { label: t('judgeProjectDetail.objective'), value: project.short_description },
   ];
-  const infoBlocks: Array<{ label: string; value?: string; link?: boolean }> = [
+  const infoBlocks: Array<{ label: string; value?: string }> = [
     { label: t('judgeProjectDetail.designProcess'), value: project.full_description },
     { label: t('judgeProjectDetail.impact'), value: project.concept },
-    { label: t('judgeProjectDetail.moreInfo'), value: project.drive_link, link: true },
+    { label: t('judgeProjectDetail.moreInfo'), value: project.drive_link },
   ];
 
   return (
@@ -259,13 +260,7 @@ export function JudgeProjectDetailPage() {
                   <dt className="pd__field-label">{field.label}</dt>
                   <dd className="pd__field-value">
                     {field.value ? (
-                      field.link ? (
-                        <a href={field.value} target="_blank" rel="noreferrer" className="pd__field-link">
-                          <LinkOutlined /> {field.value}
-                        </a>
-                      ) : (
-                        field.value
-                      )
+                      <Linkify text={field.value} />
                     ) : (
                       <span className="pd__field-empty">{t('common.notProvided')}</span>
                     )}
@@ -281,13 +276,9 @@ export function JudgeProjectDetailPage() {
             <div className="pd__info-block" key={block.label}>
               <h3 className="pd__info-label">{block.label}</h3>
               {block.value ? (
-                block.link ? (
-                  <a href={block.value} target="_blank" rel="noreferrer" className="pd__field-link">
-                    <LinkOutlined /> {block.value}
-                  </a>
-                ) : (
-                  <p className="pd__info-text">{block.value}</p>
-                )
+                <p className="pd__info-text">
+                  <Linkify text={block.value} />
+                </p>
               ) : (
                 <p className="pd__info-text pd__field-empty">{t('common.notProvided')}</p>
               )}

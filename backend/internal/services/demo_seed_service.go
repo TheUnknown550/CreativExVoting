@@ -807,12 +807,12 @@ func upsertProjectSeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed
 	_, err := tx.Exec(ctx, `
 		INSERT INTO projects (
 			id, category_id, title, short_description, full_description, concept, designer_name, team_name,
-			image_url, proposal_link, social_media_link, drive_link, attached_file_link, extra_details,
+			image_url, social_media_link, drive_link, extra_details,
 			is_active, created_at, updated_at
 		)
 		VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8,
-			$9, $10, $11, $12, $13, $14,
+			$9, $10, $11, $12,
 			TRUE, NOW(), NOW()
 		)
 		ON CONFLICT (id) DO UPDATE
@@ -824,20 +824,16 @@ func upsertProjectSeed(ctx context.Context, tx pgx.Tx, category demoCategorySeed
 			designer_name = EXCLUDED.designer_name,
 			team_name = EXCLUDED.team_name,
 			image_url = EXCLUDED.image_url,
-			proposal_link = EXCLUDED.proposal_link,
 			social_media_link = EXCLUDED.social_media_link,
 			drive_link = EXCLUDED.drive_link,
-			attached_file_link = EXCLUDED.attached_file_link,
 			extra_details = EXCLUDED.extra_details,
 			is_active = TRUE,
 			updated_at = NOW()
 	`, projectID, categoryID, project.Title, project.ShortDescription, fullDescription, project.ConceptFocus,
 		project.DesignerName, project.TeamName,
 		fmt.Sprintf("https://picsum.photos/seed/%s/1200/800", projectPath),
-		fmt.Sprintf("https://example.com/%s/proposal", projectPath),
 		fmt.Sprintf("https://example.com/%s/story", projectPath),
 		fmt.Sprintf("https://example.com/%s/drive", projectPath),
-		fmt.Sprintf("https://example.com/%s/appendix.pdf", projectPath),
 		extraDetails,
 	)
 	return err
