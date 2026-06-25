@@ -5,8 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import * as adminApi from '../../api/admin';
 import { ApiError, resolveAssetUrl } from '../../api/client';
-import { Linkify } from '../../components/Linkify';
-import { ProjectPreview } from '../../components/ProjectPreview';
+import { ProjectDetailHeader } from '../../components/ProjectDetailHeader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localize } from '../../locales/localize';
@@ -116,20 +115,6 @@ export function AdminProjectPreviewPage() {
     return <Alert type="error" showIcon message={errorMessage ?? t('adminProjects.projectNotFound')} />;
   }
 
-  const heroFields: Array<{ label: string; value?: string }> = [
-    { label: t('judgeProjectDetail.owner'), value: project.team_name },
-    { label: t('judgeProjectDetail.designer'), value: project.designer_name },
-    { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link },
-    { label: t('judgeProjectDetail.creativeArea'), value: project.extra_details },
-    { label: t('judgeProjectDetail.objective'), value: project.short_description },
-  ];
-
-  const infoBlocks: Array<{ label: string; value?: string }> = [
-    { label: t('judgeProjectDetail.designProcess'), value: project.full_description },
-    { label: t('judgeProjectDetail.impact'), value: project.concept },
-    { label: t('judgeProjectDetail.moreInfo'), value: project.drive_link },
-  ];
-
   return (
     <>
       <div className="pd admin-preview-page">
@@ -145,69 +130,7 @@ export function AdminProjectPreviewPage() {
 
         {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
 
-        <header className="pd__hero">
-          <div className="pd__media-wrap">
-            {project.image_url ? (
-              <button
-                type="button"
-                className="pd__media-button"
-                onClick={() => setImagePreviewOpen(true)}
-                aria-label={project.title}
-              >
-                <ProjectPreview
-                  src={project.image_url}
-                  alt={project.title}
-                  className="pd__media"
-                  placeholderClassName="pd__media pd__media--placeholder"
-                />
-              </button>
-            ) : (
-              <ProjectPreview
-                src={project.image_url}
-                alt={project.title}
-                className="pd__media"
-                placeholderClassName="pd__media pd__media--placeholder"
-              />
-            )}
-          </div>
-
-          <div className="pd__hero-info">
-            <span className="pd__eyebrow">{t('judgeProjectDetail.projectTitle')}</span>
-            <Typography.Title level={2} className="pd__title">
-              {project.title}
-            </Typography.Title>
-
-            <dl className="pd__fields">
-              {heroFields.map((field) => (
-                <div className="pd__field" key={field.label}>
-                  <dt className="pd__field-label">{field.label}</dt>
-                  <dd className="pd__field-value">
-                    {field.value ? (
-                      <Linkify text={field.value} />
-                    ) : (
-                      <span className="pd__field-empty">{t('common.notProvided')}</span>
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </header>
-
-        <section className="pd__info">
-          {infoBlocks.map((block) => (
-            <div className="pd__info-block" key={block.label}>
-              <h3 className="pd__info-label">{block.label}</h3>
-              {block.value ? (
-                <p className="pd__info-text">
-                  <Linkify text={block.value} />
-                </p>
-              ) : (
-                <p className="pd__info-text pd__field-empty">{t('common.notProvided')}</p>
-              )}
-            </div>
-          ))}
-        </section>
+        <ProjectDetailHeader project={project} onImageClick={() => setImagePreviewOpen(true)} />
 
         <section className="pd__form">
           <div className="pd__scoring-head">

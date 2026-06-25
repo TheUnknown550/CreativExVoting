@@ -281,7 +281,7 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id, category_id, name, name_th, description, description_th, max_score, display_order, is_active, created_at, updated_at
+		SELECT id, category_id, name, COALESCE(name_th, ''), description, COALESCE(description_th, ''), max_score, display_order, is_active, created_at, updated_at
 		FROM scoring_criteria
 		WHERE %s
 		ORDER BY category_id, display_order, created_at
@@ -296,14 +296,13 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 	var criteria []models.ScoringCriterion
 	for rows.Next() {
 		var criterion models.ScoringCriterion
-		var nameTh, descriptionTh *string
 		if err := rows.Scan(
 			&criterion.ID,
 			&criterion.CategoryID,
 			&criterion.Name,
-			&nameTh,
+			&criterion.NameTh,
 			&criterion.Description,
-			&descriptionTh,
+			&criterion.DescriptionTh,
 			&criterion.MaxScore,
 			&criterion.DisplayOrder,
 			&criterion.IsActive,
@@ -311,12 +310,6 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 			&criterion.UpdatedAt,
 		); err != nil {
 			return nil, err
-		}
-		if nameTh != nil {
-			criterion.NameTh = *nameTh
-		}
-		if descriptionTh != nil {
-			criterion.DescriptionTh = *descriptionTh
 		}
 		criteria = append(criteria, criterion)
 	}

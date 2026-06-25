@@ -388,15 +388,6 @@ img {
   gap: 16px;
 }
 
-.admin-form-grid--stack {
-  grid-template-columns: 1fr;
-}
-
-.admin-form-grid--media {
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  align-items: start;
-}
-
 .admin-form-grid__full {
   grid-column: 1 / -1;
 }
@@ -1787,8 +1778,7 @@ img {
 }
 
 @media (max-width: 900px) {
-  .admin-form-grid,
-  .admin-form-grid--media {
+  .admin-form-grid {
     grid-template-columns: 1fr;
   }
 

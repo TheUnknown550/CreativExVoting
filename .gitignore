@@ -1,8 +1,10 @@
 backend/.env
 backend/server
 backend/server.exe
+backend/server.exe~
 frontend/.env
 frontend/dist
 docs/
+tmp/*.log
 tmp/run-logs/
 .env.prod

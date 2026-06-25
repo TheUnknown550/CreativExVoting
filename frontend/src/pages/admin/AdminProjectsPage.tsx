@@ -22,6 +22,7 @@ import { ApiError, resolveAssetUrl } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { Category, Project, ProjectPayload } from '../../types/domain';
+import { DESIGN_PROCESS_MAX_LENGTH, IMPACT_MAX_LENGTH, OBJECTIVE_MAX_LENGTH } from '../../utils/projectLimits';
 
 const blankProject: ProjectPayload = {
   category_id: '',
@@ -280,13 +281,13 @@ export function AdminProjectsPage() {
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankProject}>
           <div className="admin-form-intro">
-            Organize the project the way judges will read it. Keep the short description concise and use the longer fields for context and supporting evidence.
+            {t('adminProjects.formIntro')}
           </div>
 
           <div className="admin-form-sections">
             <section className="admin-form-section">
               <Typography.Title level={5} className="admin-form-section__title">
-                Project basics
+                {t('adminProjects.sectionBasics')}
               </Typography.Title>
               <div className="admin-form-grid">
                 <Form.Item name="category_id" label={t('adminProjects.category')} rules={[{ required: true }]}>
@@ -308,7 +309,7 @@ export function AdminProjectsPage() {
 
             <section className="admin-form-section">
               <Typography.Title level={5} className="admin-form-section__title">
-                Image
+                {t('adminProjects.sectionImage')}
               </Typography.Title>
               <div className="admin-form-preview">
                 {imageUrl ? (
@@ -360,7 +361,7 @@ export function AdminProjectsPage() {
 
             <section className="admin-form-section">
               <Typography.Title level={5} className="admin-form-section__title">
-                Project details
+                {t('adminProjects.sectionDetails')}
               </Typography.Title>
               <div className="admin-form-grid">
                 <Form.Item name="team_name" label={t('adminProjects.teamName')}>
@@ -387,33 +388,48 @@ export function AdminProjectsPage() {
                   name="short_description"
                   label={t('adminProjects.shortDescriptionLabel')}
                   className="admin-form-grid__full"
-                  rules={[{ max: 1500, message: t('adminProjects.shortDescriptionTooLong') }]}
+                  rules={[
+                    {
+                      max: OBJECTIVE_MAX_LENGTH,
+                      message: t('adminProjects.shortDescriptionTooLong', { max: OBJECTIVE_MAX_LENGTH }),
+                    },
+                  ]}
                 >
-                  <Input.TextArea rows={3} maxLength={1500} showCount />
+                  <Input.TextArea rows={3} maxLength={OBJECTIVE_MAX_LENGTH} showCount />
                 </Form.Item>
               </div>
             </section>
 
             <section className="admin-form-section">
               <Typography.Title level={5} className="admin-form-section__title">
-                Narrative & judging context
+                {t('adminProjects.sectionNarrative')}
               </Typography.Title>
               <div className="admin-form-grid">
                 <Form.Item
                   name="full_description"
                   label={t('adminProjects.fullDescription')}
                   className="admin-form-grid__full"
-                  rules={[{ max: 2500, message: t('adminProjects.fullDescriptionTooLong') }]}
+                  rules={[
+                    {
+                      max: DESIGN_PROCESS_MAX_LENGTH,
+                      message: t('adminProjects.fullDescriptionTooLong', { max: DESIGN_PROCESS_MAX_LENGTH }),
+                    },
+                  ]}
                 >
-                  <Input.TextArea rows={5} maxLength={2500} showCount />
+                  <Input.TextArea rows={5} maxLength={DESIGN_PROCESS_MAX_LENGTH} showCount />
                 </Form.Item>
                 <Form.Item
                   name="concept"
                   label={t('adminProjects.concept')}
                   className="admin-form-grid__full"
-                  rules={[{ max: 2500, message: t('adminProjects.conceptTooLong') }]}
+                  rules={[
+                    {
+                      max: IMPACT_MAX_LENGTH,
+                      message: t('adminProjects.conceptTooLong', { max: IMPACT_MAX_LENGTH }),
+                    },
+                  ]}
                 >
-                  <Input.TextArea rows={4} maxLength={2500} showCount />
+                  <Input.TextArea rows={4} maxLength={IMPACT_MAX_LENGTH} showCount />
                 </Form.Item>
                 <Form.Item
                   name="drive_link"

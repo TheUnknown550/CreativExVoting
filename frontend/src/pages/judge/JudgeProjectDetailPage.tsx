@@ -6,8 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import * as judgeApi from '../../api/judge';
 import { ApiError, resolveAssetUrl } from '../../api/client';
 import { JudgeStepper } from '../../components/JudgeStepper';
-import { Linkify } from '../../components/Linkify';
-import { ProjectPreview } from '../../components/ProjectPreview';
+import { ProjectDetailHeader } from '../../components/ProjectDetailHeader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localize } from '../../locales/localize';
@@ -179,19 +178,6 @@ export function JudgeProjectDetailPage() {
   }
 
   const project = detail.project;
-  // Field order matches the original detail layout.
-  const heroFields: Array<{ label: string; value?: string }> = [
-    { label: t('judgeProjectDetail.owner'), value: project.team_name },
-    { label: t('judgeProjectDetail.designer'), value: project.designer_name },
-    { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link },
-    { label: t('judgeProjectDetail.creativeArea'), value: project.extra_details },
-    { label: t('judgeProjectDetail.objective'), value: project.short_description },
-  ];
-  const infoBlocks: Array<{ label: string; value?: string }> = [
-    { label: t('judgeProjectDetail.designProcess'), value: project.full_description },
-    { label: t('judgeProjectDetail.impact'), value: project.concept },
-    { label: t('judgeProjectDetail.moreInfo'), value: project.drive_link },
-  ];
 
   return (
     <>
@@ -217,74 +203,17 @@ export function JudgeProjectDetailPage() {
           />
         </div>
 
-        <header className="pd__hero">
-          <div className="pd__media-wrap">
-            {project.image_url ? (
-              <button
-                type="button"
-                className="pd__media-button"
-                onClick={() => setImagePreviewOpen(true)}
-                aria-label={t('judgeProjectDetail.projectTitle')}
-              >
-                <ProjectPreview
-                  src={project.image_url}
-                  alt={project.title}
-                  className="pd__media"
-                  placeholderClassName="pd__media pd__media--placeholder"
-                />
-              </button>
-            ) : (
-              <ProjectPreview
-                src={project.image_url}
-                alt={project.title}
-                className="pd__media"
-                placeholderClassName="pd__media pd__media--placeholder"
-              />
-            )}
-            {currentIndex >= 0 ? (
+        <ProjectDetailHeader
+          project={project}
+          onImageClick={() => setImagePreviewOpen(true)}
+          badge={
+            currentIndex >= 0 ? (
               <span className="pd__badge">
                 {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
               </span>
-            ) : null}
-          </div>
-
-          <div className="pd__hero-info">
-            <span className="pd__eyebrow">{t('judgeProjectDetail.projectTitle')}</span>
-            <Typography.Title level={2} className="pd__title">
-              {project.title}
-            </Typography.Title>
-
-            <dl className="pd__fields">
-              {heroFields.map((field) => (
-                <div className="pd__field" key={field.label}>
-                  <dt className="pd__field-label">{field.label}</dt>
-                  <dd className="pd__field-value">
-                    {field.value ? (
-                      <Linkify text={field.value} />
-                    ) : (
-                      <span className="pd__field-empty">{t('common.notProvided')}</span>
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </header>
-
-        <section className="pd__info">
-          {infoBlocks.map((block) => (
-            <div className="pd__info-block" key={block.label}>
-              <h3 className="pd__info-label">{block.label}</h3>
-              {block.value ? (
-                <p className="pd__info-text">
-                  <Linkify text={block.value} />
-                </p>
-              ) : (
-                <p className="pd__info-text pd__field-empty">{t('common.notProvided')}</p>
-              )}
-            </div>
-          ))}
-        </section>
+            ) : null
+          }
+        />
 
         <Form form={form} onFinish={handleFinish} className="pd__form">
           <div className="pd__scoring-head">
