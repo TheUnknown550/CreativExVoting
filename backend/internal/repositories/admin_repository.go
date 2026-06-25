@@ -603,7 +603,7 @@ func (r *AdminRepository) GetProjectVoteDetail(ctx context.Context, projectID st
 			v.id, u.id, u.display_name, v.total_score, v.submitted_at,
 			sc.id, sc.name, sc.max_score, vs.score
 		FROM votes v
-		JOIN users u ON u.id = v.judge_id
+		JOIN users u ON u.id = v.judge_id AND u.role = 'judge' AND u.is_active = TRUE
 		JOIN vote_scores vs ON vs.vote_id = v.id
 		JOIN scoring_criteria sc ON sc.id = vs.criterion_id
 		WHERE v.project_id = $1
@@ -673,8 +673,9 @@ func (r *AdminRepository) ExportResults(ctx context.Context, categoryID string, 
 
 	query := fmt.Sprintf(`
 		WITH project_aggregates AS (
-			SELECT project_id, COALESCE(SUM(total_score), 0) AS overall_total, COALESCE(AVG(total_score), 0) AS average_score
-			FROM votes
+			SELECT v.project_id, COALESCE(SUM(v.total_score), 0) AS overall_total, COALESCE(AVG(v.total_score), 0) AS average_score
+			FROM votes v
+			JOIN users u ON u.id = v.judge_id AND u.role = 'judge' AND u.is_active = TRUE
 			GROUP BY project_id
 		)
 		SELECT
@@ -687,7 +688,7 @@ func (r *AdminRepository) ExportResults(ctx context.Context, categoryID string, 
 			COALESCE(pa.overall_total, 0),
 			COALESCE(pa.average_score, 0)
 		FROM votes v
-		JOIN users u ON u.id = v.judge_id
+		JOIN users u ON u.id = v.judge_id AND u.role = 'judge' AND u.is_active = TRUE
 		JOIN projects p ON p.id = v.project_id
 		JOIN categories c ON c.id = p.category_id
 		JOIN vote_scores vs ON vs.vote_id = v.id
@@ -768,19 +769,21 @@ func (r *AdminRepository) getProjectRankings(ctx context.Context, categoryID str
 
 	query := fmt.Sprintf(`
 		WITH judge_counts AS (
-			SELECT c.id AS category_id, COUNT(a.judge_id) AS assigned_judges
+			SELECT c.id AS category_id, COUNT(ju.id) AS assigned_judges
 			FROM categories c
 			LEFT JOIN judge_group_assignments a ON a.group_id = c.award_group_id
+			LEFT JOIN users ju ON ju.id = a.judge_id AND ju.role = 'judge' AND ju.is_active = TRUE
 			GROUP BY c.id
 		),
 		aggregates AS (
 			SELECT
 				p.id AS project_id,
-				COALESCE(SUM(v.total_score), 0) AS total_score,
-				COALESCE(AVG(v.total_score), 0) AS average_score,
-				COUNT(v.id) AS submitted_votes
+				COALESCE(SUM(CASE WHEN u.id IS NOT NULL THEN v.total_score ELSE 0 END), 0) AS total_score,
+				COALESCE(AVG(CASE WHEN u.id IS NOT NULL THEN v.total_score END), 0) AS average_score,
+				COUNT(u.id) AS submitted_votes
 			FROM projects p
-			LEFT JOIN votes v ON v.project_id = p.id
+			LEFT JOIN votes v ON v.project_id = p.id AND v.submitted_at IS NOT NULL
+			LEFT JOIN users u ON u.id = v.judge_id AND u.role = 'judge' AND u.is_active = TRUE
 			WHERE %s
 			GROUP BY p.id
 		)
@@ -854,7 +857,7 @@ func (r *AdminRepository) getJudgeVoteRows(ctx context.Context, categoryID strin
 		SELECT
 			v.id, p.id, p.title, c.name, u.id, u.display_name, v.total_score, v.submitted_at
 		FROM votes v
-		JOIN users u ON u.id = v.judge_id
+		JOIN users u ON u.id = v.judge_id AND u.role = 'judge' AND u.is_active = TRUE
 		JOIN projects p ON p.id = v.project_id
 		JOIN categories c ON c.id = p.category_id
 		WHERE %s

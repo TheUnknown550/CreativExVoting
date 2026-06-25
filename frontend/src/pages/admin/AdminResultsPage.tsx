@@ -1,4 +1,4 @@
-import { DownloadOutlined } from '@ant-design/icons';
+import { DownloadOutlined, TrophyOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, Space, Spin, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -164,20 +164,25 @@ export function AdminResultsPage() {
                             {localize(language, category.name, category.name_th)}
                           </Typography.Text>
 
+                          {leader ? (
+                            <div className="results-winner-card__badge">
+                              <TrophyOutlined /> Winner
+                            </div>
+                          ) : null}
+
                           <Typography.Title level={4} className="results-winner-card__title">
                             {leader?.project_name ?? t('adminResults.noRankedProject')}
                           </Typography.Title>
 
-                          <div className="results-winner-card__stats">
-                            <span>
-                              <strong>{leader?.total_score ?? 0}</strong>
-                              {t('adminResults.total')}
-                            </span>
-                            <span>
-                              <strong>{leader ? leader.average_score.toFixed(1) : '0.0'}</strong>
-                              {t('adminResults.avg')}
-                            </span>
-                          </div>
+                          {leader ? (
+                            <div className="results-winner-card__score">
+                              <span className="results-winner-card__score-label">Winner score</span>
+                              <strong className="results-winner-card__score-value">
+                                {leader.average_score.toFixed(1)}
+                              </strong>
+                              <span className="results-winner-card__score-meta">{t('adminResults.avg')}</span>
+                            </div>
+                          ) : null}
 
                           <Button type="primary" onClick={() => navigate(`/admin/rankings?category=${category.id}`)}>
                             {t('adminResults.viewCategoryRanking')}
