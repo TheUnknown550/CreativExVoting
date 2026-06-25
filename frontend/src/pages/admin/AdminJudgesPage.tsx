@@ -177,7 +177,7 @@ export function AdminJudgesPage() {
               { title: t('adminJudges.username'), dataIndex: 'username' },
               { title: t('adminJudges.role'), dataIndex: 'role', width: 120 },
               {
-                title: 'Scored',
+                title: t('adminJudges.scoredProgress'),
                 width: 140,
                 render: (_, record) =>
                   !record.is_active || record.role !== 'judge'

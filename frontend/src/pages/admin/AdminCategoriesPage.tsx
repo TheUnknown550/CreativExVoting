@@ -235,7 +235,7 @@ export function AdminCategoriesPage() {
               ))}
             </Space>
           ) : (
-            <Empty description="No categories available yet." />
+            <Empty description={t('adminCategories.empty')} />
           )}
         </Card>
       </Space>
@@ -254,10 +254,10 @@ export function AdminCategoriesPage() {
           <div className="admin-form-sections">
             <section className="admin-form-section">
               <div className="admin-form-grid">
-                <Form.Item name="award_group_id" label={t('adminCriteria.category')}>
+                <Form.Item name="award_group_id" label={t('adminCategories.awardGroup')}>
                   <Select
                     allowClear
-                    placeholder="Select award group"
+                    placeholder={t('adminCategories.selectAwardGroup')}
                     options={groups.map((group) => ({
                       value: group.id,
                       label: localize(language, group.name, group.name_th),

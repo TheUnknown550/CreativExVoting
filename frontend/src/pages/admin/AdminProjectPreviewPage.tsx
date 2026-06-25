@@ -70,7 +70,7 @@ export function AdminProjectPreviewPage() {
         if (!currentProject) {
           setProject(null);
           setCriteria([]);
-          setErrorMessage('Project not found.');
+          setErrorMessage(t('adminProjects.projectNotFound'));
           return;
         }
 
@@ -83,7 +83,7 @@ export function AdminProjectPreviewPage() {
         setCriteria(nextCriteria);
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof ApiError ? error.message : 'Unable to load project preview.');
+          setErrorMessage(error instanceof ApiError ? error.message : t('adminProjects.loadPreviewError'));
         }
       } finally {
         if (!cancelled) {
@@ -112,7 +112,7 @@ export function AdminProjectPreviewPage() {
   }
 
   if (!project) {
-    return <Alert type="error" showIcon message={errorMessage ?? 'Project not found.'} />;
+    return <Alert type="error" showIcon message={errorMessage ?? t('adminProjects.projectNotFound')} />;
   }
 
   const heroFields: Array<{ label: string; value?: string; link?: boolean }> = [
@@ -134,12 +134,12 @@ export function AdminProjectPreviewPage() {
       <div className="pd admin-preview-page">
         <div className="pd__topbar">
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/admin/projects')}>
-            Back to projects
+            {t('adminProjects.previewBack')}
           </Button>
         </div>
 
         <div className="admin-preview-note">
-          This is an admin preview of the judge-facing project page. Scoring inputs are shown for layout only.
+          {t('adminProjects.previewNote')}
         </div>
 
         {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}

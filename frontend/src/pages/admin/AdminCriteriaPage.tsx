@@ -20,12 +20,15 @@ import * as adminApi from '../../api/admin';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { localize } from '../../locales/localize';
 import type { Category, CriterionPayload, ScoringCriterion } from '../../types/domain';
 
 const blankCriterion: CriterionPayload = {
   category_id: '',
   name: '',
+  name_th: '',
   description: '',
+  description_th: '',
   max_score: 10,
   display_order: 0,
   is_active: true,
@@ -33,7 +36,7 @@ const blankCriterion: CriterionPayload = {
 
 export function AdminCriteriaPage() {
   const { token } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [form] = Form.useForm<CriterionPayload>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [criteria, setCriteria] = useState<ScoringCriterion[]>([]);
@@ -91,7 +94,9 @@ export function AdminCriteriaPage() {
     form.setFieldsValue({
       category_id: criterion.category_id,
       name: criterion.name,
+      name_th: criterion.name_th,
       description: criterion.description,
+      description_th: criterion.description_th,
       max_score: criterion.max_score,
       display_order: criterion.display_order,
       is_active: criterion.is_active,
@@ -148,7 +153,10 @@ export function AdminCriteriaPage() {
               <Select
                 value={selectedCategoryId}
                 onChange={(value) => setSelectedCategoryId(value)}
-                options={categories.map((category) => ({ value: category.id, label: category.name }))}
+                options={categories.map((category) => ({
+                  value: category.id,
+                  label: localize(language, category.name, category.name_th),
+                }))}
                 placeholder={t('adminCriteria.selectCategory')}
                 style={{ width: 280 }}
               />
@@ -164,16 +172,22 @@ export function AdminCriteriaPage() {
             dataSource={criteria}
             pagination={false}
             columns={[
-              { title: t('common.name'), dataIndex: 'name' },
+              {
+                title: t('common.name'),
+                dataIndex: 'name',
+                render: (_: string, record: ScoringCriterion) => localize(language, record.name, record.name_th),
+              },
               {
                 title: t('common.description'),
                 dataIndex: 'description',
-                render: (value: string) =>
-                  value ? (
+                render: (_: string, record: ScoringCriterion) => {
+                  const value = localize(language, record.description, record.description_th);
+                  return value ? (
                     <span style={{ whiteSpace: 'pre-wrap' }}>{value}</span>
                   ) : (
                     <Typography.Text type="secondary">{t('common.noDescription')}</Typography.Text>
-                  ),
+                  );
+                },
               },
               { title: t('adminCriteria.maxScore'), dataIndex: 'max_score', width: 120 },
               { title: t('adminCriteria.displayOrder'), dataIndex: 'display_order', width: 140 },
@@ -227,15 +241,34 @@ export function AdminCriteriaPage() {
             <section className="admin-form-section">
               <div className="admin-form-grid">
                 <Form.Item name="category_id" label={t('adminCriteria.category')} rules={[{ required: true }]}>
-                  <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
+                  <Select
+                    options={categories.map((category) => ({
+                      value: category.id,
+                      label: localize(language, category.name, category.name_th),
+                    }))}
+                  />
                 </Form.Item>
                 <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
                   <Switch />
                 </Form.Item>
-                <Form.Item name="name" label={t('adminCriteria.criterionName')} rules={[{ required: true }]} className="admin-form-grid__full">
+                <Form.Item name="name" label={t('adminCriteria.criterionNameEn')} rules={[{ required: true }]}>
                   <Input />
                 </Form.Item>
-                <Form.Item name="description" label={t('adminCriteria.rubricDescription')} className="admin-form-grid__full">
+                <Form.Item name="name_th" label={t('adminCriteria.criterionNameTh')}>
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name="description"
+                  label={t('adminCriteria.rubricDescriptionEn')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={5} />
+                </Form.Item>
+                <Form.Item
+                  name="description_th"
+                  label={t('adminCriteria.rubricDescriptionTh')}
+                  className="admin-form-grid__full"
+                >
                   <Input.TextArea rows={5} />
                 </Form.Item>
                 <Form.Item name="max_score" label={t('adminCriteria.maximumScore')} rules={[{ required: true }]}>

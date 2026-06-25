@@ -251,7 +251,7 @@ export function AdminProjectsPage() {
                 render: (_, record) => (
                   <Space onClick={(event) => event.stopPropagation()}>
                     <Button icon={<EyeOutlined />} onClick={() => openPreview(record.id)}>
-                      Preview
+                      {t('adminProjects.preview')}
                     </Button>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
                       {t('common.edit')}

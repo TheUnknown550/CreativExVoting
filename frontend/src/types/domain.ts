@@ -227,7 +227,9 @@ export interface ProjectPayload {
 export interface CriterionPayload {
   category_id: string;
   name: string;
+  name_th?: string;
   description: string;
+  description_th?: string;
   max_score: number;
   display_order: number;
   is_active: boolean;

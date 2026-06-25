@@ -166,7 +166,7 @@ export function AdminResultsPage() {
 
                           {leader ? (
                             <div className="results-winner-card__badge">
-                              <TrophyOutlined /> Winner
+                              <TrophyOutlined /> {t('adminResults.winner')}
                             </div>
                           ) : null}
 
@@ -176,7 +176,7 @@ export function AdminResultsPage() {
 
                           {leader ? (
                             <div className="results-winner-card__score">
-                              <span className="results-winner-card__score-label">Winner score</span>
+                              <span className="results-winner-card__score-label">{t('adminResults.winnerScore')}</span>
                               <strong className="results-winner-card__score-value">
                                 {leader.average_score.toFixed(1)}
                               </strong>

@@ -285,7 +285,7 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id, category_id, name, description, max_score, display_order, is_active, created_at, updated_at
+		SELECT id, category_id, name, name_th, description, description_th, max_score, display_order, is_active, created_at, updated_at
 		FROM scoring_criteria
 		WHERE %s
 		ORDER BY category_id, display_order, created_at
@@ -300,11 +300,14 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 	var criteria []models.ScoringCriterion
 	for rows.Next() {
 		var criterion models.ScoringCriterion
+		var nameTh, descriptionTh *string
 		if err := rows.Scan(
 			&criterion.ID,
 			&criterion.CategoryID,
 			&criterion.Name,
+			&nameTh,
 			&criterion.Description,
+			&descriptionTh,
 			&criterion.MaxScore,
 			&criterion.DisplayOrder,
 			&criterion.IsActive,
@@ -312,6 +315,12 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 			&criterion.UpdatedAt,
 		); err != nil {
 			return nil, err
+		}
+		if nameTh != nil {
+			criterion.NameTh = *nameTh
+		}
+		if descriptionTh != nil {
+			criterion.DescriptionTh = *descriptionTh
 		}
 		criteria = append(criteria, criterion)
 	}
@@ -321,44 +330,48 @@ func (r *AdminRepository) ListCriteria(ctx context.Context, categoryID string) (
 
 func (r *AdminRepository) CreateCriterion(ctx context.Context, payload models.CriterionPayload) (models.ScoringCriterion, error) {
 	criterion := models.ScoringCriterion{
-		ID:           uuid.NewString(),
-		CategoryID:   payload.CategoryID,
-		Name:         payload.Name,
-		Description:  payload.Description,
-		MaxScore:     payload.MaxScore,
-		DisplayOrder: payload.DisplayOrder,
-		IsActive:     payload.IsActive,
+		ID:            uuid.NewString(),
+		CategoryID:    payload.CategoryID,
+		Name:          payload.Name,
+		NameTh:        payload.NameTh,
+		Description:   payload.Description,
+		DescriptionTh: payload.DescriptionTh,
+		MaxScore:      payload.MaxScore,
+		DisplayOrder:  payload.DisplayOrder,
+		IsActive:      payload.IsActive,
 	}
 
 	err := r.pool.QueryRow(ctx, `
 		INSERT INTO scoring_criteria (
-			id, category_id, name, description, max_score, display_order, is_active, created_at, updated_at
+			id, category_id, name, name_th, description, description_th, max_score, display_order, is_active, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
 		RETURNING created_at, updated_at
-	`, criterion.ID, criterion.CategoryID, criterion.Name, criterion.Description, criterion.MaxScore, criterion.DisplayOrder, criterion.IsActive).Scan(&criterion.CreatedAt, &criterion.UpdatedAt)
+	`, criterion.ID, criterion.CategoryID, criterion.Name, criterion.NameTh, criterion.Description, criterion.DescriptionTh, criterion.MaxScore, criterion.DisplayOrder, criterion.IsActive).Scan(&criterion.CreatedAt, &criterion.UpdatedAt)
 
 	return criterion, err
 }
 
 func (r *AdminRepository) UpdateCriterion(ctx context.Context, id string, payload models.CriterionPayload) (models.ScoringCriterion, error) {
 	criterion := models.ScoringCriterion{
-		ID:           id,
-		CategoryID:   payload.CategoryID,
-		Name:         payload.Name,
-		Description:  payload.Description,
-		MaxScore:     payload.MaxScore,
-		DisplayOrder: payload.DisplayOrder,
-		IsActive:     payload.IsActive,
+		ID:            id,
+		CategoryID:    payload.CategoryID,
+		Name:          payload.Name,
+		NameTh:        payload.NameTh,
+		Description:   payload.Description,
+		DescriptionTh: payload.DescriptionTh,
+		MaxScore:      payload.MaxScore,
+		DisplayOrder:  payload.DisplayOrder,
+		IsActive:      payload.IsActive,
 	}
 
 	err := r.pool.QueryRow(ctx, `
 		UPDATE scoring_criteria
-		SET category_id = $2, name = $3, description = $4, max_score = $5,
-			display_order = $6, is_active = $7, updated_at = NOW()
+		SET category_id = $2, name = $3, name_th = $4, description = $5, description_th = $6,
+			max_score = $7, display_order = $8, is_active = $9, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
-	`, criterion.ID, criterion.CategoryID, criterion.Name, criterion.Description, criterion.MaxScore, criterion.DisplayOrder, criterion.IsActive).Scan(&criterion.CreatedAt, &criterion.UpdatedAt)
+	`, criterion.ID, criterion.CategoryID, criterion.Name, criterion.NameTh, criterion.Description, criterion.DescriptionTh, criterion.MaxScore, criterion.DisplayOrder, criterion.IsActive).Scan(&criterion.CreatedAt, &criterion.UpdatedAt)
 
 	return criterion, err
 }

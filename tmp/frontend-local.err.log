@@ -32,3 +32,68 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 [2m8:36:51 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
 [2m8:36:57 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
 [2m8:37:06 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: InputNumber] `addonAfter` is deprecated. Please use `Space.Compact` instead.
+[2m8:38:48 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Card] `bordered` is deprecated. Please use `variant` instead.
+[2m8:57:01 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled error] [1mReferenceError[22m: Cannot access 'items' before initialization
+[39m > AdminLayout src/layouts/AdminLayout.tsx:26:22
+    24 |    const { user, logout } = useAuth();
+    25 |    const { t } = useLanguage();
+    26 |    const selectedKey = items.find((item) => typeof item?.key === 'string' && location.pathname.startsWith(item.key))?....
+       |                        ^
+    27 |  
+    28 |    const items: MenuProps['items'] = [
+ > Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+[2m8:57:01 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mAn error occurred in the <AdminLayout> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+[2m8:57:02 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled error] [1mReferenceError[22m: Cannot access 'items' before initialization
+[39m > AdminLayout src/layouts/AdminLayout.tsx:26:22
+    24 |    const { user, logout } = useAuth();
+    25 |    const { t } = useLanguage();
+    26 |    const selectedKey = items.find((item) => typeof item?.key === 'string' && location.pathname.startsWith(item.key))?....
+       |                        ^
+    27 |  
+    28 |    const items: MenuProps['items'] = [
+ > Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+[2m8:57:02 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mAn error occurred in the <AdminLayout> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+[2m9:03:30 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: InputNumber] `addonAfter` is deprecated. Please use `Space.Compact` instead.
+[2m9:03:46 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:03:46 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Card] `bordered` is deprecated. Please use `variant` instead.
+[2m9:14:44 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: Instance created by `useForm` is not connected to any Form element. Forget to pass `form` prop?
+[2m9:18:21 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:21:13 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:21:43 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Modal] Static function can not consume context like dynamic theme. Please use 'App' component instead.
+[2m9:21:56 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Alert] `message` is deprecated. Please use `title` instead.
+[2m9:22:00 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Card] `bordered` is deprecated. Please use `variant` instead.
+[2m9:22:12 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: Instance created by `useForm` is not connected to any Form element. Forget to pass `form` prop?
+[2m9:31:11 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:31:49 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Card] `bordered` is deprecated. Please use `variant` instead.
+[2m9:33:43 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:34:16 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Card] `bordered` is deprecated. Please use `variant` instead.
+[2m9:35:54 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: Instance created by `useForm` is not connected to any Form element. Forget to pass `form` prop?
+[2m9:44:39 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:45:12 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
+[2m9:45:15 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mWarning: [antd: Space] `direction` is deprecated. Please use `orientation` instead.
