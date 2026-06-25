@@ -1,4 +1,4 @@
-import { apiRequest, buildQuery, downloadAuthorizedFile } from './client';
+import { apiRequest, buildQuery, downloadAuthorizedFile, uploadAuthorizedFile } from './client';
 import type {
   AwardGroup,
   Category,
@@ -47,6 +47,10 @@ export function deleteCategory(token: string, id: string) {
     method: 'DELETE',
     token,
   });
+}
+
+export function uploadProjectImage(token: string, file: File) {
+  return uploadAuthorizedFile<{ url: string }>('/admin/uploads', file, token);
 }
 
 export function getAdminProjects(token: string, categoryId?: string, search?: string) {

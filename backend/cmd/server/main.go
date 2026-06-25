@@ -48,7 +48,8 @@ func main() {
 	judgeRepo := repositories.NewJudgeRepository(pool)
 
 	authService := services.NewAuthService(authRepo, cfg.JWTSecret)
-	adminService := services.NewAdminService(adminRepo)
+	imageService := services.NewImageService(cfg.UploadsDir)
+	adminService := services.NewAdminService(adminRepo, imageService)
 	judgeService := services.NewJudgeService(judgeRepo)
 	importService := services.NewGoogleSheetsImportService()
 	demoSeedService := services.NewDemoSeedService(pool, authRepo, cfg.MigrationsDir)
@@ -90,7 +91,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(authService)
 	judgeHandler := handlers.NewJudgeHandler(judgeService)
-	adminHandler := handlers.NewAdminHandler(adminService, importService)
+	adminHandler := handlers.NewAdminHandler(adminService, importService, imageService)
 
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -128,6 +129,8 @@ func main() {
 				admin.Post("/categories", adminHandler.CreateCategory)
 				admin.Put("/categories/{id}", adminHandler.UpdateCategory)
 				admin.Delete("/categories/{id}", adminHandler.DeleteCategory)
+
+				admin.Post("/uploads", adminHandler.UploadImage)
 
 				admin.Get("/projects", adminHandler.ListProjects)
 				admin.Post("/projects", adminHandler.CreateProject)

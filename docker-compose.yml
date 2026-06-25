@@ -30,8 +30,11 @@ services:
       FRONTEND_URL: http://localhost:5173
       MIGRATIONS_DIR: /app/backend/migrations
       SEED_DEMO_DATA: "true"
+      UPLOADS_DIR: /app/uploads
     ports:
       - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -43,6 +46,9 @@ services:
       - backend
     ports:
       - "5173:80"
+    volumes:
+      - uploads_data:/usr/share/nginx/html/uploads:ro
 
 volumes:
   postgres_data:
+  uploads_data:

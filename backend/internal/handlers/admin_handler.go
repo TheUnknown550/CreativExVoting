@@ -17,13 +17,32 @@ import (
 type AdminHandler struct {
 	adminService  *services.AdminService
 	importService *services.GoogleSheetsImportService
+	imageService  *services.ImageService
 }
 
-func NewAdminHandler(adminService *services.AdminService, importService *services.GoogleSheetsImportService) *AdminHandler {
+func NewAdminHandler(adminService *services.AdminService, importService *services.GoogleSheetsImportService, imageService *services.ImageService) *AdminHandler {
 	return &AdminHandler{
 		adminService:  adminService,
 		importService: importService,
+		imageService:  imageService,
 	}
+}
+
+func (h *AdminHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, "missing file")
+		return
+	}
+	defer file.Close()
+
+	url, err := h.imageService.Save(file)
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(w, http.StatusOK, map[string]string{"url": url})
 }
 
 func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {

@@ -231,7 +231,10 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 	return project, err
 }
 
-func (r *AdminRepository) UpdateProject(ctx context.Context, id string, payload models.ProjectPayload) (models.Project, error) {
+// UpdateProject updates a project and returns the project's previous
+// image_url (captured before the update) so the caller can clean up the old
+// file on disk if it was replaced or removed.
+func (r *AdminRepository) UpdateProject(ctx context.Context, id string, payload models.ProjectPayload) (models.Project, string, error) {
 	project := models.Project{
 		ID:               id,
 		CategoryID:       payload.CategoryID,
@@ -250,19 +253,21 @@ func (r *AdminRepository) UpdateProject(ctx context.Context, id string, payload 
 		IsActive:         payload.IsActive,
 	}
 
+	var previousImageURL string
 	err := r.pool.QueryRow(ctx, `
+		WITH old AS (SELECT image_url FROM projects WHERE id = $1)
 		UPDATE projects
 		SET category_id = $2, title = $3, short_description = $4, full_description = $5, concept = $6,
 			designer_name = $7, team_name = $8, image_url = $9, proposal_link = $10, social_media_link = $11,
 			drive_link = $12, attached_file_link = $13, extra_details = $14, is_active = $15, updated_at = NOW()
 		WHERE id = $1
-		RETURNING created_at, updated_at
+		RETURNING created_at, updated_at, (SELECT image_url FROM old)
 	`, project.ID, project.CategoryID, project.Title, project.ShortDescription, project.FullDescription, project.Concept,
 		project.DesignerName, project.TeamName, project.ImageURL, project.ProposalLink, project.SocialMediaLink,
 		project.DriveLink, project.AttachedFileLink, project.ExtraDetails, project.IsActive,
-	).Scan(&project.CreatedAt, &project.UpdatedAt)
+	).Scan(&project.CreatedAt, &project.UpdatedAt, &previousImageURL)
 
-	return project, err
+	return project, previousImageURL, err
 }
 
 func (r *AdminRepository) SoftDeleteProject(ctx context.Context, id string) error {

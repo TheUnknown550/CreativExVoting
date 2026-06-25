@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -11,6 +11,7 @@ import {
   Switch,
   Table,
   Typography,
+  Upload,
   message,
 } from 'antd';
 import { useDeferredValue, useEffect, useState } from 'react';
@@ -52,6 +53,8 @@ export function AdminProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [saving, setSaving] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageUrl = Form.useWatch('image_url', form);
 
   async function loadCategories() {
     if (!token) {
@@ -269,8 +272,51 @@ export function AdminProjectsPage() {
           <Form.Item name="team_name" label={t('adminProjects.teamName')}>
             <Input />
           </Form.Item>
-          <Form.Item name="image_url" label={t('adminProjects.imageUrl')}>
-            <Input />
+          <Form.Item label={t('adminProjects.image')}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt=""
+                  style={{ maxHeight: 150, borderRadius: 8, border: '1px solid var(--ce-border)' }}
+                />
+              ) : null}
+              <Space>
+                <Upload
+                  accept="image/*"
+                  showUploadList={false}
+                  customRequest={async ({ file, onSuccess, onError }) => {
+                    if (!token) {
+                      return;
+                    }
+                    setUploadingImage(true);
+                    try {
+                      const { url } = await adminApi.uploadProjectImage(token, file as File);
+                      form.setFieldValue('image_url', url);
+                      messageApi.success(t('adminProjects.imageUploaded'));
+                      onSuccess?.({});
+                    } catch (error) {
+                      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.imageUploadError'));
+                      onError?.(error as Error);
+                    } finally {
+                      setUploadingImage(false);
+                    }
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploadingImage}>
+                    {t('adminProjects.uploadImage')}
+                  </Button>
+                </Upload>
+                {imageUrl ? (
+                  <Button type="text" danger onClick={() => form.setFieldValue('image_url', '')}>
+                    {t('adminProjects.removeImage')}
+                  </Button>
+                ) : null}
+              </Space>
+              <Form.Item name="image_url" noStyle>
+                <Input placeholder={t('adminProjects.imageUrlPlaceholder')} />
+              </Form.Item>
+            </Space>
           </Form.Item>
           <Form.Item name="proposal_link" label={t('adminProjects.proposalLink')}>
             <Input />

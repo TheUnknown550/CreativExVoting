@@ -10,11 +10,12 @@ import (
 )
 
 type AdminService struct {
-	repo *repositories.AdminRepository
+	repo         *repositories.AdminRepository
+	imageService *ImageService
 }
 
-func NewAdminService(repo *repositories.AdminRepository) *AdminService {
-	return &AdminService{repo: repo}
+func NewAdminService(repo *repositories.AdminRepository, imageService *ImageService) *AdminService {
+	return &AdminService{repo: repo, imageService: imageService}
 }
 
 func (s *AdminService) Dashboard(ctx context.Context) (models.DashboardStats, error) {
@@ -62,7 +63,14 @@ func (s *AdminService) UpdateProject(ctx context.Context, id string, payload mod
 	if payload.Title == "" || payload.CategoryID == "" {
 		return models.Project{}, errors.New("project title and category are required")
 	}
-	return s.repo.UpdateProject(ctx, id, payload)
+	project, previousImageURL, err := s.repo.UpdateProject(ctx, id, payload)
+	if err != nil {
+		return models.Project{}, err
+	}
+	if previousImageURL != "" && previousImageURL != project.ImageURL {
+		s.imageService.Delete(previousImageURL)
+	}
+	return project, nil
 }
 
 func (s *AdminService) DeleteProject(ctx context.Context, id string) error {

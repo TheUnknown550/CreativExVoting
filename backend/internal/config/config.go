@@ -17,6 +17,7 @@ type Config struct {
 	AllowedFrontendOrigins []string
 	MigrationsDir          string
 	SeedDemoData           bool
+	UploadsDir             string
 }
 
 func Load() Config {
@@ -32,6 +33,7 @@ func Load() Config {
 		AllowedFrontendOrigins: expandFrontendOrigins(frontendURL),
 		MigrationsDir:          resolveMigrationsDir(),
 		SeedDemoData:           getEnvBool("SEED_DEMO_DATA", false),
+		UploadsDir:             getEnv("UPLOADS_DIR", "/app/uploads"),
 	}
 }
 
