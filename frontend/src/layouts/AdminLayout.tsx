@@ -33,6 +33,9 @@ export function AdminLayout() {
     { key: '/admin/results', icon: <BarChartOutlined />, label: t('adminLayout.nav.results') },
     { key: '/admin/rankings', icon: <OrderedListOutlined />, label: t('adminLayout.nav.rankings') },
   ];
+  const selectedKey =
+    items?.find((item) => typeof item?.key === 'string' && location.pathname.startsWith(item.key))?.key ??
+    location.pathname;
 
   return (
     <Layout className="admin-shell">
@@ -50,7 +53,7 @@ export function AdminLayout() {
 
         <Menu
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={[String(selectedKey)]}
           items={items}
           onClick={({ key }) => navigate(key)}
           className="admin-menu"

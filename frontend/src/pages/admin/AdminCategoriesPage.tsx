@@ -176,23 +176,40 @@ export function AdminCategoriesPage() {
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
+        width={900}
+        destroyOnHidden
+        className="admin-form-modal"
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={{ is_active: true }}>
-          <Form.Item name="name" label={t('adminCategories.categoryNameEn')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="name_th" label={t('adminCategories.categoryNameTh')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label={t('adminCategories.descriptionEn')}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item name="description_th" label={t('adminCategories.descriptionTh')}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
+          <div className="admin-form-sections">
+            <section className="admin-form-section">
+              <div className="admin-form-grid">
+                <Form.Item name="name" label={t('adminCategories.categoryNameEn')} rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name="name_th" label={t('adminCategories.categoryNameTh')}>
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name="description"
+                  label={t('adminCategories.descriptionEn')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+                <Form.Item
+                  name="description_th"
+                  label={t('adminCategories.descriptionTh')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+                <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+              </div>
+            </section>
+          </div>
         </Form>
       </Modal>
     </>

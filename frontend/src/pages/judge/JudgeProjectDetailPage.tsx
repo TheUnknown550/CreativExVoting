@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import * as judgeApi from '../../api/judge';
-import { ApiError } from '../../api/client';
+import { ApiError, resolveAssetUrl } from '../../api/client';
 import { JudgeStepper } from '../../components/JudgeStepper';
 import { ProjectPreview } from '../../components/ProjectPreview';
 import { useAuth } from '../../contexts/AuthContext';
@@ -55,6 +55,7 @@ export function JudgeProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
   const basePath = `/judge/groups/${groupId}/categories/${categoryId}`;
@@ -217,12 +218,28 @@ export function JudgeProjectDetailPage() {
 
         <header className="pd__hero">
           <div className="pd__media-wrap">
-            <ProjectPreview
-              src={project.image_url}
-              alt={project.title}
-              className="pd__media"
-              placeholderClassName="pd__media pd__media--placeholder"
-            />
+            {project.image_url ? (
+              <button
+                type="button"
+                className="pd__media-button"
+                onClick={() => setImagePreviewOpen(true)}
+                aria-label={t('judgeProjectDetail.projectTitle')}
+              >
+                <ProjectPreview
+                  src={project.image_url}
+                  alt={project.title}
+                  className="pd__media"
+                  placeholderClassName="pd__media pd__media--placeholder"
+                />
+              </button>
+            ) : (
+              <ProjectPreview
+                src={project.image_url}
+                alt={project.title}
+                className="pd__media"
+                placeholderClassName="pd__media pd__media--placeholder"
+              />
+            )}
             {currentIndex >= 0 ? (
               <span className="pd__badge">
                 {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
@@ -325,33 +342,35 @@ export function JudgeProjectDetailPage() {
                   </div>
 
                   <div className="score-card__score">
-                    <Form.Item
-                      name={['scores', criterion.id]}
-                      className="score-card__field"
-                      rules={[
-                        { required: true, message: t('projectVoteDrawer.scoreRequired') },
-                        {
-                          validator: async (_rule, value) => {
-                            if (typeof value !== 'number') {
-                              throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
-                            }
-                            if (value < 0 || value > criterion.max_score) {
-                              throw new Error(t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }));
-                            }
+                    <div className="score-pill">
+                      <Form.Item
+                        name={['scores', criterion.id]}
+                        className="score-card__field"
+                        rules={[
+                          { required: true, message: t('projectVoteDrawer.scoreRequired') },
+                          {
+                            validator: async (_rule, value) => {
+                              if (typeof value !== 'number') {
+                                throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
+                              }
+                              if (value < 0 || value > criterion.max_score) {
+                                throw new Error(t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }));
+                              }
+                            },
                           },
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        size="large"
-                        min={0}
-                        max={criterion.max_score}
-                        controls={false}
-                        addonAfter={`/ ${criterion.max_score}`}
-                        className="score-card__input"
-                        placeholder="0"
-                      />
-                    </Form.Item>
+                        ]}
+                      >
+                        <InputNumber
+                          size="large"
+                          min={0}
+                          max={criterion.max_score}
+                          controls={false}
+                          className="score-card__input"
+                          placeholder="0"
+                        />
+                      </Form.Item>
+                      <span className="score-pill__max">/ {criterion.max_score}</span>
+                    </div>
                   </div>
                 </div>
               );
@@ -382,6 +401,21 @@ export function JudgeProjectDetailPage() {
           </div>
         </Form>
       </div>
+
+      <Modal
+        open={imagePreviewOpen}
+        footer={null}
+        onCancel={() => setImagePreviewOpen(false)}
+        centered
+        width="min(96vw, 1200px)"
+        className="pd__image-modal"
+      >
+        <img
+          src={resolveAssetUrl(project.image_url)}
+          alt={project.title}
+          className="pd__image-modal-content"
+        />
+      </Modal>
     </>
   );
 }

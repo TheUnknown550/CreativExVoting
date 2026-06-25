@@ -226,36 +226,45 @@ export function AdminJudgesPage() {
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
+        width={940}
+        destroyOnHidden
+        className="admin-form-modal"
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankJudge}>
-          <Form.Item name="username" label={t('adminJudges.username')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="display_name" label={t('adminJudges.displayName')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          {!editingJudge ? (
-            <Form.Item name="password" label={t('adminJudges.password')} rules={[{ required: true }]}>
-              <Input.Password />
-            </Form.Item>
-          ) : null}
-          <Form.Item name="role" label={t('adminJudges.role')} rules={[{ required: true }]}>
-            <Select
-              options={[
-                { value: 'judge', label: t('adminJudges.judgeRole') },
-                { value: 'admin', label: t('adminJudges.adminRole') },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item name="group_ids" label={t('adminJudges.assignedGroups')}>
-            <Select
-              mode="multiple"
-              options={groups.map((group) => ({ value: group.id, label: group.name }))}
-            />
-          </Form.Item>
-          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
+          <div className="admin-form-sections">
+            <section className="admin-form-section">
+              <div className="admin-form-grid">
+                <Form.Item name="display_name" label={t('adminJudges.displayName')} rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name="username" label={t('adminJudges.username')} rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                {!editingJudge ? (
+                  <Form.Item name="password" label={t('adminJudges.password')} rules={[{ required: true }]}>
+                    <Input.Password />
+                  </Form.Item>
+                ) : null}
+                <Form.Item name="role" label={t('adminJudges.role')} rules={[{ required: true }]}>
+                  <Select
+                    options={[
+                      { value: 'judge', label: t('adminJudges.judgeRole') },
+                      { value: 'admin', label: t('adminJudges.adminRole') },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item name="group_ids" label={t('adminJudges.assignedGroups')} className="admin-form-grid__full">
+                  <Select
+                    mode="multiple"
+                    options={groups.map((group) => ({ value: group.id, label: group.name }))}
+                  />
+                </Form.Item>
+                <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+              </div>
+            </section>
+          </div>
         </Form>
       </Modal>
 
@@ -265,6 +274,9 @@ export function AdminJudgesPage() {
         onCancel={() => setPasswordModalOpen(false)}
         onOk={() => void passwordForm.submit()}
         confirmLoading={saving}
+        width={640}
+        destroyOnHidden
+        className="admin-form-modal"
       >
         <Form form={passwordForm} layout="vertical" onFinish={handleResetPassword}>
           <Form.Item name="password" label={t('adminJudges.newPassword')} rules={[{ required: true }]}>

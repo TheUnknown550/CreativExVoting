@@ -309,28 +309,28 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 			{
 				Slug:         "creative-interpretation",
 				Name:         "Creative interpretation",
-				Description:  scoreBandDescription(category.CreativeFocus),
+				Description:  scoreBandDescription(category.CreativeFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 1,
 			},
 			{
 				Slug:         "execution-in-place",
 				Name:         "Execution in place",
-				Description:  scoreBandDescription(category.ExecutionFocus),
+				Description:  scoreBandDescription(category.ExecutionFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 2,
 			},
 			{
 				Slug:         "district-impact",
 				Name:         "Measurable district impact",
-				Description:  scoreBandDescription(category.ImpactFocus),
+				Description:  scoreBandDescription(category.ImpactFocus, 30),
 				MaxScore:     30,
 				DisplayOrder: 3,
 			},
 			{
 				Slug:         "continuity",
 				Name:         "Partnerships and continuity",
-				Description:  scoreBandDescription(category.SustainabilityFocus),
+				Description:  scoreBandDescription(category.SustainabilityFocus, 20),
 				MaxScore:     20,
 				DisplayOrder: 4,
 			},
@@ -340,28 +340,28 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 			{
 				Slug:         "creative-strategy",
 				Name:         "Creative strategy",
-				Description:  scoreBandDescription(category.CreativeFocus),
+				Description:  scoreBandDescription(category.CreativeFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 1,
 			},
 			{
 				Slug:         "execution-delivery",
 				Name:         "Execution and delivery",
-				Description:  scoreBandDescription(category.ExecutionFocus),
+				Description:  scoreBandDescription(category.ExecutionFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 2,
 			},
 			{
 				Slug:         "business-impact",
 				Name:         "Measurable business impact",
-				Description:  scoreBandDescription(category.ImpactFocus),
+				Description:  scoreBandDescription(category.ImpactFocus, 30),
 				MaxScore:     30,
 				DisplayOrder: 3,
 			},
 			{
 				Slug:         "scale-sustainability",
 				Name:         "Scalability and sustainability",
-				Description:  scoreBandDescription(category.SustainabilityFocus),
+				Description:  scoreBandDescription(category.SustainabilityFocus, 20),
 				MaxScore:     20,
 				DisplayOrder: 4,
 			},
@@ -376,28 +376,28 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 			{
 				Slug:         "creative-social-approach",
 				Name:         "Creative social approach",
-				Description:  scoreBandDescription(category.CreativeFocus),
+				Description:  scoreBandDescription(category.CreativeFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 1,
 			},
 			{
 				Slug:         "positive-impact",
 				Name:         "Measurable positive impact",
-				Description:  scoreBandDescription(category.ImpactFocus),
+				Description:  scoreBandDescription(category.ImpactFocus, 30),
 				MaxScore:     30,
 				DisplayOrder: 2,
 			},
 			{
 				Slug:         "accessible-implementation",
 				Name:         "Accessible implementation",
-				Description:  scoreBandDescription(category.ExecutionFocus),
+				Description:  scoreBandDescription(category.ExecutionFocus, 25),
 				MaxScore:     25,
 				DisplayOrder: 3,
 			},
 			{
 				Slug:         "long-term-continuity",
 				Name:         "Long-term continuity",
-				Description:  scoreBandDescription(category.SustainabilityFocus),
+				Description:  scoreBandDescription(category.SustainabilityFocus, 20),
 				MaxScore:     20,
 				DisplayOrder: 4,
 			},
@@ -405,11 +405,50 @@ func criteriaForCategory(category demoCategorySeed) []demoCriterionSeed {
 	}
 }
 
-func scoreBandDescription(focus string) string {
-	return fmt.Sprintf(
-		"High scores reward work that %s. Mid scores are for work with a clear idea but uneven proof or incomplete delivery. Low scores are for work that stays generic, lightly evidenced, or weakly connected to the category intent.",
+func scoreBandDescription(focus string, maxScore int) string {
+	intro := fmt.Sprintf(
+		"This criterion looks at whether the work %s. (%d pts)",
 		focus,
+		maxScore,
 	)
+
+	switch maxScore {
+	case 30:
+		return strings.Join([]string{
+			intro,
+			"25-30 = Strongly fulfills the criterion with clear evidence, meaningful results, and a compelling level of quality or effectiveness.",
+			"15-24 = Shows a solid idea and some real progress, but the evidence, consistency, or depth of results is still uneven.",
+			"0-14 = Only weakly fulfills the criterion, with limited proof, limited delivery, or a loose connection to the intended outcome.",
+		}, "\n\n")
+	case 25:
+		return strings.Join([]string{
+			intro,
+			"20-25 = Strongly fulfills the criterion with clear evidence, meaningful results, and a compelling level of quality or effectiveness.",
+			"11-19 = Shows a solid idea and some real progress, but the evidence, consistency, or depth of results is still uneven.",
+			"0-10 = Only weakly fulfills the criterion, with limited proof, limited delivery, or a loose connection to the intended outcome.",
+		}, "\n\n")
+	case 20:
+		return strings.Join([]string{
+			intro,
+			"15-20 = Strongly fulfills the criterion with clear evidence, meaningful results, and a compelling level of quality or effectiveness.",
+			"5-14 = Shows a solid idea and some real progress, but the evidence, consistency, or depth of results is still uneven.",
+			"0-4 = Only weakly fulfills the criterion, with limited proof, limited delivery, or a loose connection to the intended outcome.",
+		}, "\n\n")
+	case 15:
+		return strings.Join([]string{
+			intro,
+			"12-15 = Strongly fulfills the criterion with clear evidence, meaningful results, and a compelling level of quality or effectiveness.",
+			"7-11 = Shows a solid idea and some real progress, but the evidence, consistency, or depth of results is still uneven.",
+			"0-6 = Only weakly fulfills the criterion, with limited proof, limited delivery, or a loose connection to the intended outcome.",
+		}, "\n\n")
+	default:
+		return strings.Join([]string{
+			intro,
+			fmt.Sprintf("%d-%d = Strongly fulfills the criterion with clear evidence, meaningful results, and a compelling level of quality or effectiveness.", max(0, maxScore-4), maxScore),
+			fmt.Sprintf("%d-%d = Shows a solid idea and some real progress, but the evidence, consistency, or depth of results is still uneven.", max(0, maxScore-9), max(0, maxScore-5)),
+			fmt.Sprintf("0-%d = Only weakly fulfills the criterion, with limited proof, limited delivery, or a loose connection to the intended outcome.", max(0, maxScore-10)),
+		}, "\n\n")
+	}
 }
 
 // hofDescription assembles a Hall of Fame rubric: an intro question followed by

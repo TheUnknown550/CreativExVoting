@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -15,6 +15,7 @@ import {
   message,
 } from 'antd';
 import { useDeferredValue, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import * as adminApi from '../../api/admin';
 import { ApiError, resolveAssetUrl } from '../../api/client';
@@ -40,6 +41,7 @@ const blankProject: ProjectPayload = {
 };
 
 export function AdminProjectsPage() {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const { t } = useLanguage();
   const [form] = Form.useForm<ProjectPayload>();
@@ -55,6 +57,10 @@ export function AdminProjectsPage() {
   const [messageApi, contextHolder] = message.useMessage();
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageUrl = Form.useWatch('image_url', form);
+
+  function openPreview(projectId: string) {
+    navigate(`/admin/projects/${projectId}/preview`);
+  }
 
   async function loadCategories() {
     if (!token) {
@@ -192,8 +198,29 @@ export function AdminProjectsPage() {
             loading={loading}
             dataSource={projects}
             scroll={{ x: 1020 }}
+            onRow={(record) => ({
+              onClick: () => openPreview(record.id),
+              style: { cursor: 'pointer' },
+            })}
             columns={[
-              { title: t('adminProjects.title_col'), dataIndex: 'title', fixed: 'left', width: 240 },
+              {
+                title: t('adminProjects.title_col'),
+                dataIndex: 'title',
+                fixed: 'left',
+                width: 240,
+                render: (value: string, record) => (
+                  <button
+                    type="button"
+                    className="admin-table-link"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openPreview(record.id);
+                    }}
+                  >
+                    {value}
+                  </button>
+                ),
+              },
               { title: t('adminProjects.category'), dataIndex: 'category_name', width: 180 },
               {
                 title: t('adminProjects.designerTeam'),
@@ -220,9 +247,12 @@ export function AdminProjectsPage() {
               {
                 title: t('common.actions'),
                 fixed: 'right',
-                width: 190,
+                width: 290,
                 render: (_, record) => (
-                  <Space>
+                  <Space onClick={(event) => event.stopPropagation()}>
+                    <Button icon={<EyeOutlined />} onClick={() => openPreview(record.id)}>
+                      Preview
+                    </Button>
                     <Button icon={<EditOutlined />} onClick={() => openEditModal(record)}>
                       {t('common.edit')}
                     </Button>
@@ -248,94 +278,157 @@ export function AdminProjectsPage() {
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
-        width={840}
+        width={1120}
+        destroyOnHidden
+        className="admin-form-modal admin-form-modal--wide"
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankProject}>
-          <Form.Item name="category_id" label={t('adminProjects.category')} rules={[{ required: true }]}>
-            <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
-          </Form.Item>
-          <Form.Item name="title" label={t('adminProjects.projectTitle')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="short_description" label={t('adminProjects.shortDescriptionLabel')}>
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          <Form.Item name="full_description" label={t('adminProjects.fullDescription')}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item name="concept" label={t('adminProjects.concept')}>
-            <Input.TextArea rows={3} />
-          </Form.Item>
-          <Form.Item name="designer_name" label={t('adminProjects.designerName')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="team_name" label={t('adminProjects.teamName')}>
-            <Input />
-          </Form.Item>
-          <Form.Item label={t('adminProjects.image')}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {imageUrl ? (
-                <img
-                  src={resolveAssetUrl(imageUrl)}
-                  alt=""
-                  style={{ maxHeight: 150, borderRadius: 8, border: '1px solid var(--ce-border)' }}
-                />
-              ) : null}
-              <Space>
-                <Upload
-                  accept="image/*"
-                  showUploadList={false}
-                  customRequest={async ({ file, onSuccess, onError }) => {
-                    if (!token) {
-                      return;
-                    }
-                    setUploadingImage(true);
-                    try {
-                      const { url } = await adminApi.uploadProjectImage(token, file as File);
-                      form.setFieldValue('image_url', url);
-                      messageApi.success(t('adminProjects.imageUploaded'));
-                      onSuccess?.({});
-                    } catch (error) {
-                      messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.imageUploadError'));
-                      onError?.(error as Error);
-                    } finally {
-                      setUploadingImage(false);
-                    }
-                  }}
+          <div className="admin-form-intro">
+            Organize the project the way judges will read it. Keep the short description concise and use the longer fields for context and supporting evidence.
+          </div>
+
+          <div className="admin-form-sections">
+            <section className="admin-form-section">
+              <Typography.Title level={5} className="admin-form-section__title">
+                Project basics
+              </Typography.Title>
+              <div className="admin-form-grid">
+                <Form.Item name="category_id" label={t('adminProjects.category')} rules={[{ required: true }]}>
+                  <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
+                </Form.Item>
+                <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item
+                  name="title"
+                  label={t('adminProjects.projectTitle')}
+                  rules={[{ required: true }]}
+                  className="admin-form-grid__full"
                 >
-                  <Button icon={<UploadOutlined />} loading={uploadingImage}>
-                    {t('adminProjects.uploadImage')}
-                  </Button>
-                </Upload>
-                {imageUrl ? (
-                  <Button type="text" danger onClick={() => form.setFieldValue('image_url', '')}>
-                    {t('adminProjects.removeImage')}
-                  </Button>
-                ) : null}
-              </Space>
-              <Form.Item name="image_url" noStyle>
-                <Input placeholder={t('adminProjects.imageUrlPlaceholder')} />
-              </Form.Item>
-            </Space>
-          </Form.Item>
-          <Form.Item name="proposal_link" label={t('adminProjects.proposalLink')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="social_media_link" label={t('adminProjects.socialMediaLink')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="drive_link" label={t('adminProjects.driveLink')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="attached_file_link" label={t('adminProjects.attachedFileLink')}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="extra_details" label={t('adminProjects.extraDetails')}>
-            <Input.TextArea rows={3} />
-          </Form.Item>
-          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  name="short_description"
+                  label={t('adminProjects.shortDescriptionLabel')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <Typography.Title level={5} className="admin-form-section__title">
+                Ownership & credits
+              </Typography.Title>
+              <div className="admin-form-grid">
+                <Form.Item name="team_name" label={t('adminProjects.teamName')}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name="designer_name" label={t('adminProjects.designerName')}>
+                  <Input />
+                </Form.Item>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <Typography.Title level={5} className="admin-form-section__title">
+                Media & links
+              </Typography.Title>
+              <div className="admin-form-grid admin-form-grid--media">
+                <div className="admin-form-preview">
+                  {imageUrl ? (
+                    <img
+                      src={resolveAssetUrl(imageUrl)}
+                      alt=""
+                      className="admin-form-preview__image"
+                    />
+                  ) : (
+                    <div className="admin-form-preview__empty">Project image preview</div>
+                  )}
+                  <Space wrap>
+                    <Upload
+                      accept="image/*"
+                      showUploadList={false}
+                      customRequest={async ({ file, onSuccess, onError }) => {
+                        if (!token) {
+                          return;
+                        }
+                        setUploadingImage(true);
+                        try {
+                          const { url } = await adminApi.uploadProjectImage(token, file as File);
+                          form.setFieldValue('image_url', url);
+                          messageApi.success(t('adminProjects.imageUploaded'));
+                          onSuccess?.({});
+                        } catch (error) {
+                          messageApi.error(error instanceof ApiError ? error.message : t('adminProjects.imageUploadError'));
+                          onError?.(error as Error);
+                        } finally {
+                          setUploadingImage(false);
+                        }
+                      }}
+                    >
+                      <Button icon={<UploadOutlined />} loading={uploadingImage}>
+                        {t('adminProjects.uploadImage')}
+                      </Button>
+                    </Upload>
+                    {imageUrl ? (
+                      <Button type="text" danger onClick={() => form.setFieldValue('image_url', '')}>
+                        {t('adminProjects.removeImage')}
+                      </Button>
+                    ) : null}
+                  </Space>
+                </div>
+
+                <div className="admin-form-grid admin-form-grid--stack">
+                  <Form.Item name="image_url" label={t('adminProjects.imageUrl')}>
+                    <Input placeholder={t('adminProjects.imageUrlPlaceholder')} />
+                  </Form.Item>
+                  <Form.Item name="proposal_link" label={t('adminProjects.proposalLink')}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="social_media_link" label={t('adminProjects.socialMediaLink')}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="drive_link" label={t('adminProjects.driveLink')}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="attached_file_link" label={t('adminProjects.attachedFileLink')}>
+                    <Input />
+                  </Form.Item>
+                </div>
+              </div>
+            </section>
+
+            <section className="admin-form-section">
+              <Typography.Title level={5} className="admin-form-section__title">
+                Narrative & judging context
+              </Typography.Title>
+              <div className="admin-form-grid">
+                <Form.Item
+                  name="full_description"
+                  label={t('adminProjects.fullDescription')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={5} />
+                </Form.Item>
+                <Form.Item
+                  name="concept"
+                  label={t('adminProjects.concept')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+                <Form.Item
+                  name="extra_details"
+                  label={t('adminProjects.extraDetails')}
+                  className="admin-form-grid__full"
+                >
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+              </div>
+            </section>
+          </div>
         </Form>
       </Modal>
     </>

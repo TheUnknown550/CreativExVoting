@@ -26,6 +26,9 @@ const AdminDashboardPage = lazy(async () =>
 const AdminProjectsPage = lazy(async () =>
   import('../pages/admin/AdminProjectsPage').then((module) => ({ default: module.AdminProjectsPage })),
 );
+const AdminProjectPreviewPage = lazy(async () =>
+  import('../pages/admin/AdminProjectPreviewPage').then((module) => ({ default: module.AdminProjectPreviewPage })),
+);
 const AdminCategoriesPage = lazy(async () =>
   import('../pages/admin/AdminCategoriesPage').then((module) => ({ default: module.AdminCategoriesPage })),
 );
@@ -102,6 +105,7 @@ export function AppRouter() {
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
               <Route path="/admin/projects" element={<AdminProjectsPage />} />
+              <Route path="/admin/projects/:projectId/preview" element={<AdminProjectPreviewPage />} />
               <Route path="/admin/categories" element={<AdminCategoriesPage />} />
               <Route path="/admin/criteria" element={<AdminCriteriaPage />} />
               <Route path="/admin/judges" element={<AdminJudgesPage />} />

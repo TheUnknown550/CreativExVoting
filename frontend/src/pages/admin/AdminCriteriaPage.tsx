@@ -218,26 +218,35 @@ export function AdminCriteriaPage() {
         onCancel={() => setModalOpen(false)}
         onOk={() => void form.submit()}
         confirmLoading={saving}
+        width={920}
+        destroyOnHidden
+        className="admin-form-modal"
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={blankCriterion}>
-          <Form.Item name="category_id" label={t('adminCriteria.category')} rules={[{ required: true }]}>
-            <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
-          </Form.Item>
-          <Form.Item name="name" label={t('adminCriteria.criterionName')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label={t('adminCriteria.rubricDescription')}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item name="max_score" label={t('adminCriteria.maximumScore')} rules={[{ required: true }]}>
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="display_order" label={t('adminCriteria.displayOrder')} rules={[{ required: true }]}>
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
-            <Switch />
-          </Form.Item>
+          <div className="admin-form-sections">
+            <section className="admin-form-section">
+              <div className="admin-form-grid">
+                <Form.Item name="category_id" label={t('adminCriteria.category')} rules={[{ required: true }]}>
+                  <Select options={categories.map((category) => ({ value: category.id, label: category.name }))} />
+                </Form.Item>
+                <Form.Item name="is_active" label={t('common.active')} valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item name="name" label={t('adminCriteria.criterionName')} rules={[{ required: true }]} className="admin-form-grid__full">
+                  <Input />
+                </Form.Item>
+                <Form.Item name="description" label={t('adminCriteria.rubricDescription')} className="admin-form-grid__full">
+                  <Input.TextArea rows={5} />
+                </Form.Item>
+                <Form.Item name="max_score" label={t('adminCriteria.maximumScore')} rules={[{ required: true }]}>
+                  <InputNumber min={0} style={{ width: '100%' }} />
+                </Form.Item>
+                <Form.Item name="display_order" label={t('adminCriteria.displayOrder')} rules={[{ required: true }]}>
+                  <InputNumber min={0} style={{ width: '100%' }} />
+                </Form.Item>
+              </div>
+            </section>
+          </div>
         </Form>
       </Modal>
     </>
