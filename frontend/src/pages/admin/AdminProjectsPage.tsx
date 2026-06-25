@@ -311,8 +311,9 @@ export function AdminProjectsPage() {
                   name="short_description"
                   label={t('adminProjects.shortDescriptionLabel')}
                   className="admin-form-grid__full"
+                  rules={[{ max: 1500, message: t('adminProjects.shortDescriptionTooLong') }]}
                 >
-                  <Input.TextArea rows={3} />
+                  <Input.TextArea rows={3} maxLength={1500} showCount />
                 </Form.Item>
               </div>
             </section>
@@ -409,15 +410,17 @@ export function AdminProjectsPage() {
                   name="full_description"
                   label={t('adminProjects.fullDescription')}
                   className="admin-form-grid__full"
+                  rules={[{ max: 2500, message: t('adminProjects.fullDescriptionTooLong') }]}
                 >
-                  <Input.TextArea rows={5} />
+                  <Input.TextArea rows={5} maxLength={2500} showCount />
                 </Form.Item>
                 <Form.Item
                   name="concept"
                   label={t('adminProjects.concept')}
                   className="admin-form-grid__full"
+                  rules={[{ max: 2500, message: t('adminProjects.conceptTooLong') }]}
                 >
-                  <Input.TextArea rows={4} />
+                  <Input.TextArea rows={4} maxLength={2500} showCount />
                 </Form.Item>
                 <Form.Item
                   name="extra_details"

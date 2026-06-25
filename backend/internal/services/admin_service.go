@@ -3,11 +3,32 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"unicode/utf8"
 
 	"creativexvoting/backend/internal/models"
 	"creativexvoting/backend/internal/repositories"
 	"creativexvoting/backend/internal/utils"
 )
+
+const (
+	objectiveMaxLength     = 1500
+	designProcessMaxLength = 2500
+	impactMaxLength        = 2500
+)
+
+func validateProjectPayload(payload models.ProjectPayload) error {
+	if utf8.RuneCountInString(payload.ShortDescription) > objectiveMaxLength {
+		return fmt.Errorf("objective must be %d characters or fewer", objectiveMaxLength)
+	}
+	if utf8.RuneCountInString(payload.FullDescription) > designProcessMaxLength {
+		return fmt.Errorf("design process must be %d characters or fewer", designProcessMaxLength)
+	}
+	if utf8.RuneCountInString(payload.Concept) > impactMaxLength {
+		return fmt.Errorf("impact must be %d characters or fewer", impactMaxLength)
+	}
+	return nil
+}
 
 type AdminService struct {
 	repo         *repositories.AdminRepository
@@ -56,12 +77,18 @@ func (s *AdminService) CreateProject(ctx context.Context, payload models.Project
 	if payload.Title == "" || payload.CategoryID == "" {
 		return models.Project{}, errors.New("project title and category are required")
 	}
+	if err := validateProjectPayload(payload); err != nil {
+		return models.Project{}, err
+	}
 	return s.repo.CreateProject(ctx, payload)
 }
 
 func (s *AdminService) UpdateProject(ctx context.Context, id string, payload models.ProjectPayload) (models.Project, error) {
 	if payload.Title == "" || payload.CategoryID == "" {
 		return models.Project{}, errors.New("project title and category are required")
+	}
+	if err := validateProjectPayload(payload); err != nil {
+		return models.Project{}, err
 	}
 	project, previousImageURL, err := s.repo.UpdateProject(ctx, id, payload)
 	if err != nil {
