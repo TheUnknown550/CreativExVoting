@@ -1,0 +1,13 @@
+
+> creativex-voting-frontend@0.0.0 dev
+> vite --host 127.0.0.1 --port 5174
+
+
+  [32m[1mVITE[22m v8.0.16[39m  [2mready in [0m[1m203[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5174[22m/[39m
+[2m8:34:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/contexts/AuthContext.tsx, /src/pages/auth/LoginPage.tsx, /src/pages/admin/AdminDashboardPage.tsx, /src/pages/admin/AdminProjectsPage.tsx, /src/components/JudgeContextSwitcher.tsx, /src/pages/judge/JudgeGroupSelectPage.tsx, /src/pages/judge/JudgeCategorySelectPage.tsx, /src/pages/judge/JudgeWorkspacePage.tsx, /src/pages/judge/JudgeProjectDetailPage.tsx[22m
+[2m8:34:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/contexts/AuthContext.tsx[22m Could not Fast Refresh ("useAuth" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:34:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/routes/AppRouter.tsx, /src/routes/ProtectedRoute.tsx, /src/pages/auth/LoginPage.tsx, /src/layouts/AdminLayout.tsx, /src/pages/admin/AdminDashboardPage.tsx, /src/pages/admin/AdminProjectsPage.tsx, /src/layouts/JudgeLayout.tsx, /src/components/JudgeContextSwitcher.tsx, /src/pages/judge/JudgeGroupSelectPage.tsx, /src/pages/judge/JudgeCategorySelectPage.tsx, /src/pages/judge/JudgeWorkspacePage.tsx, /src/pages/judge/JudgeProjectDetailPage.tsx[22m
+[2m8:34:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProjectPreview.tsx[22m
+[2m8:34:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/admin/AdminProjectsPage.tsx[22m

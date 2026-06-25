@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	chi "github.com/go-chi/chi/v5"
@@ -97,6 +98,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+
+	router.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Clean(cfg.UploadsDir)))))
 
 	router.Route("/api", func(api chi.Router) {
 		api.Route("/auth", func(auth chi.Router) {

@@ -1,6 +1,13 @@
 import type { ApiEnvelope } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE_URL).origin;
+  } catch {
+    return window.location.origin;
+  }
+})();
 
 let unauthorizedHandler: (() => void) | null = null;
 
@@ -118,4 +125,20 @@ export function buildQuery(params: Record<string, string | number | undefined | 
 
   const query = searchParams.toString();
   return query ? `?${query}` : '';
+}
+
+export function resolveAssetUrl(path: string | null | undefined) {
+  if (!path) {
+    return path ?? '';
+  }
+
+  if (/^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+
+  if (path.startsWith('/')) {
+    return `${API_ORIGIN}${path}`;
+  }
+
+  return path;
 }

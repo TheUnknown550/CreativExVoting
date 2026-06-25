@@ -8,26 +8,26 @@ import (
 	"fmt"
 	"image"
 	_ "image/gif" // register GIF decoder
-	"image/jpeg"
 	_ "image/png" // register PNG decoder
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/deepteams/webp"
 	"golang.org/x/image/draw"
-	_ "golang.org/x/image/webp" // register WebP decoder
 )
 
 const (
 	maxUploadBytes = 15 << 20 // 15 MB
 	maxDimension   = 1600     // px (longest side)
-	jpegQuality    = 85
+	webpQuality    = 80
+	webpMethod     = 4
 	uploadURLBase  = "/uploads"
 )
 
 // ImageService stores uploaded project images on the local disk (a mounted
-// volume). It downscales and re-encodes to JPEG so files stay small and uniform.
+// volume). It downscales and re-encodes to WebP so files stay small and uniform.
 type ImageService struct {
 	dir string
 }
@@ -37,7 +37,7 @@ func NewImageService(dir string) *ImageService {
 }
 
 // Save reads an uploaded image, downscales it to maxDimension, re-encodes it as
-// JPEG, writes it under the uploads dir, and returns its public path
+// WebP, writes it under the uploads dir, and returns its public path
 // ("/uploads/<file>").
 func (s *ImageService) Save(r io.Reader) (string, error) {
 	data, err := io.ReadAll(io.LimitReader(r, maxUploadBytes+1))
@@ -63,7 +63,7 @@ func (s *ImageService) Save(r io.Reader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	filename := fmt.Sprintf("img-%s.jpg", suffix)
+	filename := fmt.Sprintf("img-%s.webp", suffix)
 
 	file, err := os.Create(filepath.Join(s.dir, filename))
 	if err != nil {
@@ -71,7 +71,11 @@ func (s *ImageService) Save(r io.Reader) (string, error) {
 	}
 	defer file.Close()
 
-	if err := jpeg.Encode(file, dst, &jpeg.Options{Quality: jpegQuality}); err != nil {
+	if err := webp.Encode(file, dst, &webp.EncoderOptions{
+		Quality: webpQuality,
+		Method:  webpMethod,
+		Exact:   true,
+	}); err != nil {
 		return "", err
 	}
 

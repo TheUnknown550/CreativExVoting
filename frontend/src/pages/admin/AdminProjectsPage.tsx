@@ -17,7 +17,7 @@ import {
 import { useDeferredValue, useEffect, useState } from 'react';
 
 import * as adminApi from '../../api/admin';
-import { ApiError } from '../../api/client';
+import { ApiError, resolveAssetUrl } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { Category, Project, ProjectPayload } from '../../types/domain';
@@ -276,7 +276,7 @@ export function AdminProjectsPage() {
             <Space direction="vertical" style={{ width: '100%' }}>
               {imageUrl ? (
                 <img
-                  src={imageUrl}
+                  src={resolveAssetUrl(imageUrl)}
                   alt=""
                   style={{ maxHeight: 150, borderRadius: 8, border: '1px solid var(--ce-border)' }}
                 />

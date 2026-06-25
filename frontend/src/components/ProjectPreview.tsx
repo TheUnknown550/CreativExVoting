@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 
+import { resolveAssetUrl } from '../api/client';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ProjectPreviewProps {
@@ -34,5 +35,13 @@ export function ProjectPreview({
     );
   }
 
-  return <img src={src} alt={alt} className={className} style={style} onError={() => setHasError(true)} />;
+  return (
+    <img
+      src={resolveAssetUrl(src)}
+      alt={alt}
+      className={className}
+      style={style}
+      onError={() => setHasError(true)}
+    />
+  );
 }
