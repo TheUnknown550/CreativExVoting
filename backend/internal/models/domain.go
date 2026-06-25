@@ -8,14 +8,16 @@ const (
 )
 
 type User struct {
-	ID           string    `json:"id"`
-	Username     string    `json:"username"`
-	DisplayName  string    `json:"display_name"`
-	PasswordHash string    `json:"-"`
-	Role         string    `json:"role"`
-	IsActive     bool      `json:"is_active"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	Username      string    `json:"username"`
+	DisplayName   string    `json:"display_name"`
+	PasswordHash  string    `json:"-"`
+	Role          string    `json:"role"`
+	IsActive      bool      `json:"is_active"`
+	ScoredCount   int       `json:"scored_count,omitempty"`
+	AssignedCount int       `json:"assigned_count,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type AwardGroup struct {
@@ -95,13 +97,13 @@ type ScoringCriterion struct {
 }
 
 type Vote struct {
-	ID          string              `json:"id"`
-	JudgeID     string              `json:"judge_id"`
-	ProjectID   string              `json:"project_id"`
-	TotalScore  int                 `json:"total_score"`
-	SubmittedAt *time.Time          `json:"submitted_at"`
-	CreatedAt   time.Time           `json:"created_at"`
-	UpdatedAt   time.Time           `json:"updated_at"`
+	ID          string               `json:"id"`
+	JudgeID     string               `json:"judge_id"`
+	ProjectID   string               `json:"project_id"`
+	TotalScore  int                  `json:"total_score"`
+	SubmittedAt *time.Time           `json:"submitted_at"`
+	CreatedAt   time.Time            `json:"created_at"`
+	UpdatedAt   time.Time            `json:"updated_at"`
 	Scores      []VoteCriterionScore `json:"scores,omitempty"`
 }
 
@@ -133,12 +135,12 @@ type JudgeProjectDetail struct {
 }
 
 type JudgeSummaryRow struct {
-	Ranking    int    `json:"ranking"`
-	ProjectID  string `json:"project_id"`
+	Ranking     int    `json:"ranking"`
+	ProjectID   string `json:"project_id"`
 	ProjectName string `json:"project_name"`
-	TotalScore int    `json:"total_score"`
-	HasVoted   bool   `json:"has_voted"`
-	CategoryID string `json:"category_id"`
+	TotalScore  int    `json:"total_score"`
+	HasVoted    bool   `json:"has_voted"`
+	CategoryID  string `json:"category_id"`
 }
 
 type DashboardStats struct {
@@ -163,14 +165,14 @@ type AdminProjectRanking struct {
 }
 
 type AdminJudgeVoteRow struct {
-	VoteID       string     `json:"vote_id"`
-	ProjectID    string     `json:"project_id"`
-	ProjectName  string     `json:"project_name"`
-	Category     string     `json:"category"`
-	JudgeID      string     `json:"judge_id"`
-	JudgeName    string     `json:"judge_name"`
-	TotalScore   int        `json:"total_score"`
-	SubmittedAt  *time.Time `json:"submitted_at"`
+	VoteID      string     `json:"vote_id"`
+	ProjectID   string     `json:"project_id"`
+	ProjectName string     `json:"project_name"`
+	Category    string     `json:"category"`
+	JudgeID     string     `json:"judge_id"`
+	JudgeName   string     `json:"judge_name"`
+	TotalScore  int        `json:"total_score"`
+	SubmittedAt *time.Time `json:"submitted_at"`
 }
 
 type ProjectVoteDetail struct {
@@ -201,12 +203,12 @@ type ResultsResponse struct {
 }
 
 type CSVExportRow struct {
-	Category             string
-	ProjectTitle         string
-	JudgeName            string
-	CriterionName        string
-	CriterionScore       int
-	ProjectTotalByJudge  int
-	ProjectTotalOverall  int
-	AverageScore         float64
+	Category            string
+	ProjectTitle        string
+	JudgeName           string
+	CriterionName       string
+	CriterionScore      int
+	ProjectTotalByJudge int
+	ProjectTotalOverall int
+	AverageScore        float64
 }

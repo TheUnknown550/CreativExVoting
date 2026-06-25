@@ -6,6 +6,8 @@ export interface User {
   display_name: string;
   role: Role;
   is_active: boolean;
+  scored_count?: number;
+  assigned_count?: number;
   created_at: string;
   updated_at: string;
 }

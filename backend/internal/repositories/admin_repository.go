@@ -370,9 +370,44 @@ func (r *AdminRepository) SoftDeleteCriterion(ctx context.Context, id string) er
 
 func (r *AdminRepository) ListJudges(ctx context.Context) ([]models.User, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, username, display_name, password_hash, role, is_active, created_at, updated_at
-		FROM users
-		ORDER BY role, created_at DESC
+		WITH assigned_projects AS (
+			SELECT
+				a.judge_id,
+				COUNT(DISTINCT p.id) AS assigned_count
+			FROM judge_group_assignments a
+			JOIN categories c ON c.award_group_id = a.group_id AND c.is_active = TRUE
+			JOIN projects p ON p.category_id = c.id AND p.is_active = TRUE
+			GROUP BY a.judge_id
+		),
+		submitted_votes AS (
+			SELECT
+				v.judge_id,
+				COUNT(DISTINCT v.project_id) AS scored_count
+			FROM votes v
+			WHERE v.submitted_at IS NOT NULL
+			GROUP BY v.judge_id
+		)
+		SELECT
+			u.id,
+			u.username,
+			u.display_name,
+			u.password_hash,
+			u.role,
+			u.is_active,
+			CASE
+				WHEN u.role = 'judge' AND u.is_active = TRUE THEN COALESCE(sv.scored_count, 0)
+				ELSE 0
+			END AS scored_count,
+			CASE
+				WHEN u.role = 'judge' AND u.is_active = TRUE THEN COALESCE(ap.assigned_count, 0)
+				ELSE 0
+			END AS assigned_count,
+			u.created_at,
+			u.updated_at
+		FROM users u
+		LEFT JOIN assigned_projects ap ON ap.judge_id = u.id
+		LEFT JOIN submitted_votes sv ON sv.judge_id = u.id
+		ORDER BY u.role, u.created_at DESC
 	`)
 	if err != nil {
 		return nil, err
@@ -381,8 +416,19 @@ func (r *AdminRepository) ListJudges(ctx context.Context) ([]models.User, error)
 
 	var users []models.User
 	for rows.Next() {
-		user, err := scanUser(rows)
-		if err != nil {
+		var user models.User
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.DisplayName,
+			&user.PasswordHash,
+			&user.Role,
+			&user.IsActive,
+			&user.ScoredCount,
+			&user.AssignedCount,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

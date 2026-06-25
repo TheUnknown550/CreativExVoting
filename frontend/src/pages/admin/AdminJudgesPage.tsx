@@ -177,6 +177,14 @@ export function AdminJudgesPage() {
               { title: t('adminJudges.username'), dataIndex: 'username' },
               { title: t('adminJudges.role'), dataIndex: 'role', width: 120 },
               {
+                title: 'Scored',
+                width: 140,
+                render: (_, record) =>
+                  !record.is_active || record.role !== 'judge'
+                    ? '-'
+                    : `${record.scored_count ?? 0}/${record.assigned_count ?? 0}`,
+              },
+              {
                 title: t('common.status'),
                 dataIndex: 'is_active',
                 width: 120,
