@@ -1647,12 +1647,17 @@ img {
 
 .score-card__score {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
-.score-card__field {
-  margin: 0;
-  flex: 1 1 auto;
+.score-card__error {
+  max-width: 150px;
+  color: #ff4d4f;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: right;
 }
 
 .score-pill {
@@ -1663,6 +1668,10 @@ img {
   border-radius: 999px;
   background: #fff;
   overflow: hidden;
+}
+
+.score-pill--error {
+  border-color: #ff4d4f;
 }
 
 .score-pill__max {

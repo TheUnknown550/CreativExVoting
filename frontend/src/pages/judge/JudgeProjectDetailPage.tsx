@@ -262,35 +262,48 @@ export function JudgeProjectDetailPage() {
                   </div>
 
                   <div className="score-card__score">
-                    <div className="score-pill">
-                      <Form.Item
-                        name={['scores', criterion.id]}
-                        className="score-card__field"
-                        rules={[
-                          { required: true, message: t('projectVoteDrawer.scoreRequired') },
-                          {
-                            validator: async (_rule, value) => {
-                              if (typeof value !== 'number') {
-                                throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
-                              }
-                              if (value < 0 || value > criterion.max_score) {
-                                throw new Error(t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }));
-                              }
-                            },
-                          },
-                        ]}
-                      >
-                        <InputNumber
-                          size="large"
-                          min={0}
-                          max={criterion.max_score}
-                          controls={false}
-                          className="score-card__input"
-                          placeholder="0"
-                        />
-                      </Form.Item>
-                      <span className="score-pill__max">/ {criterion.max_score}</span>
-                    </div>
+                    <Form.Item shouldUpdate noStyle>
+                      {() => {
+                        const errors = form.getFieldError(['scores', criterion.id]);
+                        const hasError = errors.length > 0;
+                        return (
+                          <>
+                            <div className={hasError ? 'score-pill score-pill--error' : 'score-pill'}>
+                              <Form.Item
+                                name={['scores', criterion.id]}
+                                rules={[
+                                  { required: true, message: t('projectVoteDrawer.scoreRequired') },
+                                  {
+                                    validator: async (_rule, value) => {
+                                      if (typeof value !== 'number') {
+                                        throw new Error(t('projectVoteDrawer.scoreMustBeNumber'));
+                                      }
+                                      if (value < 0 || value > criterion.max_score) {
+                                        throw new Error(
+                                          t('projectVoteDrawer.scoreOutOfRange', { max: criterion.max_score }),
+                                        );
+                                      }
+                                    },
+                                  },
+                                ]}
+                                noStyle
+                              >
+                                <InputNumber
+                                  size="large"
+                                  min={0}
+                                  max={criterion.max_score}
+                                  controls={false}
+                                  className="score-card__input"
+                                  placeholder="0"
+                                />
+                              </Form.Item>
+                              <span className="score-pill__max">/ {criterion.max_score}</span>
+                            </div>
+                            {hasError ? <div className="score-card__error">{errors[0]}</div> : null}
+                          </>
+                        );
+                      }}
+                    </Form.Item>
                   </div>
                 </div>
               );
