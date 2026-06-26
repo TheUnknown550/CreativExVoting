@@ -155,6 +155,29 @@ func (h *AdminHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	utils.Success(w, http.StatusOK, map[string]string{"message": "project deactivated"})
 }
 
+func (h *AdminHandler) ImportProjectsCSV(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		utils.Error(w, http.StatusBadRequest, "invalid multipart form")
+		return
+	}
+
+	awardGroupID := r.FormValue("award_group_id")
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, "missing file")
+		return
+	}
+	defer file.Close()
+
+	importedCount, err := h.adminService.ImportProjectsCSV(r.Context(), awardGroupID, file)
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(w, http.StatusCreated, map[string]int{"imported_count": importedCount})
+}
+
 func (h *AdminHandler) ListCriteria(w http.ResponseWriter, r *http.Request) {
 	criteria, err := h.adminService.ListCriteria(r.Context(), r.URL.Query().Get("category_id"))
 	if err != nil {

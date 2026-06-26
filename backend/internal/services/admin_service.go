@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	objectiveMaxLength     = 1500
-	designProcessMaxLength = 2500
-	impactMaxLength        = 2500
+	objectiveMaxLength     = 6000
+	designProcessMaxLength = 7000
+	impactMaxLength        = 6000
 )
 
 func validateProjectPayload(payload models.ProjectPayload) error {

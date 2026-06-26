@@ -229,6 +229,102 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 	return project, err
 }
 
+func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []models.ProjectPayload) (int, error) {
+	if len(payloads) == 0 {
+		return 0, nil
+	}
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(ctx)
+
+	for _, payload := range payloads {
+		existingProjectID, err := r.findProjectIDByCategoryAndTitleTx(ctx, tx, payload.CategoryID, payload.Title)
+		if err != nil {
+			return 0, err
+		}
+
+		if existingProjectID != "" {
+			if _, err := tx.Exec(ctx, `
+				UPDATE projects
+				SET short_description = $2,
+					full_description = $3,
+					concept = $4,
+					designer_name = $5,
+					team_name = $6,
+					image_url = $7,
+					social_media_link = $8,
+					drive_link = $9,
+					extra_details = $10,
+					is_active = $11,
+					updated_at = NOW()
+				WHERE id = $1
+			`, existingProjectID, payload.ShortDescription, payload.FullDescription, payload.Concept,
+				payload.DesignerName, payload.TeamName, payload.ImageURL, payload.SocialMediaLink,
+				payload.DriveLink, payload.ExtraDetails, payload.IsActive,
+			); err != nil {
+				return 0, err
+			}
+			continue
+		}
+
+		project := models.Project{
+			ID:               uuid.NewString(),
+			CategoryID:       payload.CategoryID,
+			Title:            payload.Title,
+			ShortDescription: payload.ShortDescription,
+			FullDescription:  payload.FullDescription,
+			Concept:          payload.Concept,
+			DesignerName:     payload.DesignerName,
+			TeamName:         payload.TeamName,
+			ImageURL:         payload.ImageURL,
+			SocialMediaLink:  payload.SocialMediaLink,
+			DriveLink:        payload.DriveLink,
+			ExtraDetails:     payload.ExtraDetails,
+			IsActive:         payload.IsActive,
+		}
+
+		if _, err := tx.Exec(ctx, `
+				INSERT INTO projects (
+					id, category_id, title, short_description, full_description, concept, designer_name, team_name,
+					image_url, social_media_link, drive_link, extra_details,
+					is_active, created_at, updated_at
+				)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+			`, project.ID, project.CategoryID, project.Title, project.ShortDescription, project.FullDescription, project.Concept,
+			project.DesignerName, project.TeamName, project.ImageURL, project.SocialMediaLink,
+			project.DriveLink, project.ExtraDetails, project.IsActive,
+		); err != nil {
+			return 0, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, err
+	}
+
+	return len(payloads), nil
+}
+
+func (r *AdminRepository) findProjectIDByCategoryAndTitleTx(ctx context.Context, tx pgx.Tx, categoryID string, title string) (string, error) {
+	var projectID string
+	err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM projects
+		WHERE category_id = $1 AND LOWER(TRIM(title)) = LOWER(TRIM($2))
+		LIMIT 1
+	`, categoryID, title).Scan(&projectID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "", nil
+		}
+		return "", err
+	}
+	return projectID, nil
+}
+
 // UpdateProject updates a project and returns the project's previous
 // image_url (captured before the update) so the caller can clean up the old
 // file on disk if it was replaced or removed.

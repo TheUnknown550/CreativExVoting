@@ -137,6 +137,7 @@ func main() {
 
 				admin.Get("/projects", adminHandler.ListProjects)
 				admin.Post("/projects", adminHandler.CreateProject)
+				admin.Post("/projects/import", adminHandler.ImportProjectsCSV)
 				admin.Put("/projects/{id}", adminHandler.UpdateProject)
 				admin.Delete("/projects/{id}", adminHandler.DeleteProject)
 				admin.Get("/projects/{id}/vote-details", adminHandler.ProjectVoteDetail)

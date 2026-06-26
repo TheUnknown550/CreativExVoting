@@ -16,12 +16,13 @@ import {
 } from 'antd';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { UploadFile } from 'antd/es/upload/interface';
 
 import * as adminApi from '../../api/admin';
 import { ApiError, resolveAssetUrl } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import type { Category, Project, ProjectPayload } from '../../types/domain';
+import type { AwardGroup, Category, Project, ProjectPayload } from '../../types/domain';
 import { DESIGN_PROCESS_MAX_LENGTH, IMPACT_MAX_LENGTH, OBJECTIVE_MAX_LENGTH } from '../../utils/projectLimits';
 
 const blankProject: ProjectPayload = {
@@ -44,6 +45,7 @@ export function AdminProjectsPage() {
   const { token } = useAuth();
   const { t } = useLanguage();
   const [form] = Form.useForm<ProjectPayload>();
+  const [awardGroups, setAwardGroups] = useState<AwardGroup[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,10 @@ export function AdminProjectsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [saving, setSaving] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importAwardGroupId, setImportAwardGroupId] = useState<string>();
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importingProjects, setImportingProjects] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageUrl = Form.useWatch('image_url', form);
@@ -73,6 +79,18 @@ export function AdminProjectsPage() {
     }
   }
 
+  async function loadAwardGroups() {
+    if (!token) {
+      return;
+    }
+
+    try {
+      setAwardGroups(await adminApi.getAdminGroups(token));
+    } catch (error) {
+      messageApi.error(error instanceof ApiError ? error.message : 'Unable to load award groups.');
+    }
+  }
+
   async function loadProjects() {
     if (!token) {
       return;
@@ -90,6 +108,7 @@ export function AdminProjectsPage() {
 
   useEffect(() => {
     void loadCategories();
+    void loadAwardGroups();
   }, [token]);
 
   useEffect(() => {
@@ -100,6 +119,12 @@ export function AdminProjectsPage() {
     setEditingProject(null);
     form.setFieldsValue(blankProject);
     setModalOpen(true);
+  }
+
+  function openImportModal() {
+    setImportAwardGroupId(undefined);
+    setImportFile(null);
+    setImportModalOpen(true);
   }
 
   function openEditModal(project: Project) {
@@ -160,6 +185,27 @@ export function AdminProjectsPage() {
     }
   }
 
+  async function handleImportProjects() {
+    if (!token || !importAwardGroupId || !importFile) {
+      messageApi.error('Please choose an award group and CSV file.');
+      return;
+    }
+
+    setImportingProjects(true);
+    try {
+      const result = await adminApi.importProjectsCsv(token, importAwardGroupId, importFile);
+      setImportModalOpen(false);
+      setImportAwardGroupId(undefined);
+      setImportFile(null);
+      await loadProjects();
+      messageApi.success(`Imported ${result.imported_count} projects successfully.`);
+    } catch (error) {
+      messageApi.error(error instanceof ApiError ? error.message : 'Unable to import projects.');
+    } finally {
+      setImportingProjects(false);
+    }
+  }
+
   return (
     <>
       {contextHolder}
@@ -185,9 +231,14 @@ export function AdminProjectsPage() {
               />
             </div>
 
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-              {t('adminProjects.newProject')}
-            </Button>
+            <Space>
+              <Button icon={<UploadOutlined />} onClick={openImportModal}>
+                Upload Project
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+                {t('adminProjects.newProject')}
+              </Button>
+            </Space>
           </div>
 
           <Table<Project>
@@ -268,6 +319,53 @@ export function AdminProjectsPage() {
           />
         </Card>
       </Space>
+
+      <Modal
+        open={importModalOpen}
+        title="Upload Projects"
+        onCancel={() => setImportModalOpen(false)}
+        onOk={() => void handleImportProjects()}
+        confirmLoading={importingProjects}
+        destroyOnHidden
+      >
+        <Form layout="vertical">
+          <Form.Item label="Super Award" required>
+            <Select
+              placeholder="Select award group"
+              value={importAwardGroupId}
+              onChange={(value) => setImportAwardGroupId(value)}
+              options={awardGroups.map((group) => ({ value: group.id, label: group.name }))}
+            />
+          </Form.Item>
+          <Form.Item label="CSV File" required>
+            <Upload
+              accept=".csv,text/csv"
+              maxCount={1}
+              beforeUpload={() => false}
+              fileList={
+                importFile
+                  ? [
+                      {
+                        uid: 'csv-upload',
+                        name: importFile.name,
+                        status: 'done',
+                      } as UploadFile,
+                    ]
+                  : []
+              }
+              onChange={({ fileList }) => {
+                const nextFile = fileList[0]?.originFileObj;
+                setImportFile(nextFile ?? null);
+              }}
+              onRemove={() => {
+                setImportFile(null);
+              }}
+            >
+              <Button icon={<UploadOutlined />}>Choose CSV</Button>
+            </Upload>
+          </Form.Item>
+        </Form>
+      </Modal>
 
       <Modal
         open={modalOpen}

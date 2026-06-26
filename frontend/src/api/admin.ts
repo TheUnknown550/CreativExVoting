@@ -1,4 +1,4 @@
-import { apiRequest, buildQuery, downloadAuthorizedFile, uploadAuthorizedFile } from './client';
+import { apiRequest, buildQuery, downloadAuthorizedFile, uploadAuthorizedFile, uploadAuthorizedFormData } from './client';
 import type {
   AwardGroup,
   Category,
@@ -81,6 +81,13 @@ export function deleteProject(token: string, id: string) {
     method: 'DELETE',
     token,
   });
+}
+
+export function importProjectsCsv(token: string, awardGroupId: string, file: File) {
+  const form = new FormData();
+  form.append('award_group_id', awardGroupId);
+  form.append('file', file);
+  return uploadAuthorizedFormData<{ imported_count: number }>('/admin/projects/import', form, token);
 }
 
 export function getAdminCriteria(token: string, categoryId?: string) {

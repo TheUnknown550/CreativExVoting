@@ -98,6 +98,37 @@ export async function uploadAuthorizedFile<T>(
   return payload.data as T;
 }
 
+export async function uploadAuthorizedFormData<T>(
+  path: string,
+  form: FormData,
+  token: string | null,
+): Promise<T> {
+  const headers = new Headers();
+  headers.set('Accept', 'application/json');
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: form,
+  });
+
+  if (response.status === 401) {
+    unauthorizedHandler?.();
+  }
+
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  const payload = isJson ? ((await response.json()) as ApiEnvelope<T>) : null;
+
+  if (!response.ok || !payload?.success) {
+    throw new ApiError(payload?.error ?? response.statusText, response.status);
+  }
+
+  return payload.data as T;
+}
+
 export async function downloadAuthorizedFile(path: string, token: string | null) {
   const headers = new Headers();
   if (token) {
