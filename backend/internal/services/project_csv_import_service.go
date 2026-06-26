@@ -6,7 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
+	"path"
+	"regexp"
+	"runtime"
 	"strings"
+	"sync"
+	"time"
 
 	"creativexvoting/backend/internal/models"
 )
@@ -37,12 +44,26 @@ var csvRequiredHeaders = []string{
 	csvHeaderImage,
 }
 
+var googleDriveFilePattern = regexp.MustCompile(`/file/d/([^/]+)`)
+
+const maxParallelImageImports = 6
+
+type pendingImportRow struct {
+	payload      models.ProjectPayload
+	hasExisting  bool
+	existingProj models.Project
+}
+
 func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID string, file io.Reader) (int, error) {
 	if awardGroupID == "" {
 		return 0, errors.New("award group is required")
 	}
 
 	categories, err := s.repo.ListCategories(ctx)
+	if err != nil {
+		return 0, err
+	}
+	existingProjects, err := s.repo.ListProjects(ctx, "", "")
 	if err != nil {
 		return 0, err
 	}
@@ -58,6 +79,11 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 		}
 		categoryByName[normalizeLookup(category.Name)] = category.ID
 		categoryCount++
+	}
+
+	existingByKey := make(map[string]models.Project, len(existingProjects))
+	for _, project := range existingProjects {
+		existingByKey[projectLookupKey(project.CategoryID, project.Title)] = project
 	}
 
 	if categoryCount == 0 {
@@ -86,7 +112,7 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 		}
 	}
 
-	payloads := make([]models.ProjectPayload, 0, len(rows)-1)
+	pendingRows := make([]pendingImportRow, 0, len(rows)-1)
 	for rowIndex, rawRow := range rows[1:] {
 		record := rowValuesByHeader(headers, rawRow)
 		if rowIsEmpty(record) {
@@ -124,7 +150,17 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 			return 0, fmt.Errorf("row %d: %w", rowIndex+2, err)
 		}
 
-		payloads = append(payloads, payload)
+		existingProject, hasExisting := existingByKey[projectLookupKey(payload.CategoryID, payload.Title)]
+		pendingRows = append(pendingRows, pendingImportRow{
+			payload:      payload,
+			hasExisting:  hasExisting,
+			existingProj: existingProject,
+		})
+	}
+
+	payloads := make([]models.ProjectPayload, len(pendingRows))
+	if err := s.prepareImportedImagesInParallel(ctx, pendingRows, payloads); err != nil {
+		return 0, err
 	}
 
 	if len(payloads) == 0 {
@@ -132,6 +168,191 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 	}
 
 	return s.repo.CreateProjectsBatch(ctx, payloads)
+}
+
+func (s *AdminService) prepareImportedImagesInParallel(
+	ctx context.Context,
+	rows []pendingImportRow,
+	out []models.ProjectPayload,
+) error {
+	workerCount := min(maxParallelImageImports, len(rows))
+	if workerCount <= 0 {
+		return nil
+	}
+	workerCount = min(workerCount, runtime.NumCPU())
+	if workerCount < 1 {
+		workerCount = 1
+	}
+
+	type job struct {
+		index int
+		row   pendingImportRow
+	}
+
+	jobs := make(chan job)
+	var wg sync.WaitGroup
+
+	for i := 0; i < workerCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for current := range jobs {
+				payload := current.row.payload
+				payload.ImageURL, payload.ImageSourceURL = s.prepareImportedImage(
+					ctx,
+					payload.ImageURL,
+					current.row.hasExisting,
+					current.row.existingProj,
+				)
+				out[current.index] = payload
+			}
+		}()
+	}
+
+	for index, row := range rows {
+		select {
+		case <-ctx.Done():
+			close(jobs)
+			wg.Wait()
+			return ctx.Err()
+		case jobs <- job{index: index, row: row}:
+		}
+	}
+
+	close(jobs)
+	wg.Wait()
+
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *AdminService) prepareImportedImage(ctx context.Context, rawURL string, hasExisting bool, existing models.Project) (string, string) {
+	sourceURL := normalizeText(rawURL)
+	if sourceURL == "" {
+		return "", ""
+	}
+
+	if hasExisting && normalizeText(existing.ImageSourceURL) == sourceURL {
+		return existing.ImageURL, existing.ImageSourceURL
+	}
+
+	if isGoogleDriveURL(sourceURL) {
+		imageURL, err := s.downloadAndStoreImportedImage(ctx, sourceURL)
+		if err != nil {
+			return "", sourceURL
+		}
+		return imageURL, sourceURL
+	}
+
+	if isDirectImageURL(sourceURL) {
+		return sourceURL, sourceURL
+	}
+
+	isImage, err := remoteURLLooksLikeImage(ctx, sourceURL)
+	if err != nil {
+		return sourceURL, sourceURL
+	}
+	if isImage {
+		return sourceURL, sourceURL
+	}
+
+	return "", sourceURL
+}
+
+func (s *AdminService) downloadAndStoreImportedImage(ctx context.Context, rawURL string) (string, error) {
+	downloadURL, err := toGoogleDriveDownloadURL(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("download returned status %d", resp.StatusCode)
+	}
+
+	savedURL, err := s.imageService.Save(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return savedURL, nil
+}
+
+func isGoogleDriveURL(rawURL string) bool {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+
+	host := strings.ToLower(parsed.Host)
+	return strings.Contains(host, "drive.google.com")
+}
+
+func isDirectImageURL(rawURL string) bool {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+
+	ext := strings.ToLower(path.Ext(parsed.Path))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg", ".avif":
+		return true
+	default:
+		return false
+	}
+}
+
+func remoteURLLooksLikeImage(ctx context.Context, rawURL string) (bool, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, rawURL, nil)
+	if err != nil {
+		return false, err
+	}
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil || resp == nil {
+		return false, nil
+	}
+	defer resp.Body.Close()
+
+	return strings.HasPrefix(strings.ToLower(resp.Header.Get("Content-Type")), "image/"), nil
+}
+
+func toGoogleDriveDownloadURL(rawURL string) (string, error) {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	if matches := googleDriveFilePattern.FindStringSubmatch(parsed.Path); len(matches) == 2 {
+		return "https://drive.google.com/uc?export=download&id=" + matches[1], nil
+	}
+
+	fileID := parsed.Query().Get("id")
+	if fileID == "" {
+		return "", errors.New("unsupported Google Drive image URL")
+	}
+
+	return "https://drive.google.com/uc?export=download&id=" + fileID, nil
+}
+
+func projectLookupKey(categoryID string, title string) string {
+	return categoryID + "::" + normalizeLookup(title)
 }
 
 func sanitizeHeaders(headers []string) []string {

@@ -34,11 +34,16 @@ const blankProject: ProjectPayload = {
   designer_name: '',
   team_name: '',
   image_url: '',
+  image_source_url: '',
   social_media_link: '',
   drive_link: '',
   extra_details: '',
   is_active: true,
 };
+
+function isExternalImageValue(value: string | undefined) {
+  return Boolean(value && /^(?:[a-z]+:)?\/\//i.test(value));
+}
 
 export function AdminProjectsPage() {
   const navigate = useNavigate();
@@ -138,6 +143,7 @@ export function AdminProjectsPage() {
       designer_name: project.designer_name,
       team_name: project.team_name,
       image_url: project.image_url,
+      image_source_url: project.image_source_url,
       social_media_link: project.social_media_link,
       drive_link: project.drive_link,
       extra_details: project.extra_details,
@@ -151,12 +157,22 @@ export function AdminProjectsPage() {
       return;
     }
 
+    const payload: ProjectPayload = {
+      ...values,
+      image_source_url:
+        values.image_source_url && values.image_source_url.trim()
+          ? values.image_source_url
+          : isExternalImageValue(values.image_url)
+            ? values.image_url
+            : '',
+    };
+
     setSaving(true);
     try {
       if (editingProject) {
-        await adminApi.updateProject(token, editingProject.id, values);
+        await adminApi.updateProject(token, editingProject.id, payload);
       } else {
-        await adminApi.createProject(token, values);
+        await adminApi.createProject(token, payload);
       }
       setModalOpen(false);
       await loadProjects();
@@ -431,6 +447,7 @@ export function AdminProjectsPage() {
                       try {
                         const { url } = await adminApi.uploadProjectImage(token, file as File);
                         form.setFieldValue('image_url', url);
+                        form.setFieldValue('image_source_url', '');
                         messageApi.success(t('adminProjects.imageUploaded'));
                         onSuccess?.({});
                       } catch (error) {
@@ -452,7 +469,20 @@ export function AdminProjectsPage() {
                   ) : null}
                 </Space>
               </div>
-              <Form.Item name="image_url" hidden>
+              <Form.Item
+                name="image_url"
+                label={t('adminProjects.imageUrl')}
+                extra={t('adminProjects.imageUrlHelp')}
+              >
+                <Input
+                  placeholder={t('adminProjects.imageUrlPlaceholder')}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    form.setFieldValue('image_source_url', isExternalImageValue(nextValue) ? nextValue : '');
+                  }}
+                />
+              </Form.Item>
+              <Form.Item name="image_source_url" hidden>
                 <Input />
               </Form.Item>
             </section>

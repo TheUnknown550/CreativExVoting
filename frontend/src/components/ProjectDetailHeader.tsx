@@ -23,6 +23,7 @@ export function ProjectDetailHeader({ project, badge, onImageClick }: ProjectDet
   const heroFields: Array<{ label: string; value?: string }> = [
     { label: t('judgeProjectDetail.owner'), value: project.team_name },
     { label: t('judgeProjectDetail.designer'), value: project.designer_name },
+    { label: t('judgeProjectDetail.imageLink'), value: project.image_source_url },
     { label: t('judgeProjectDetail.socialMedia'), value: project.social_media_link },
     { label: t('judgeProjectDetail.creativeArea'), value: project.extra_details },
     { label: t('judgeProjectDetail.objective'), value: project.short_description },

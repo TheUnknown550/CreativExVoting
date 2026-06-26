@@ -38,6 +38,7 @@ func scanProject(scanner projectScanner) (models.Project, error) {
 		&project.DesignerName,
 		&project.TeamName,
 		&project.ImageURL,
+		&project.ImageSourceURL,
 		&project.SocialMediaLink,
 		&project.DriveLink,
 		&project.ExtraDetails,

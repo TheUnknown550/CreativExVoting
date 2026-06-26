@@ -104,7 +104,7 @@ func (r *JudgeRepository) ListProjects(ctx context.Context, judgeID string, cate
 
 	query := fmt.Sprintf(`
 		SELECT
-			p.id, p.category_id, p.title, p.short_description, p.designer_name, p.team_name, p.image_url,
+			p.id, p.category_id, p.title, p.short_description, p.designer_name, p.team_name, p.image_url, COALESCE(p.image_source_url, ''),
 			(v.id IS NOT NULL) AS has_voted,
 			v.total_score,
 			c.name
@@ -134,6 +134,7 @@ func (r *JudgeRepository) ListProjects(ctx context.Context, judgeID string, cate
 			&project.DesignerName,
 			&project.TeamName,
 			&project.ImageURL,
+			&project.ImageSourceURL,
 			&project.HasVoted,
 			&currentScore,
 			&project.CategoryName,
@@ -153,7 +154,7 @@ func (r *JudgeRepository) GetProjectDetail(ctx context.Context, judgeID string, 
 	rows, err := r.pool.Query(ctx, `
 		SELECT
 			p.id, p.category_id, c.name, p.title, p.short_description, p.full_description, p.concept,
-			p.designer_name, p.team_name, p.image_url, p.social_media_link,
+			p.designer_name, p.team_name, p.image_url, COALESCE(p.image_source_url, ''), p.social_media_link,
 			p.drive_link, p.extra_details, p.is_active, p.created_at, p.updated_at
 		FROM projects p
 		JOIN categories c ON c.id = p.category_id
@@ -272,12 +273,12 @@ func (r *JudgeRepository) UpsertVote(ctx context.Context, judgeID string, projec
 
 	if err == pgx.ErrNoRows {
 		vote = models.Vote{
-			ID:         uuid.NewString(),
-			JudgeID:    judgeID,
-			ProjectID:  project.ID,
-			TotalScore: totalScore,
-			CreatedAt:  now,
-			UpdatedAt:  now,
+			ID:          uuid.NewString(),
+			JudgeID:     judgeID,
+			ProjectID:   project.ID,
+			TotalScore:  totalScore,
+			CreatedAt:   now,
+			UpdatedAt:   now,
 			SubmittedAt: &now,
 		}
 		if _, err = tx.Exec(ctx, `
@@ -288,12 +289,12 @@ func (r *JudgeRepository) UpsertVote(ctx context.Context, judgeID string, projec
 		}
 	} else {
 		vote = models.Vote{
-			ID:         existingID,
-			JudgeID:    judgeID,
-			ProjectID:  project.ID,
-			TotalScore: totalScore,
-			CreatedAt:  existingCreatedAt,
-			UpdatedAt:  now,
+			ID:          existingID,
+			JudgeID:     judgeID,
+			ProjectID:   project.ID,
+			TotalScore:  totalScore,
+			CreatedAt:   existingCreatedAt,
+			UpdatedAt:   now,
 			SubmittedAt: &now,
 		}
 		if _, err = tx.Exec(ctx, `

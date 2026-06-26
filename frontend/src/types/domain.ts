@@ -62,6 +62,7 @@ export interface Project {
   designer_name: string;
   team_name: string;
   image_url: string;
+  image_source_url: string;
   social_media_link: string;
   drive_link: string;
   extra_details: string;
@@ -112,6 +113,7 @@ export interface JudgeProjectCard {
   designer_name: string;
   team_name: string;
   image_url: string;
+  image_source_url: string;
   has_voted: boolean;
   current_score?: number | null;
   category_name: string;
@@ -214,6 +216,7 @@ export interface ProjectPayload {
   designer_name: string;
   team_name: string;
   image_url: string;
+  image_source_url?: string;
   social_media_link: string;
   drive_link: string;
   extra_details: string;
