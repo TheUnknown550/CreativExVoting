@@ -64,38 +64,22 @@ export function AdminDashboardPage() {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={14}>
-          <Card className="soft-card" title={t('adminDashboard.quickActions')}>
-            <Row gutter={[16, 16]}>
-              {quickLinks.map((link) => (
-                <Col xs={24} md={12} key={link.to}>
-                  <Link to={link.to} style={{ textDecoration: 'none' }}>
-                    <Card hoverable bordered={false} className="soft-card">
-                      <Space>
-                        {link.icon}
-                        <Typography.Text strong>{link.label}</Typography.Text>
-                      </Space>
-                    </Card>
-                  </Link>
-                </Col>
-              ))}
-            </Row>
-          </Card>
-        </Col>
-
-        <Col xs={24} xl={10}>
-          <Card className="soft-card" title={t('adminDashboard.submissionSnapshot')}>
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Statistic title={t('adminDashboard.votesSubmitted')} value={stats?.total_votes_submitted ?? 0} />
-              <Statistic
-                title={t('adminDashboard.possibleVoteCount')}
-                value={stats?.possible_vote_count ?? 0}
-              />
-            </Space>
-          </Card>
-        </Col>
-      </Row>
+      <Card className="soft-card" title={t('adminDashboard.quickActions')}>
+        <Row gutter={[16, 16]}>
+          {quickLinks.map((link) => (
+            <Col xs={24} md={12} xl={6} key={link.to}>
+              <Link to={link.to} style={{ textDecoration: 'none' }}>
+                <Card hoverable bordered={false} className="soft-card">
+                  <Space>
+                    {link.icon}
+                    <Typography.Text strong>{link.label}</Typography.Text>
+                  </Space>
+                </Card>
+              </Link>
+            </Col>
+          ))}
+        </Row>
+      </Card>
     </Space>
   );
 }
