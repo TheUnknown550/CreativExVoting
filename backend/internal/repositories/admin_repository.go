@@ -22,6 +22,22 @@ func NewAdminRepository(pool *pgxpool.Pool) *AdminRepository {
 	return &AdminRepository{pool: pool}
 }
 
+func (r *AdminRepository) GetLandingStats(ctx context.Context) (models.LandingStats, error) {
+	var stats models.LandingStats
+
+	query := `
+		SELECT
+			(SELECT COUNT(*) FROM categories WHERE is_active = TRUE),
+			(SELECT COUNT(*) FROM projects WHERE is_active = TRUE)
+	`
+
+	if err := r.pool.QueryRow(ctx, query).Scan(&stats.TotalAwards, &stats.TotalActiveProjects); err != nil {
+		return stats, err
+	}
+
+	return stats, nil
+}
+
 func (r *AdminRepository) GetDashboardStats(ctx context.Context) (models.DashboardStats, error) {
 	var stats models.DashboardStats
 

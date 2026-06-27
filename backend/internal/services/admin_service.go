@@ -39,6 +39,10 @@ func NewAdminService(repo *repositories.AdminRepository, imageService *ImageServ
 	return &AdminService{repo: repo, imageService: imageService}
 }
 
+func (s *AdminService) LandingStats(ctx context.Context) (models.LandingStats, error) {
+	return s.repo.GetLandingStats(ctx)
+}
+
 func (s *AdminService) Dashboard(ctx context.Context) (models.DashboardStats, error) {
 	return s.repo.GetDashboardStats(ctx)
 }

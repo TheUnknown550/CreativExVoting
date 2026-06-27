@@ -1,12 +1,36 @@
 import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
+import { getLandingStats } from '../../api/auth';
 import { ApiError } from '../../api/client';
 import { BrandMark } from '../../components/BrandMark';
 import { LanguageToggle } from '../../components/LanguageToggle';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import type { LandingStats } from '../../types/domain';
+
+const VOTING_DEADLINE_ISO = '2026-07-15T23:59:00+07:00';
+
+function formatVotingCountdown(language: 'en' | 'th', endedLabel: string, nowMs: number) {
+  const deadlineMs = new Date(VOTING_DEADLINE_ISO).getTime();
+  const remainingMs = deadlineMs - nowMs;
+
+  if (remainingMs <= 0) {
+    return endedLabel;
+  }
+
+  const hourMs = 60 * 60 * 1000;
+  const dayMs = 24 * hourMs;
+
+  if (remainingMs < dayMs) {
+    const hours = Math.ceil(remainingMs / hourMs);
+    return language === 'th' ? `${hours} ชั่วโมง` : `${hours} Hours`;
+  }
+
+  const days = Math.ceil(remainingMs / dayMs);
+  return language === 'th' ? `${days} วัน` : `${days} Days`;
+}
 
 interface LoginFormValues {
   username: string;
@@ -17,10 +41,36 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, login } = useAuth();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [form] = Form.useForm<LoginFormValues>();
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [landingStats, setLandingStats] = useState<LandingStats | null>(null);
+  const [countdownLabel, setCountdownLabel] = useState(() =>
+    formatVotingCountdown(language, t('login.statEnded'), Date.now()),
+  );
+
+  const loadLandingStats = useEffectEvent(async () => {
+    try {
+      setLandingStats(await getLandingStats());
+    } catch {
+      setLandingStats(null);
+    }
+  });
+
+  useEffect(() => {
+    void loadLandingStats();
+  }, [loadLandingStats]);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      setCountdownLabel(formatVotingCountdown(language, t('login.statEnded'), Date.now()));
+    };
+
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, [language, t]);
 
   if (user) {
     return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/judge'} replace />;
@@ -66,15 +116,15 @@ export function LoginPage() {
 
           <div className="ce-login__stats">
             <div className="ce-login__stat">
-              <strong>15</strong>
+              <strong>{landingStats?.total_awards ?? '--'}</strong>
               <span>{t('login.statAwards')}</span>
             </div>
             <div className="ce-login__stat">
-              <strong>150</strong>
+              <strong>{landingStats?.total_active_projects ?? '--'}</strong>
               <span>{t('login.statNominatedWorks')}</span>
             </div>
             <div className="ce-login__stat">
-              <strong>{t('login.statVotingWindow')}</strong>
+              <strong>{countdownLabel}</strong>
               <span>{t('login.statVotingWindowLabel')}</span>
             </div>
           </div>

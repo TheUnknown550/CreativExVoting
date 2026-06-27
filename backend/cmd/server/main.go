@@ -107,6 +107,10 @@ func main() {
 			auth.Get("/me", authHandler.Me)
 		})
 
+		api.Route("/public", func(public chi.Router) {
+			public.Get("/landing-stats", adminHandler.LandingStats)
+		})
+
 		api.Group(func(secured chi.Router) {
 			secured.Use(appMiddleware.RequireAuth(authService))
 

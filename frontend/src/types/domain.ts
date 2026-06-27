@@ -142,6 +142,11 @@ export interface DashboardStats {
   possible_vote_count: number;
 }
 
+export interface LandingStats {
+  total_awards: number;
+  total_active_projects: number;
+}
+
 export interface AdminProjectRanking {
   ranking: number;
   project_id: string;

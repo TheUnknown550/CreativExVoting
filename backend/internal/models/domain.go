@@ -152,6 +152,11 @@ type DashboardStats struct {
 	PossibleVoteCount    int     `json:"possible_vote_count"`
 }
 
+type LandingStats struct {
+	TotalAwards         int `json:"total_awards"`
+	TotalActiveProjects int `json:"total_active_projects"`
+}
+
 type AdminProjectRanking struct {
 	Ranking           int     `json:"ranking"`
 	ProjectID         string  `json:"project_id"`

@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import type { LoginResponse, User } from '../types/domain';
+import type { LandingStats, LoginResponse, User } from '../types/domain';
 
 export function login(username: string, password: string) {
   return apiRequest<LoginResponse>('/auth/login', {
@@ -10,4 +10,8 @@ export function login(username: string, password: string) {
 
 export function me(token: string) {
   return apiRequest<User>('/auth/me', { token });
+}
+
+export function getLandingStats() {
+  return apiRequest<LandingStats>('/public/landing-stats');
 }

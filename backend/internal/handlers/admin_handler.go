@@ -45,6 +45,15 @@ func (h *AdminHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	utils.Success(w, http.StatusOK, map[string]string{"url": url})
 }
 
+func (h *AdminHandler) LandingStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.adminService.LandingStats(r.Context())
+	if err != nil {
+		utils.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.Success(w, http.StatusOK, stats)
+}
+
 func (h *AdminHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	stats, err := h.adminService.Dashboard(r.Context())
 	if err != nil {
