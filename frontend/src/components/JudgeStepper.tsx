@@ -10,30 +10,28 @@ interface JudgeStepperProps {
   categoryId?: string;
 }
 
-// Four-step progress bar shown across the judge flow:
-// 1) select group (หมวด) 2) select sub-category (สาขา) 3) vote 4) summary.
+// Active judge flow: 1) select category 2) vote 3) summary.
 export function JudgeStepper({ current, groupId, categoryId }: JudgeStepperProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   const steps: Array<{ step: JudgeStep; label: string; target: string | null }> = [
-    { step: 1, label: t('judgeStepper.step1'), target: '/judge' },
+    {
+      step: 1,
+      label: t('judgeStepper.step1'),
+      target: groupId ? `/judge/groups/${groupId}` : '/judge',
+    },
     {
       step: 2,
       label: t('judgeStepper.step2'),
-      target: groupId ? `/judge/groups/${groupId}` : null,
-    },
-    {
-      step: 3,
-      label: t('judgeStepper.step3'),
       target:
         groupId && categoryId
           ? `/judge/groups/${groupId}/categories/${categoryId}/projects`
           : null,
     },
     {
-      step: 4,
-      label: t('judgeStepper.step4'),
+      step: 3,
+      label: t('judgeStepper.step3'),
       target:
         groupId && categoryId
           ? `/judge/groups/${groupId}/categories/${categoryId}/summary`

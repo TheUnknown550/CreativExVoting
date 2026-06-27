@@ -160,7 +160,7 @@ export function JudgeProjectDetailPage() {
   if (loading) {
     return (
       <>
-        <JudgeStepper current={3} groupId={groupId} categoryId={categoryId} />
+        <JudgeStepper current={2} groupId={groupId} categoryId={categoryId} />
         <div className="full-height-spin" style={{ minHeight: 320 }}>
           <Spin size="large" />
         </div>
@@ -171,7 +171,7 @@ export function JudgeProjectDetailPage() {
   if (!detail) {
     return (
       <>
-        <JudgeStepper current={3} groupId={groupId} categoryId={categoryId} />
+        <JudgeStepper current={2} groupId={groupId} categoryId={categoryId} />
         <Alert type="error" showIcon message={errorMessage ?? t('judgeWorkspace.openProjectError')} />
       </>
     );
@@ -182,7 +182,7 @@ export function JudgeProjectDetailPage() {
   return (
     <>
       {contextHolder}
-      <JudgeStepper current={3} groupId={groupId} categoryId={categoryId} />
+      <JudgeStepper current={2} groupId={groupId} categoryId={categoryId} />
 
       {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
 

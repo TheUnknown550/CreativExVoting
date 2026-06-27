@@ -35,9 +35,9 @@ export const en = {
     subtitle: 'Judge workspace',
   },
   judgeStepper: {
-    step1: 'Select Group',
-    step2: 'Select Category',
-    step3: 'Vote Candidates',
+    step1: 'Select Category',
+    step2: 'Vote Candidates',
+    step3: 'Vote Summary',
     step4: 'Vote Summary',
   },
   judgeGroups: {

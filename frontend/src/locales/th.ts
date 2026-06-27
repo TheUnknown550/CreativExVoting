@@ -37,9 +37,9 @@ export const th: TranslationDict = {
     subtitle: 'พื้นที่ทำงานกรรมการ',
   },
   judgeStepper: {
-    step1: 'เลือกหมวด',
-    step2: 'เลือกสาขา',
-    step3: 'โหวตผู้สมัคร',
+    step1: 'เลือกสาขา',
+    step2: 'โหวตผู้สมัคร',
+    step3: 'สรุปผลโหวต',
     step4: 'สรุปผลโหวต',
   },
   judgeGroups: {

@@ -118,7 +118,7 @@ export function JudgeWorkspacePage() {
 
   return (
     <>
-      <JudgeStepper current={currentTab === 'summary' ? 4 : 3} groupId={groupId} categoryId={categoryId} />
+      <JudgeStepper current={currentTab === 'summary' ? 3 : 2} groupId={groupId} categoryId={categoryId} />
 
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <section className="judge-toolbar">

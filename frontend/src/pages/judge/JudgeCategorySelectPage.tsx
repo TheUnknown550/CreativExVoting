@@ -69,7 +69,7 @@ export function JudgeCategorySelectPage() {
 
   return (
     <>
-      <JudgeStepper current={2} groupId={groupId} />
+      <JudgeStepper current={1} groupId={groupId} />
 
       {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
 
