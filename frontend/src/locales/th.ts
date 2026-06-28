@@ -20,7 +20,7 @@ export const th: TranslationDict = {
     bannerTitle: 'CE Awards 2026',
     headline: 'CREATIVE EXCELLENCE AWARDS 2026',
     intro:
-      'เว็บไซต์ลงคะแนนรางวัลความเป็นเลิศด้านความคิดสร้างสรรค์ ประจำปี 2569 โดย \nสำนักงานส่งเสริมเศรษฐกิจสร้างสรรค์ (องค์การมหาชน) CEA',
+      'เว็บไซต์ลงคะแนนรางวัลความเป็นเลิศด้านความคิดสร้างสรรค์ ประจำปี 2569 \nโดย สำนักงานส่งเสริมเศรษฐกิจสร้างสรรค์ (องค์การมหาชน) CEA',
     statAwards: 'รางวัล',
     statNominatedWorks: 'ผลงานที่เข้าชิง',
     statVotingWindowLabel: 'ระยะเวลาลงคะแนน',
