@@ -858,6 +858,7 @@ img {
   margin: 24px auto 0;
   color: #2d2d2d;
   font-size: clamp(1rem, 1.3vw, 1.35rem);
+  white-space: pre-line;
 }
 
 .ce-login__stats {
