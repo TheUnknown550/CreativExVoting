@@ -66,9 +66,29 @@ export interface Project {
   social_media_link: string;
   drive_link: string;
   extra_details: string;
+  special_details: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface HallOfFameSection {
+  key: string;
+  title_th: string;
+  title_en?: string;
+  content: string;
+  link?: string;
+}
+
+export interface HallOfFameDetails {
+  variant: 'hall_of_fame_company' | 'hall_of_fame_brand';
+  entity_label_th: string;
+  entity_label_en: string;
+  description_label_th: string;
+  description_label_en: string;
+  description: string;
+  sections: HallOfFameSection[];
+  notes?: string;
 }
 
 export interface ScoringCriterion {
@@ -225,6 +245,7 @@ export interface ProjectPayload {
   social_media_link: string;
   drive_link: string;
   extra_details: string;
+  special_details: string;
   is_active: boolean;
 }
 

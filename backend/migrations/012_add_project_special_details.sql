@@ -1,0 +1,2 @@
+ALTER TABLE projects
+    ADD COLUMN IF NOT EXISTS special_details TEXT NOT NULL DEFAULT '';

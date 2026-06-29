@@ -42,6 +42,7 @@ func scanProject(scanner projectScanner) (models.Project, error) {
 		&project.SocialMediaLink,
 		&project.DriveLink,
 		&project.ExtraDetails,
+		&project.SpecialDetails,
 		&project.IsActive,
 		&project.CreatedAt,
 		&project.UpdatedAt,

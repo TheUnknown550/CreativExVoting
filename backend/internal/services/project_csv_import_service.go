@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,6 +31,18 @@ const (
 	csvHeaderImpact    = "ผลกระทบต่อเศรษฐกิจ สังคม และความยั่งยืน"
 	csvHeaderDrive     = "ผลงาน"
 	csvHeaderImage     = "รูปภาพ"
+
+	hofHeaderCompanyName     = "ชื่อองค์กร"
+	hofHeaderBrandName       = "ชื่อแบรนด์"
+	hofHeaderDescription     = "รายละเอียด"
+	hofHeaderDescriptionTypo = "รายละเอียก"
+	hofHeaderLogo            = "โลโก้"
+	hofHeaderNotes           = "หมายเหตุ"
+	hofHeaderLink1           = "Link 1"
+	hofHeaderLink2           = "Link 2"
+	hofHeaderLink3           = "Link 3"
+	hofHeaderLink4           = "Link 4"
+	hofHeaderLink5           = "Link 5"
 )
 
 var csvRequiredHeaders = []string{
@@ -47,6 +60,28 @@ var csvRequiredHeaders = []string{
 var googleDriveFilePattern = regexp.MustCompile(`/file/d/([^/]+)`)
 
 const maxParallelImageImports = 6
+
+type hallOfFameSectionSpec struct {
+	Key     string
+	TitleTh string
+	TitleEn string
+}
+
+var hallOfFameCompanySections = []hallOfFameSectionSpec{
+	{Key: models.HallOfFameResilienceSectionKey, TitleTh: "ความคิดสร้างสรรค์ในการฝ่าอุปสรรค", TitleEn: "Creativity in overcoming obstacles"},
+	{Key: models.HallOfFameTechnologySectionKey, TitleTh: "ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี", TitleEn: "Expanding creativity with technology"},
+	{Key: models.HallOfFameTransparencySectionKey, TitleTh: "ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้", TitleEn: "Creativity through tangible transparency"},
+	{Key: models.HallOfFameOpportunitySectionKey, TitleTh: "ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น", TitleEn: "Creativity that opens opportunities for others"},
+	{Key: models.HallOfFameOwnershipSectionKey, TitleTh: "ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ", TitleEn: "Creativity that builds ownership"},
+}
+
+var hallOfFameBrandSections = []hallOfFameSectionSpec{
+	{Key: models.HallOfFameResilienceSectionKey, TitleTh: "ความคิดสร้างสรรค์ในการฝ่าอุปสรรค", TitleEn: "Creativity in overcoming obstacles"},
+	{Key: models.HallOfFameTechnologySectionKey, TitleTh: "ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี", TitleEn: "Expanding creativity with technology"},
+	{Key: models.HallOfFameTransparencySectionKey, TitleTh: "ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้", TitleEn: "Creativity through tangible transparency"},
+	{Key: models.HallOfFameOpportunitySectionKey, TitleTh: "ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น", TitleEn: "Creativity that opens opportunities for others"},
+	{Key: models.HallOfFameOwnershipSectionKey, TitleTh: "ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ", TitleEn: "Creativity that builds ownership"},
+}
 
 type pendingImportRow struct {
 	payload      models.ProjectPayload
@@ -68,23 +103,8 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 		return 0, err
 	}
 
-	categoryByName := make(map[string]string)
-	categoryCount := 0
-	for _, category := range categories {
-		if category.AwardGroupID == nil || *category.AwardGroupID != awardGroupID {
-			continue
-		}
-		if !category.IsActive {
-			continue
-		}
-		categoryByName[normalizeLookup(category.Name)] = category.ID
-		categoryCount++
-	}
-
-	existingByKey := make(map[string]models.Project, len(existingProjects))
-	for _, project := range existingProjects {
-		existingByKey[projectLookupKey(project.CategoryID, project.Title)] = project
-	}
+	categoryByName, categoryCount := buildGroupedCategoryMap(categories, awardGroupID)
+	existingByKey := buildExistingProjectMap(existingProjects)
 
 	if categoryCount == 0 {
 		return 0, errors.New("no active categories found for the selected award group")
@@ -101,13 +121,12 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 	}
 
 	headers := sanitizeHeaders(rows[0])
-	headerIndex := make(map[string]int, len(headers))
-	for index, header := range headers {
-		headerIndex[header] = index
+	if detectHallOfFameCSV(headers) {
+		return s.importHallOfFameCSV(ctx, headers, rows[1:], categoryByName, existingByKey)
 	}
 
 	for _, required := range csvRequiredHeaders {
-		if _, exists := headerIndex[required]; !exists {
+		if !hasHeader(headers, required) {
 			return 0, fmt.Errorf("csv is missing required column %q", required)
 		}
 	}
@@ -123,6 +142,7 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 		if awardName == "" {
 			continue
 		}
+
 		categoryID, exists := categoryByName[normalizeLookup(awardName)]
 		if !exists {
 			return 0, fmt.Errorf("row %d: category %q does not belong to the selected award group", rowIndex+2, awardName)
@@ -140,6 +160,7 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 			SocialMediaLink:  normalizeText(record[csvHeaderSocial]),
 			DriveLink:        normalizeText(record[csvHeaderDrive]),
 			ExtraDetails:     buildExtraDetails(headers, record),
+			SpecialDetails:   "",
 			IsActive:         true,
 		}
 
@@ -158,13 +179,126 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 		})
 	}
 
+	return s.importPendingRows(ctx, pendingRows, "csv does not contain any importable project rows")
+}
+
+func (s *AdminService) importHallOfFameCSV(
+	ctx context.Context,
+	headers []string,
+	rows [][]string,
+	categoryByName map[string]string,
+	existingByKey map[string]models.Project,
+) (int, error) {
+	variant, categoryName, sectionSpecs, entityHeader, entityLabelTh, entityLabelEn := detectHallOfFameVariant(headers)
+	if variant == "" {
+		return 0, errors.New("unable to determine hall of fame csv variant")
+	}
+
+	categoryID, exists := categoryByName[normalizeLookup(categoryName)]
+	if !exists {
+		return 0, fmt.Errorf("no active category found for hall of fame variant %q", variant)
+	}
+
+	pendingRows := make([]pendingImportRow, 0, len(rows))
+	for rowIndex, rawRow := range rows {
+		record := rowValuesByHeader(headers, rawRow)
+		if rowIsEmpty(record) {
+			continue
+		}
+
+		title := normalizeText(record[entityHeader])
+		if title == "" {
+			continue
+		}
+
+		description := headerValue(record, hofHeaderDescription, hofHeaderDescriptionTypo)
+		if description == "" {
+			return 0, fmt.Errorf("row %d: hall of fame description is required", rowIndex+2)
+		}
+
+		links := []string{
+			normalizeOptionalLink(record[hofHeaderLink1]),
+			normalizeOptionalLink(record[hofHeaderLink2]),
+			normalizeOptionalLink(record[hofHeaderLink3]),
+			normalizeOptionalLink(record[hofHeaderLink4]),
+			normalizeOptionalLink(record[hofHeaderLink5]),
+		}
+
+		sections := make([]models.HallOfFameSection, 0, len(sectionSpecs))
+		for index, spec := range sectionSpecs {
+			content := normalizeText(record[spec.TitleTh])
+			if content == "" {
+				return 0, fmt.Errorf("row %d: hall of fame section %q is required", rowIndex+2, spec.TitleTh)
+			}
+
+			link := ""
+			if index < len(links) {
+				link = links[index]
+			}
+
+			sections = append(sections, models.HallOfFameSection{
+				Key:     spec.Key,
+				TitleTh: spec.TitleTh,
+				TitleEn: spec.TitleEn,
+				Content: content,
+				Link:    link,
+			})
+		}
+
+		details := models.HallOfFameDetails{
+			Variant:            variant,
+			EntityLabelTh:      entityLabelTh,
+			EntityLabelEn:      entityLabelEn,
+			DescriptionLabelTh: "คำอธิบาย",
+			DescriptionLabelEn: "Description",
+			Description:        description,
+			Sections:           sections,
+			Notes:              normalizeText(record[hofHeaderNotes]),
+		}
+		detailsJSON, err := json.Marshal(details)
+		if err != nil {
+			return 0, fmt.Errorf("row %d: unable to encode hall of fame details", rowIndex+2)
+		}
+
+		payload := models.ProjectPayload{
+			CategoryID:       categoryID,
+			Title:            title,
+			ShortDescription: description,
+			FullDescription:  "",
+			Concept:          "",
+			DesignerName:     "",
+			TeamName:         "",
+			ImageURL:         normalizeText(record[hofHeaderLogo]),
+			SocialMediaLink:  "",
+			DriveLink:        "",
+			ExtraDetails:     normalizeText(record[hofHeaderNotes]),
+			SpecialDetails:   string(detailsJSON),
+			IsActive:         true,
+		}
+
+		if err := validateProjectPayload(payload); err != nil {
+			return 0, fmt.Errorf("row %d: %w", rowIndex+2, err)
+		}
+
+		existingProject, hasExisting := existingByKey[projectLookupKey(payload.CategoryID, payload.Title)]
+		pendingRows = append(pendingRows, pendingImportRow{
+			payload:      payload,
+			hasExisting:  hasExisting,
+			existingProj: existingProject,
+		})
+	}
+
+	return s.importPendingRows(ctx, pendingRows, "csv does not contain any importable hall of fame rows")
+}
+
+func (s *AdminService) importPendingRows(ctx context.Context, pendingRows []pendingImportRow, emptyMessage string) (int, error) {
 	payloads := make([]models.ProjectPayload, len(pendingRows))
 	if err := s.prepareImportedImagesInParallel(ctx, pendingRows, payloads); err != nil {
 		return 0, err
 	}
 
 	if len(payloads) == 0 {
-		return 0, errors.New("csv does not contain any importable project rows")
+		return 0, errors.New(emptyMessage)
 	}
 
 	return s.repo.CreateProjectsBatch(ctx, payloads)
@@ -351,6 +485,40 @@ func toGoogleDriveDownloadURL(rawURL string) (string, error) {
 	return "https://drive.google.com/uc?export=download&id=" + fileID, nil
 }
 
+func buildGroupedCategoryMap(categories []models.Category, awardGroupID string) (map[string]string, int) {
+	categoryByName := make(map[string]string)
+	categoryCount := 0
+
+	aliases := hallOfFameCategoryAliases()
+	for _, category := range categories {
+		if category.AwardGroupID == nil || *category.AwardGroupID != awardGroupID {
+			continue
+		}
+		if !category.IsActive {
+			continue
+		}
+
+		normalizedName := normalizeLookup(category.Name)
+		categoryByName[normalizedName] = category.ID
+		for alias, canonical := range aliases {
+			if normalizeLookup(canonical) == normalizedName {
+				categoryByName[normalizeLookup(alias)] = category.ID
+			}
+		}
+		categoryCount++
+	}
+
+	return categoryByName, categoryCount
+}
+
+func buildExistingProjectMap(existingProjects []models.Project) map[string]models.Project {
+	existingByKey := make(map[string]models.Project, len(existingProjects))
+	for _, project := range existingProjects {
+		existingByKey[projectLookupKey(project.CategoryID, project.Title)] = project
+	}
+	return existingByKey
+}
+
 func projectLookupKey(categoryID string, title string) string {
 	return categoryID + "::" + normalizeLookup(title)
 }
@@ -364,6 +532,38 @@ func sanitizeHeaders(headers []string) []string {
 	return sanitized
 }
 
+func hasHeader(headers []string, target string) bool {
+	for _, header := range headers {
+		if header == target {
+			return true
+		}
+	}
+	return false
+}
+
+func detectHallOfFameCSV(headers []string) bool {
+	return hasHeader(headers, hofHeaderCompanyName) || hasHeader(headers, hofHeaderBrandName)
+}
+
+func detectHallOfFameVariant(headers []string) (string, string, []hallOfFameSectionSpec, string, string, string) {
+	if hasHeader(headers, hofHeaderCompanyName) {
+		return models.HallOfFameCompanyVariant, models.HallOfFameCompanyCategoryName, hallOfFameCompanySections, hofHeaderCompanyName, "ชื่อองค์กร", "Organization Name"
+	}
+	if hasHeader(headers, hofHeaderBrandName) {
+		return models.HallOfFameBrandVariant, models.HallOfFameBrandCategoryName, hallOfFameBrandSections, hofHeaderBrandName, "ชื่อแบรนด์", "Brand Name"
+	}
+	return "", "", nil, "", "", ""
+}
+
+func hallOfFameCategoryAliases() map[string]string {
+	return map[string]string{
+		models.HallOfFameCompanyCategoryName:    models.HallOfFameCompanyCategoryName,
+		models.HallOfFameCompanyImportAliasName: models.HallOfFameCompanyCategoryName,
+		models.HallOfFameBrandCategoryName:      models.HallOfFameBrandCategoryName,
+		models.HallOfFameBrandImportAliasName:   models.HallOfFameBrandCategoryName,
+	}
+}
+
 func rowValuesByHeader(headers []string, row []string) map[string]string {
 	record := make(map[string]string, len(headers))
 	for index, header := range headers {
@@ -374,6 +574,18 @@ func rowValuesByHeader(headers []string, row []string) map[string]string {
 		record[header] = normalizeText(row[index])
 	}
 	return record
+}
+
+func headerValue(record map[string]string, primary string, aliases ...string) string {
+	if value := normalizeText(record[primary]); value != "" {
+		return value
+	}
+	for _, alias := range aliases {
+		if value := normalizeText(record[alias]); value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func rowIsEmpty(record map[string]string) bool {
@@ -392,7 +604,17 @@ func normalizeText(value string) string {
 }
 
 func normalizeLookup(value string) string {
+	value = strings.ReplaceAll(value, "\u2019", "'")
+	value = strings.ReplaceAll(value, "\u2018", "'")
 	return strings.ToLower(strings.Join(strings.Fields(normalizeText(value)), " "))
+}
+
+func normalizeOptionalLink(value string) string {
+	value = normalizeText(value)
+	if value == "-" {
+		return ""
+	}
+	return value
 }
 
 func buildExtraDetails(headers []string, record map[string]string) string {

@@ -5,11 +5,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import * as adminApi from '../../api/admin';
 import { ApiError, resolveAssetUrl } from '../../api/client';
+import { HallOfFameProjectDetail } from '../../components/HallOfFameProjectDetail';
 import { ProjectDetailHeader } from '../../components/ProjectDetailHeader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localize } from '../../locales/localize';
 import type { Project, ScoringCriterion } from '../../types/domain';
+import { parseHallOfFameDetails } from '../../utils/hallOfFame';
 
 interface RubricLine {
   range: string;
@@ -115,6 +117,8 @@ export function AdminProjectPreviewPage() {
     return <Alert type="error" showIcon message={errorMessage ?? t('adminProjects.projectNotFound')} />;
   }
 
+  const hallOfFameDetails = parseHallOfFameDetails(project);
+
   return (
     <>
       <div className="pd admin-preview-page">
@@ -130,7 +134,15 @@ export function AdminProjectPreviewPage() {
 
         {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
 
-        <ProjectDetailHeader project={project} onImageClick={() => setImagePreviewOpen(true)} />
+        {hallOfFameDetails ? (
+          <HallOfFameProjectDetail
+            project={project}
+            details={hallOfFameDetails}
+            onImageClick={() => setImagePreviewOpen(true)}
+          />
+        ) : (
+          <ProjectDetailHeader project={project} onImageClick={() => setImagePreviewOpen(true)} />
+        )}
 
         <section className="pd__form">
           <div className="pd__scoring-head">

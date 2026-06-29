@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"unicode/utf8"
 
 	"creativexvoting/backend/internal/models"
@@ -27,6 +29,52 @@ func validateProjectPayload(payload models.ProjectPayload) error {
 	if utf8.RuneCountInString(payload.Concept) > impactMaxLength {
 		return fmt.Errorf("impact must be %d characters or fewer", impactMaxLength)
 	}
+	if err := validateHallOfFameDetails(payload.SpecialDetails); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateHallOfFameDetails(raw string) error {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+
+	var details models.HallOfFameDetails
+	if err := json.Unmarshal([]byte(raw), &details); err != nil {
+		return errors.New("special details must be valid JSON")
+	}
+
+	switch details.Variant {
+	case models.HallOfFameCompanyVariant:
+		if len(details.Sections) != 5 {
+			return errors.New("hall of fame company entries must have exactly 5 sections")
+		}
+	case models.HallOfFameBrandVariant:
+		if len(details.Sections) != 5 {
+			return errors.New("hall of fame brand entries must have exactly 5 sections")
+		}
+	default:
+		return errors.New("special details variant is not supported")
+	}
+
+	if strings.TrimSpace(details.Description) == "" {
+		return errors.New("hall of fame description is required")
+	}
+
+	for _, section := range details.Sections {
+		if strings.TrimSpace(section.Key) == "" {
+			return errors.New("hall of fame section key is required")
+		}
+		if strings.TrimSpace(section.TitleTh) == "" {
+			return errors.New("hall of fame section title is required")
+		}
+		if strings.TrimSpace(section.Content) == "" {
+			return fmt.Errorf("hall of fame section %q must include content", section.TitleTh)
+		}
+	}
+
 	return nil
 }
 

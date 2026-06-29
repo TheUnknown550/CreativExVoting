@@ -5,12 +5,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import * as judgeApi from '../../api/judge';
 import { ApiError, resolveAssetUrl } from '../../api/client';
+import { HallOfFameProjectDetail } from '../../components/HallOfFameProjectDetail';
 import { JudgeStepper } from '../../components/JudgeStepper';
 import { ProjectDetailHeader } from '../../components/ProjectDetailHeader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localize } from '../../locales/localize';
 import type { JudgeProjectCard, JudgeProjectDetail, Vote } from '../../types/domain';
+import { parseHallOfFameDetails } from '../../utils/hallOfFame';
 
 interface RubricLine {
   range: string;
@@ -178,6 +180,7 @@ export function JudgeProjectDetailPage() {
   }
 
   const project = detail.project;
+  const hallOfFameDetails = parseHallOfFameDetails(project);
 
   return (
     <>
@@ -203,17 +206,32 @@ export function JudgeProjectDetailPage() {
           />
         </div>
 
-        <ProjectDetailHeader
-          project={project}
-          onImageClick={() => setImagePreviewOpen(true)}
-          badge={
-            currentIndex >= 0 ? (
-              <span className="pd__badge">
-                {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
-              </span>
-            ) : null
-          }
-        />
+        {hallOfFameDetails ? (
+          <HallOfFameProjectDetail
+            project={project}
+            details={hallOfFameDetails}
+            onImageClick={() => setImagePreviewOpen(true)}
+            badge={
+              currentIndex >= 0 ? (
+                <span className="pd__badge">
+                  {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
+                </span>
+              ) : null
+            }
+          />
+        ) : (
+          <ProjectDetailHeader
+            project={project}
+            onImageClick={() => setImagePreviewOpen(true)}
+            badge={
+              currentIndex >= 0 ? (
+                <span className="pd__badge">
+                  {t('judgeProjectDetail.position', { current: currentIndex + 1, total: siblings.length })}
+                </span>
+              ) : null
+            }
+          />
+        )}
 
         <Form form={form} onFinish={handleFinish} className="pd__form">
           <div className="pd__scoring-head">

@@ -22,8 +22,9 @@ import * as adminApi from '../../api/admin';
 import { ApiError, resolveAssetUrl } from '../../api/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import type { AwardGroup, Category, Project, ProjectPayload } from '../../types/domain';
+import type { AwardGroup, Category, HallOfFameDetails, Project, ProjectPayload } from '../../types/domain';
 import { DESIGN_PROCESS_MAX_LENGTH, IMPACT_MAX_LENGTH, OBJECTIVE_MAX_LENGTH } from '../../utils/projectLimits';
+import { parseHallOfFameDetails } from '../../utils/hallOfFame';
 
 const blankProject: ProjectPayload = {
   category_id: '',
@@ -38,8 +39,33 @@ const blankProject: ProjectPayload = {
   social_media_link: '',
   drive_link: '',
   extra_details: '',
+  special_details: '',
   is_active: true,
 };
+
+const hallOfFameCompanyCategoryName = "Thailand's Most Creative Company of the Year";
+const hallOfFameBrandCategoryName = "Thailand's Most Creative Brand of the Year";
+
+const hallOfFameSectionDefinitions = {
+  [hallOfFameCompanyCategoryName]: [
+    { key: 'resilience', titleTh: 'ความคิดสร้างสรรค์ในการฝ่าอุปสรรค', titleEn: 'Creativity in overcoming obstacles' },
+    { key: 'technology', titleTh: 'ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี', titleEn: 'Expanding creativity with technology' },
+    { key: 'transparency', titleTh: 'ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้', titleEn: 'Creativity through tangible transparency' },
+    { key: 'opportunity', titleTh: 'ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น', titleEn: 'Creativity that opens opportunities for others' },
+    { key: 'ownership', titleTh: 'ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ', titleEn: 'Creativity that builds ownership' },
+  ],
+  [hallOfFameBrandCategoryName]: [
+    { key: 'resilience', titleTh: 'ความคิดสร้างสรรค์ในการฝ่าอุปสรรค', titleEn: 'Creativity in overcoming obstacles' },
+    { key: 'technology', titleTh: 'ขยายขอบเขตความคิดสร้างสรรค์ด้วยเทคโนโลยี', titleEn: 'Expanding creativity with technology' },
+    { key: 'transparency', titleTh: 'ความคิดสร้างสรรค์บนความโปร่งใสที่จับต้องได้', titleEn: 'Creativity through tangible transparency' },
+    { key: 'opportunity', titleTh: 'ความคิดสร้างสรรค์เพื่อเปิดโอกาสให้คนอื่น', titleEn: 'Creativity that opens opportunities for others' },
+    { key: 'ownership', titleTh: 'ความคิดสร้างสรรค์ที่สร้างความเป็นเจ้าของ', titleEn: 'Creativity that builds ownership' },
+  ],
+} as const;
+
+function isHallOfFameCategory(categoryName: string | undefined) {
+  return categoryName === hallOfFameCompanyCategoryName || categoryName === hallOfFameBrandCategoryName;
+}
 
 function isExternalImageValue(value: string | undefined) {
   return Boolean(value && /^(?:[a-z]+:)?\/\//i.test(value));
@@ -49,7 +75,7 @@ export function AdminProjectsPage() {
   const navigate = useNavigate();
   const { token } = useAuth();
   const { t } = useLanguage();
-  const [form] = Form.useForm<ProjectPayload>();
+  const [form] = Form.useForm();
   const [awardGroups, setAwardGroups] = useState<AwardGroup[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -67,6 +93,13 @@ export function AdminProjectsPage() {
   const [messageApi, contextHolder] = message.useMessage();
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageUrl = Form.useWatch('image_url', form);
+  const selectedCategoryId = Form.useWatch('category_id', form);
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const selectedHallOfFameCategoryName = selectedCategory?.name;
+  const showingHallOfFameFields = isHallOfFameCategory(selectedHallOfFameCategoryName);
+  const hallOfFameSections = selectedHallOfFameCategoryName
+    ? hallOfFameSectionDefinitions[selectedHallOfFameCategoryName as keyof typeof hallOfFameSectionDefinitions] ?? []
+    : [];
 
   function openPreview(projectId: string) {
     navigate(`/admin/projects/${projectId}/preview`);
@@ -133,6 +166,7 @@ export function AdminProjectsPage() {
   }
 
   function openEditModal(project: Project) {
+    const hallOfFameDetails = parseHallOfFameDetails(project);
     setEditingProject(project);
     form.setFieldsValue({
       category_id: project.category_id,
@@ -147,25 +181,82 @@ export function AdminProjectsPage() {
       social_media_link: project.social_media_link,
       drive_link: project.drive_link,
       extra_details: project.extra_details,
+      special_details: project.special_details,
       is_active: project.is_active,
+      hof_description: hallOfFameDetails?.description ?? '',
+      hof_notes: hallOfFameDetails?.notes ?? '',
+      hof_entity_label_th: hallOfFameDetails?.entity_label_th ?? '',
+      hof_entity_label_en: hallOfFameDetails?.entity_label_en ?? '',
+      hof_description_label_th: hallOfFameDetails?.description_label_th ?? '',
+      hof_description_label_en: hallOfFameDetails?.description_label_en ?? '',
+      ...Object.fromEntries(
+        (hallOfFameDetails?.sections ?? []).flatMap((section, index) => [
+          [`hof_section_${index}_content`, section.content],
+          [`hof_section_${index}_link`, section.link ?? ''],
+        ]),
+      ),
     });
     setModalOpen(true);
   }
 
-  async function handleSubmit(values: ProjectPayload) {
+  async function handleSubmit(values: Record<string, unknown>) {
     if (!token) {
       return;
     }
 
     const payload: ProjectPayload = {
-      ...values,
+      category_id: String(values.category_id ?? ''),
+      title: String(values.title ?? ''),
+      short_description: String(values.short_description ?? ''),
+      full_description: String(values.full_description ?? ''),
+      concept: String(values.concept ?? ''),
+      designer_name: String(values.designer_name ?? ''),
+      team_name: String(values.team_name ?? ''),
+      image_url: String(values.image_url ?? ''),
       image_source_url:
-        values.image_source_url && values.image_source_url.trim()
+        typeof values.image_source_url === 'string' && values.image_source_url.trim()
           ? values.image_source_url
-          : isExternalImageValue(values.image_url)
-            ? values.image_url
+          : isExternalImageValue(typeof values.image_url === 'string' ? values.image_url : '')
+            ? String(values.image_url ?? '')
             : '',
+      social_media_link: String(values.social_media_link ?? ''),
+      drive_link: String(values.drive_link ?? ''),
+      extra_details: String(values.extra_details ?? ''),
+      special_details: '',
+      is_active: Boolean(values.is_active),
     };
+
+    if (showingHallOfFameFields && selectedHallOfFameCategoryName) {
+      const details: HallOfFameDetails = {
+        variant:
+          selectedHallOfFameCategoryName === hallOfFameCompanyCategoryName
+            ? 'hall_of_fame_company'
+            : 'hall_of_fame_brand',
+        entity_label_th: selectedHallOfFameCategoryName === hallOfFameCompanyCategoryName ? 'ชื่อองค์กร' : 'ชื่อแบรนด์',
+        entity_label_en: selectedHallOfFameCategoryName === hallOfFameCompanyCategoryName ? 'Organization Name' : 'Brand Name',
+        description_label_th: 'คำอธิบาย',
+        description_label_en: 'Description',
+        description: String(values.hof_description ?? ''),
+        sections: hallOfFameSections.map((section, index) => ({
+          key: section.key,
+          title_th: section.titleTh,
+          title_en: section.titleEn,
+          content: String(values[`hof_section_${index}_content`] ?? ''),
+          link: String(values[`hof_section_${index}_link`] ?? ''),
+        })),
+        notes: String(values.hof_notes ?? ''),
+      };
+
+      payload.short_description = details.description;
+      payload.full_description = '';
+      payload.concept = '';
+      payload.designer_name = '';
+      payload.team_name = '';
+      payload.social_media_link = '';
+      payload.drive_link = '';
+      payload.extra_details = details.notes ?? '';
+      payload.special_details = JSON.stringify(details);
+    }
 
     setSaving(true);
     try {
@@ -412,7 +503,13 @@ export function AdminProjectsPage() {
                 </Form.Item>
                 <Form.Item
                   name="title"
-                  label={t('adminProjects.projectTitle')}
+                  label={
+                    showingHallOfFameFields
+                      ? selectedHallOfFameCategoryName === hallOfFameCompanyCategoryName
+                        ? 'ชื่อองค์กร'
+                        : 'ชื่อแบรนด์'
+                      : t('adminProjects.projectTitle')
+                  }
                   rules={[{ required: true }]}
                   className="admin-form-grid__full"
                 >
@@ -492,6 +589,37 @@ export function AdminProjectsPage() {
                 {t('adminProjects.sectionDetails')}
               </Typography.Title>
               <div className="admin-form-grid">
+                {showingHallOfFameFields ? (
+                  <>
+                    <Form.Item
+                      name="hof_description"
+                      label="คำอธิบาย"
+                      className="admin-form-grid__full"
+                      rules={[{ required: true, message: 'Description is required.' }]}
+                    >
+                      <Input.TextArea rows={4} />
+                    </Form.Item>
+                    {hallOfFameSections.map((section, index) => (
+                      <div className="admin-form-grid__full" key={section.key}>
+                        <Form.Item
+                          name={`hof_section_${index}_content`}
+                          label={section.titleTh}
+                          rules={[{ required: true, message: 'Section content is required.' }]}
+                        >
+                          <Input.TextArea rows={4} />
+                        </Form.Item>
+                        <Form.Item name={`hof_section_${index}_link`} label={`Link ${index + 1}`}>
+                          <Input />
+                        </Form.Item>
+                      </div>
+                    ))}
+                    <Form.Item name="hof_notes" label="หมายเหตุ" className="admin-form-grid__full">
+                      <Input.TextArea rows={3} />
+                    </Form.Item>
+                  </>
+                ) : null}
+                {!showingHallOfFameFields ? (
+                  <>
                 <Form.Item name="team_name" label={t('adminProjects.teamName')}>
                   <Input />
                 </Form.Item>
@@ -525,9 +653,12 @@ export function AdminProjectsPage() {
                 >
                   <Input.TextArea rows={3} maxLength={OBJECTIVE_MAX_LENGTH} showCount />
                 </Form.Item>
+                  </>
+                ) : null}
               </div>
             </section>
 
+            {!showingHallOfFameFields ? (
             <section className="admin-form-section">
               <Typography.Title level={5} className="admin-form-section__title">
                 {t('adminProjects.sectionNarrative')}
@@ -568,6 +699,7 @@ export function AdminProjectsPage() {
                 </Form.Item>
               </div>
             </section>
+            ) : null}
           </div>
         </Form>
       </Modal>

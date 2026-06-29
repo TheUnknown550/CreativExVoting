@@ -155,7 +155,7 @@ func (r *JudgeRepository) GetProjectDetail(ctx context.Context, judgeID string, 
 		SELECT
 			p.id, p.category_id, c.name, p.title, p.short_description, p.full_description, p.concept,
 			p.designer_name, p.team_name, p.image_url, COALESCE(p.image_source_url, ''), p.social_media_link,
-			p.drive_link, p.extra_details, p.is_active, p.created_at, p.updated_at
+			p.drive_link, p.extra_details, COALESCE(p.special_details, ''), p.is_active, p.created_at, p.updated_at
 		FROM projects p
 		JOIN categories c ON c.id = p.category_id
 		JOIN judge_group_assignments a ON a.group_id = c.award_group_id AND a.judge_id = $1

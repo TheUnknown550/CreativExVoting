@@ -33,6 +33,7 @@ type ProjectPayload struct {
 	SocialMediaLink  string `json:"social_media_link"`
 	DriveLink        string `json:"drive_link"`
 	ExtraDetails     string `json:"extra_details"`
+	SpecialDetails   string `json:"special_details"`
 	IsActive         bool   `json:"is_active"`
 }
 
