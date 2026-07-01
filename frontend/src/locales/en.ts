@@ -18,10 +18,10 @@ export const en = {
     bannerTitle: 'CE Awards 2026',
     headline: 'CREATIVE EXCELLENCE AWARDS 2026',
     intro:
-      'Enter the official voting system for CE Awards judging. Review assigned categories, score nominees against live criteria, and export the final award results from one platform.',
+      'Website for voting in the Creative Excellence Awards 2026 by the Creative Economy Agency (Public Organization) — CEA',
     statAwards: 'Awards',
     statNominatedWorks: 'Nominated Works',
-    statVotingWindowLabel: 'Voting Window',
+    statVotingWindowLabel: 'Days Of Voting Period',
     statEnded: 'Ended',
     title: 'LOG IN',
     username: 'Username',
