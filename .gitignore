@@ -5,7 +5,6 @@ backend/server.exe~
 backend/uploads/
 frontend/.env
 frontend/dist
-docs/
 tmp/*.log
 tmp/run-logs/
 .env.prod
