@@ -247,21 +247,26 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 	return project, err
 }
 
-func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []models.ProjectPayload) (int, error) {
+// CreateProjectsBatch inserts or updates one project per payload and returns
+// the resulting project IDs in the same order as payloads, so callers can
+// resolve slow follow-up work (e.g. image downloads) against the right row.
+func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []models.ProjectPayload) ([]string, error) {
 	if len(payloads) == 0 {
-		return 0, nil
+		return nil, nil
 	}
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer tx.Rollback(ctx)
 
-	for _, payload := range payloads {
+	ids := make([]string, len(payloads))
+
+	for i, payload := range payloads {
 		existingProjectID, err := r.findProjectIDByCategoryAndTitleTx(ctx, tx, payload.CategoryID, payload.Title)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 
 		if existingProjectID != "" {
@@ -285,8 +290,9 @@ func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []mo
 				payload.DesignerName, payload.TeamName, payload.ImageURL, payload.ImageSourceURL, payload.SocialMediaLink,
 				payload.DriveLink, payload.ExtraDetails, payload.SpecialDetails, payload.IsActive,
 			); err != nil {
-				return 0, err
+				return nil, err
 			}
+			ids[i] = existingProjectID
 			continue
 		}
 
@@ -319,15 +325,27 @@ func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []mo
 			project.DesignerName, project.TeamName, project.ImageURL, project.ImageSourceURL, project.SocialMediaLink,
 			project.DriveLink, project.ExtraDetails, project.SpecialDetails, project.IsActive,
 		); err != nil {
-			return 0, err
+			return nil, err
 		}
+		ids[i] = project.ID
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return len(payloads), nil
+	return ids, nil
+}
+
+// UpdateProjectImage sets only the image fields on a project, used by the
+// background image-resolution job that follows a CSV import.
+func (r *AdminRepository) UpdateProjectImage(ctx context.Context, id string, imageURL string, imageSourceURL string) error {
+	_, err := r.pool.Exec(ctx, `
+		UPDATE projects
+		SET image_url = $2, image_source_url = $3, updated_at = NOW()
+		WHERE id = $1
+	`, id, imageURL, imageSourceURL)
+	return err
 }
 
 func (r *AdminRepository) findProjectIDByCategoryAndTitleTx(ctx context.Context, tx pgx.Tx, categoryID string, title string) (string, error) {

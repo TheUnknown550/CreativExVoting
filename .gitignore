@@ -2,6 +2,7 @@ backend/.env
 backend/server
 backend/server.exe
 backend/server.exe~
+backend/uploads/
 frontend/.env
 frontend/dist
 docs/

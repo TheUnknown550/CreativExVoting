@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -291,88 +292,124 @@ func (s *AdminService) importHallOfFameCSV(
 	return s.importPendingRows(ctx, pendingRows, "csv does not contain any importable hall of fame rows")
 }
 
-func (s *AdminService) importPendingRows(ctx context.Context, pendingRows []pendingImportRow, emptyMessage string) (int, error) {
-	payloads := make([]models.ProjectPayload, len(pendingRows))
-	if err := s.prepareImportedImagesInParallel(ctx, pendingRows, payloads); err != nil {
-		return 0, err
-	}
+// imageImportJob is a unit of deferred work: a project that was already
+// created/updated in the database but whose image still needs to be fetched.
+type imageImportJob struct {
+	projectID string
+	sourceURL string
+}
 
-	if len(payloads) == 0 {
+// importPendingRows creates/updates all rows immediately (fast, DB only) and
+// returns as soon as that's done. Any row whose image can't be resolved from
+// cache is left with a blank image_url and handed off to a background
+// goroutine, so a CSV with many Google-Drive-hosted images can't cause the
+// request to time out.
+func (s *AdminService) importPendingRows(ctx context.Context, pendingRows []pendingImportRow, emptyMessage string) (int, error) {
+	if len(pendingRows) == 0 {
 		return 0, errors.New(emptyMessage)
 	}
 
-	return s.repo.CreateProjectsBatch(ctx, payloads)
+	payloads := make([]models.ProjectPayload, len(pendingRows))
+	pendingImageRows := make([]int, 0)
+
+	for i, row := range pendingRows {
+		payload := row.payload
+		imageURL, imageSourceURL, resolved := cachedImportedImage(payload.ImageURL, row.hasExisting, row.existingProj)
+		payload.ImageURL = imageURL
+		payload.ImageSourceURL = imageSourceURL
+		payloads[i] = payload
+		if !resolved {
+			pendingImageRows = append(pendingImageRows, i)
+		}
+	}
+
+	ids, err := s.repo.CreateProjectsBatch(ctx, payloads)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(pendingImageRows) > 0 {
+		jobs := make([]imageImportJob, 0, len(pendingImageRows))
+		for _, i := range pendingImageRows {
+			jobs = append(jobs, imageImportJob{projectID: ids[i], sourceURL: payloads[i].ImageSourceURL})
+		}
+		go s.resolveImportedImagesAsync(jobs)
+	}
+
+	return len(ids), nil
 }
 
-func (s *AdminService) prepareImportedImagesInParallel(
-	ctx context.Context,
-	rows []pendingImportRow,
-	out []models.ProjectPayload,
-) error {
-	workerCount := min(maxParallelImageImports, len(rows))
-	if workerCount <= 0 {
-		return nil
+// cachedImportedImage resolves a CSV row's image without any network calls.
+// resolved is true when nothing further needs to happen: there's no image,
+// or an existing project already has a real stored image for this exact
+// source URL. The ImageURL != "" check matters because it lets a re-import
+// retry a row whose previous background download failed or was interrupted,
+// instead of "caching" a permanently blank image.
+func cachedImportedImage(rawURL string, hasExisting bool, existing models.Project) (imageURL string, imageSourceURL string, resolved bool) {
+	sourceURL := normalizeText(rawURL)
+	if sourceURL == "" {
+		return "", "", true
 	}
+
+	if hasExisting && existing.ImageURL != "" && normalizeText(existing.ImageSourceURL) == sourceURL {
+		return existing.ImageURL, existing.ImageSourceURL, true
+	}
+
+	return "", sourceURL, false
+}
+
+// resolveImportedImagesAsync downloads/validates images for freshly
+// imported/updated projects after the import request has already responded.
+// It deliberately runs against context.Background(), not the request
+// context, so it isn't cut short by the request timeout middleware.
+// Failures are logged, not surfaced anywhere, since there's no request left
+// to report them to; the affected project simply keeps a blank image until
+// a later re-import retries it.
+func (s *AdminService) resolveImportedImagesAsync(jobs []imageImportJob) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("csv import: recovered from panic while resolving images: %v", r)
+		}
+	}()
+
+	ctx := context.Background()
+
+	workerCount := min(maxParallelImageImports, len(jobs))
 	workerCount = min(workerCount, runtime.NumCPU())
 	if workerCount < 1 {
 		workerCount = 1
 	}
 
-	type job struct {
-		index int
-		row   pendingImportRow
-	}
-
-	jobs := make(chan job)
+	jobCh := make(chan imageImportJob)
 	var wg sync.WaitGroup
 
 	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for current := range jobs {
-				payload := current.row.payload
-				payload.ImageURL, payload.ImageSourceURL = s.prepareImportedImage(
-					ctx,
-					payload.ImageURL,
-					current.row.hasExisting,
-					current.row.existingProj,
-				)
-				out[current.index] = payload
+			for job := range jobCh {
+				imageURL, imageSourceURL := s.prepareImportedImage(ctx, job.sourceURL)
+				if imageURL == "" {
+					log.Printf("csv import: failed to fetch image for project %s from %q", job.projectID, job.sourceURL)
+				}
+				if err := s.repo.UpdateProjectImage(ctx, job.projectID, imageURL, imageSourceURL); err != nil {
+					log.Printf("csv import: failed to save image for project %s: %v", job.projectID, err)
+				}
 			}
 		}()
 	}
 
-	for index, row := range rows {
-		select {
-		case <-ctx.Done():
-			close(jobs)
-			wg.Wait()
-			return ctx.Err()
-		case jobs <- job{index: index, row: row}:
-		}
+	for _, job := range jobs {
+		jobCh <- job
 	}
-
-	close(jobs)
+	close(jobCh)
 	wg.Wait()
-
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func (s *AdminService) prepareImportedImage(ctx context.Context, rawURL string, hasExisting bool, existing models.Project) (string, string) {
-	sourceURL := normalizeText(rawURL)
-	if sourceURL == "" {
-		return "", ""
-	}
-
-	if hasExisting && normalizeText(existing.ImageSourceURL) == sourceURL {
-		return existing.ImageURL, existing.ImageSourceURL
-	}
-
+// prepareImportedImage resolves a single image source URL: it downloads and
+// re-encodes Google Drive links, passes direct image URLs through as-is, and
+// probes anything else with a HEAD request to check it's actually an image.
+func (s *AdminService) prepareImportedImage(ctx context.Context, sourceURL string) (string, string) {
 	if isGoogleDriveURL(sourceURL) {
 		imageURL, err := s.downloadAndStoreImportedImage(ctx, sourceURL)
 		if err != nil {
