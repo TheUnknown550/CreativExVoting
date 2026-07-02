@@ -366,12 +366,6 @@ func cachedImportedImage(rawURL string, hasExisting bool, existing models.Projec
 // to report them to; the affected project simply keeps a blank image until
 // a later re-import retries it.
 func (s *AdminService) resolveImportedImagesAsync(jobs []imageImportJob) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("csv import: recovered from panic while resolving images: %v", r)
-		}
-	}()
-
 	ctx := context.Background()
 
 	workerCount := min(maxParallelImageImports, len(jobs))
@@ -388,13 +382,7 @@ func (s *AdminService) resolveImportedImagesAsync(jobs []imageImportJob) {
 		go func() {
 			defer wg.Done()
 			for job := range jobCh {
-				imageURL, imageSourceURL := s.prepareImportedImage(ctx, job.sourceURL)
-				if imageURL == "" {
-					log.Printf("csv import: failed to fetch image for project %s from %q", job.projectID, job.sourceURL)
-				}
-				if err := s.repo.UpdateProjectImage(ctx, job.projectID, imageURL, imageSourceURL); err != nil {
-					log.Printf("csv import: failed to save image for project %s: %v", job.projectID, err)
-				}
+				s.resolveImportedImageJob(ctx, job)
 			}
 		}()
 	}
@@ -404,6 +392,29 @@ func (s *AdminService) resolveImportedImagesAsync(jobs []imageImportJob) {
 	}
 	close(jobCh)
 	wg.Wait()
+}
+
+// resolveImportedImageJob handles a single job on a worker goroutine. The
+// recover here is deliberately per-job, on the same goroutine that runs
+// prepareImportedImage/UpdateProjectImage: recover() only catches a panic on
+// its own goroutine's stack, so putting it in resolveImportedImagesAsync
+// instead (a different goroutine than the workers) would not stop a panic
+// from crashing the whole process. Scoping it per-job also means one bad
+// image can't take the rest of that worker's queue down with it.
+func (s *AdminService) resolveImportedImageJob(ctx context.Context, job imageImportJob) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("csv import: recovered from panic while resolving image for project %s: %v", job.projectID, r)
+		}
+	}()
+
+	imageURL, imageSourceURL := s.prepareImportedImage(ctx, job.sourceURL)
+	if imageURL == "" {
+		log.Printf("csv import: failed to fetch image for project %s from %q", job.projectID, job.sourceURL)
+	}
+	if err := s.repo.UpdateProjectImage(ctx, job.projectID, imageURL, imageSourceURL); err != nil {
+		log.Printf("csv import: failed to save image for project %s: %v", job.projectID, err)
+	}
 }
 
 // prepareImportedImage resolves a single image source URL: it downloads and
