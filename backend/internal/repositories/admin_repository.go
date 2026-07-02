@@ -247,12 +247,24 @@ func (r *AdminRepository) CreateProject(ctx context.Context, payload models.Proj
 	return project, err
 }
 
-// CreateProjectsBatch inserts or updates one project per payload and returns
-// the resulting project IDs in the same order as payloads, so callers can
-// resolve slow follow-up work (e.g. image downloads) against the right row.
-func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []models.ProjectPayload) ([]string, error) {
+// CreateProjectsBatch inserts or updates one project per payload at the
+// caller-supplied id and returns the same ids back, so callers can resolve
+// slow follow-up work (e.g. image downloads) against the right row.
+//
+// The caller (not this function) decides whether an id is new or belongs to
+// an existing project: it must resolve that match using the same normalized
+// title comparison used everywhere else in the CSV importer
+// (projectLookupKey/normalizeLookup). An earlier version of this function
+// re-derived the match itself with a SQL "LOWER(TRIM(title))" lookup, which
+// only strips leading/trailing whitespace; re-exported CSVs with slightly
+// different internal whitespace in a title (tabs, blank lines) then failed
+// to match and silently inserted duplicate rows.
+func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []models.ProjectPayload, ids []string) ([]string, error) {
 	if len(payloads) == 0 {
 		return nil, nil
+	}
+	if len(ids) != len(payloads) {
+		return nil, fmt.Errorf("ids and payloads must have the same length")
 	}
 
 	tx, err := r.pool.Begin(ctx)
@@ -261,57 +273,35 @@ func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []mo
 	}
 	defer tx.Rollback(ctx)
 
-	ids := make([]string, len(payloads))
-
 	for i, payload := range payloads {
-		existingProjectID, err := r.findProjectIDByCategoryAndTitleTx(ctx, tx, payload.CategoryID, payload.Title)
+		id := ids[i]
+
+		tag, err := tx.Exec(ctx, `
+			UPDATE projects
+			SET short_description = $2,
+				full_description = $3,
+				concept = $4,
+				designer_name = $5,
+				team_name = $6,
+				image_url = $7,
+				image_source_url = $8,
+				social_media_link = $9,
+				drive_link = $10,
+				extra_details = $11,
+				special_details = $12,
+				is_active = $13,
+				updated_at = NOW()
+			WHERE id = $1
+		`, id, payload.ShortDescription, payload.FullDescription, payload.Concept,
+			payload.DesignerName, payload.TeamName, payload.ImageURL, payload.ImageSourceURL, payload.SocialMediaLink,
+			payload.DriveLink, payload.ExtraDetails, payload.SpecialDetails, payload.IsActive,
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		if existingProjectID != "" {
-			if _, err := tx.Exec(ctx, `
-				UPDATE projects
-				SET short_description = $2,
-					full_description = $3,
-					concept = $4,
-					designer_name = $5,
-					team_name = $6,
-					image_url = $7,
-					image_source_url = $8,
-					social_media_link = $9,
-					drive_link = $10,
-					extra_details = $11,
-					special_details = $12,
-					is_active = $13,
-					updated_at = NOW()
-				WHERE id = $1
-			`, existingProjectID, payload.ShortDescription, payload.FullDescription, payload.Concept,
-				payload.DesignerName, payload.TeamName, payload.ImageURL, payload.ImageSourceURL, payload.SocialMediaLink,
-				payload.DriveLink, payload.ExtraDetails, payload.SpecialDetails, payload.IsActive,
-			); err != nil {
-				return nil, err
-			}
-			ids[i] = existingProjectID
+		if tag.RowsAffected() > 0 {
 			continue
-		}
-
-		project := models.Project{
-			ID:               uuid.NewString(),
-			CategoryID:       payload.CategoryID,
-			Title:            payload.Title,
-			ShortDescription: payload.ShortDescription,
-			FullDescription:  payload.FullDescription,
-			Concept:          payload.Concept,
-			DesignerName:     payload.DesignerName,
-			TeamName:         payload.TeamName,
-			ImageURL:         payload.ImageURL,
-			ImageSourceURL:   payload.ImageSourceURL,
-			SocialMediaLink:  payload.SocialMediaLink,
-			DriveLink:        payload.DriveLink,
-			ExtraDetails:     payload.ExtraDetails,
-			SpecialDetails:   payload.SpecialDetails,
-			IsActive:         payload.IsActive,
 		}
 
 		if _, err := tx.Exec(ctx, `
@@ -321,13 +311,12 @@ func (r *AdminRepository) CreateProjectsBatch(ctx context.Context, payloads []mo
 					is_active, created_at, updated_at
 				)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
-			`, project.ID, project.CategoryID, project.Title, project.ShortDescription, project.FullDescription, project.Concept,
-			project.DesignerName, project.TeamName, project.ImageURL, project.ImageSourceURL, project.SocialMediaLink,
-			project.DriveLink, project.ExtraDetails, project.SpecialDetails, project.IsActive,
+			`, id, payload.CategoryID, payload.Title, payload.ShortDescription, payload.FullDescription, payload.Concept,
+			payload.DesignerName, payload.TeamName, payload.ImageURL, payload.ImageSourceURL, payload.SocialMediaLink,
+			payload.DriveLink, payload.ExtraDetails, payload.SpecialDetails, payload.IsActive,
 		); err != nil {
 			return nil, err
 		}
-		ids[i] = project.ID
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -346,23 +335,6 @@ func (r *AdminRepository) UpdateProjectImage(ctx context.Context, id string, ima
 		WHERE id = $1
 	`, id, imageURL, imageSourceURL)
 	return err
-}
-
-func (r *AdminRepository) findProjectIDByCategoryAndTitleTx(ctx context.Context, tx pgx.Tx, categoryID string, title string) (string, error) {
-	var projectID string
-	err := tx.QueryRow(ctx, `
-		SELECT id
-		FROM projects
-		WHERE category_id = $1 AND LOWER(TRIM(title)) = LOWER(TRIM($2))
-		LIMIT 1
-	`, categoryID, title).Scan(&projectID)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return "", nil
-		}
-		return "", err
-	}
-	return projectID, nil
 }
 
 // UpdateProject updates a project and returns the project's previous

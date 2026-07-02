@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"creativexvoting/backend/internal/models"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -88,6 +90,32 @@ type pendingImportRow struct {
 	payload      models.ProjectPayload
 	hasExisting  bool
 	existingProj models.Project
+	resolvedID   string
+}
+
+// resolvePendingProject matches a payload against already-known projects
+// using the same normalized title comparison (projectLookupKey/
+// normalizeLookup) everywhere in this importer, and settles on the exact id
+// CreateProjectsBatch should write to. When there's no match it mints a new
+// id and records it in existingByKey immediately, so a later row in the same
+// CSV with the same (category, title) updates this row instead of minting
+// its own duplicate.
+func resolvePendingProject(existingByKey map[string]models.Project, payload models.ProjectPayload) pendingImportRow {
+	key := projectLookupKey(payload.CategoryID, payload.Title)
+	existingProject, hasExisting := existingByKey[key]
+
+	resolvedID := existingProject.ID
+	if !hasExisting {
+		resolvedID = uuid.NewString()
+		existingByKey[key] = models.Project{ID: resolvedID, CategoryID: payload.CategoryID, Title: payload.Title}
+	}
+
+	return pendingImportRow{
+		payload:      payload,
+		hasExisting:  hasExisting,
+		existingProj: existingProject,
+		resolvedID:   resolvedID,
+	}
 }
 
 func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID string, file io.Reader) (int, error) {
@@ -172,12 +200,7 @@ func (s *AdminService) ImportProjectsCSV(ctx context.Context, awardGroupID strin
 			return 0, fmt.Errorf("row %d: %w", rowIndex+2, err)
 		}
 
-		existingProject, hasExisting := existingByKey[projectLookupKey(payload.CategoryID, payload.Title)]
-		pendingRows = append(pendingRows, pendingImportRow{
-			payload:      payload,
-			hasExisting:  hasExisting,
-			existingProj: existingProject,
-		})
+		pendingRows = append(pendingRows, resolvePendingProject(existingByKey, payload))
 	}
 
 	return s.importPendingRows(ctx, pendingRows, "csv does not contain any importable project rows")
@@ -281,12 +304,7 @@ func (s *AdminService) importHallOfFameCSV(
 			return 0, fmt.Errorf("row %d: %w", rowIndex+2, err)
 		}
 
-		existingProject, hasExisting := existingByKey[projectLookupKey(payload.CategoryID, payload.Title)]
-		pendingRows = append(pendingRows, pendingImportRow{
-			payload:      payload,
-			hasExisting:  hasExisting,
-			existingProj: existingProject,
-		})
+		pendingRows = append(pendingRows, resolvePendingProject(existingByKey, payload))
 	}
 
 	return s.importPendingRows(ctx, pendingRows, "csv does not contain any importable hall of fame rows")
@@ -310,6 +328,7 @@ func (s *AdminService) importPendingRows(ctx context.Context, pendingRows []pend
 	}
 
 	payloads := make([]models.ProjectPayload, len(pendingRows))
+	ids := make([]string, len(pendingRows))
 	pendingImageRows := make([]int, 0)
 
 	for i, row := range pendingRows {
@@ -318,12 +337,13 @@ func (s *AdminService) importPendingRows(ctx context.Context, pendingRows []pend
 		payload.ImageURL = imageURL
 		payload.ImageSourceURL = imageSourceURL
 		payloads[i] = payload
+		ids[i] = row.resolvedID
 		if !resolved {
 			pendingImageRows = append(pendingImageRows, i)
 		}
 	}
 
-	ids, err := s.repo.CreateProjectsBatch(ctx, payloads)
+	ids, err := s.repo.CreateProjectsBatch(ctx, payloads, ids)
 	if err != nil {
 		return 0, err
 	}
